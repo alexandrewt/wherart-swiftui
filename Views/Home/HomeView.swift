@@ -14,10 +14,15 @@ struct HomeView: View {
     @State private var search = ""
     @State private var sortBy: SortOption = .relevance
     @State private var showSortMenu = false
+    @State private var showFilters = false
+    @State private var filters = AppFilters()
     @State private var selectedExhibition: Exhibition? = nil
 
+    var activeFiltersCount: Int {
+        filters.types.count + filters.venues.count + filters.prices.count + filters.distances.count
+    }
+
     var body: some View {
-        NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
 
@@ -47,9 +52,26 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showSortMenu = true }) {
-                        Image(systemName: "arrow.up.arrow.down")
-                            .font(.system(size: 15, weight: .medium))
+                    HStack(spacing: 12) {
+                        Button(action: { showFilters = true }) {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "slider.horizontal.3")
+                                    .font(.system(size: 15, weight: .medium))
+                                if activeFiltersCount > 0 {
+                                    Text("\(activeFiltersCount)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 14, height: 14)
+                                        .background(Color.blue)
+                                        .clipShape(Circle())
+                                        .offset(x: 6, y: -6)
+                                }
+                            }
+                        }
+                        Button(action: { showSortMenu = true }) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .font(.system(size: 15, weight: .medium))
+                        }
                     }
                 }
             }
@@ -59,11 +81,14 @@ struct HomeView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
+            .sheet(isPresented: $showFilters) {
+                FilterSheet(filters: $filters)
+                    .presentationDetents([.large])
+            }
             .navigationDestination(item: $selectedExhibition) { exhibition in
                 ExhibitionDetailView(exhibition: exhibition)
             }
-        }
-        .task {
+                    .task {
             await loadData()
         }
     }
@@ -165,16 +190,30 @@ struct HomeView: View {
     }
 
     private var filteredExhibitions: [Exhibition] {
-        guard !search.isEmpty else { return exhibitions }
-        return exhibitions.filter {
-            $0.title.localizedCaseInsensitiveContains(search) ||
-            $0.venue.localizedCaseInsensitiveContains(search)
+        exhibitions.filter { e in
+            let matchSearch = search.isEmpty ||
+                e.title.localizedCaseInsensitiveContains(search) ||
+                e.venue.localizedCaseInsensitiveContains(search)
+            let matchType = filters.types.isEmpty || filters.types.contains(e.type)
+            let matchVenue = filters.venues.isEmpty || filters.venues.contains(e.venueType)
+            let matchPrice = filters.prices.isEmpty ||
+                (filters.prices.contains("Free") && e.isFree) ||
+                (filters.prices.contains("Paid") && !e.isFree)
+            let matchDist: Bool = {
+                guard !filters.distances.isEmpty, let dist = e.distance else { return true }
+                if filters.distances.contains("Under 1 km") && dist < 1 { return true }
+                if filters.distances.contains("1 - 3 km") && dist >= 1 && dist < 3 { return true }
+                if filters.distances.contains("3 - 5 km") && dist >= 3 && dist < 5 { return true }
+                if filters.distances.contains("Over 5 km") && dist >= 5 { return true }
+                return false
+            }()
+            return matchSearch && matchType && matchVenue && matchPrice && matchDist
         }
     }
 
     private func matchesProfile(_ exhibition: Exhibition) -> Bool {
-        let prefs = profile?.preferences ?? []
-        let venues = profile?.venueTypes ?? []
+        let prefs = filters.types.isEmpty ? (profile?.preferences ?? []) : filters.types
+        let venues = filters.venues.isEmpty ? (profile?.venueTypes ?? []) : filters.venues
         if prefs.isEmpty && venues.isEmpty { return true }
         let typeMatch = prefs.isEmpty || prefs.contains(exhibition.type)
         let venueMatch = venues.isEmpty || venues.contains(exhibition.venueType)
@@ -213,25 +252,19 @@ struct HomeView: View {
     // MARK: - Data
     private func loadData() async {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
-
         await locationManager.requestLocation()
-
         async let profileTask = SupabaseService.shared.fetchProfile(userId: userId)
         async let exhibitionsTask = SupabaseService.shared.fetchExhibitions()
         async let interactionsTask = SupabaseService.shared.fetchInteractions(userId: userId)
-
         do {
             let (fetchedProfile, fetchedExhibitions, interactions) = try await (profileTask, exhibitionsTask, interactionsTask)
-
             let userLat = locationManager.location?.coordinate.latitude ?? 48.8566
             let userLng = locationManager.location?.coordinate.longitude ?? 2.3522
-
             let withDistance = fetchedExhibitions.map { ex -> Exhibition in
                 var e = ex
                 e.distance = haversine(lat1: userLat, lon1: userLng, lat2: ex.lat, lon2: ex.lng)
                 return e
             }
-
             await MainActor.run {
                 self.profile = fetchedProfile
                 self.exhibitions = withDistance
@@ -248,17 +281,12 @@ struct HomeView: View {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
         let wasFavorite = favoriteIds.contains(exhibition.id)
         await MainActor.run {
-            if wasFavorite {
-                favoriteIds.removeAll { $0 == exhibition.id }
-            } else {
-                favoriteIds.append(exhibition.id)
-            }
+            if wasFavorite { favoriteIds.removeAll { $0 == exhibition.id } }
+            else { favoriteIds.append(exhibition.id) }
         }
         try? await SupabaseService.shared.upsertInteraction(
-            userId: userId,
-            exhibitionId: exhibition.id,
-            isFavorite: !wasFavorite,
-            isViewed: viewedIds.contains(exhibition.id)
+            userId: userId, exhibitionId: exhibition.id,
+            isFavorite: !wasFavorite, isViewed: viewedIds.contains(exhibition.id)
         )
     }
 
@@ -266,17 +294,12 @@ struct HomeView: View {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
         let wasViewed = viewedIds.contains(exhibition.id)
         await MainActor.run {
-            if wasViewed {
-                viewedIds.removeAll { $0 == exhibition.id }
-            } else {
-                viewedIds.append(exhibition.id)
-            }
+            if wasViewed { viewedIds.removeAll { $0 == exhibition.id } }
+            else { viewedIds.append(exhibition.id) }
         }
         try? await SupabaseService.shared.upsertInteraction(
-            userId: userId,
-            exhibitionId: exhibition.id,
-            isFavorite: favoriteIds.contains(exhibition.id),
-            isViewed: !wasViewed
+            userId: userId, exhibitionId: exhibition.id,
+            isFavorite: favoriteIds.contains(exhibition.id), isViewed: !wasViewed
         )
     }
 
@@ -294,7 +317,6 @@ struct HomeView: View {
 // MARK: - Sort Option
 enum SortOption: String, CaseIterable {
     case relevance, closest, endingSoon, priceAsc, priceDesc, durationAsc
-
     var label: String {
         switch self {
         case .relevance: return "Relevance"
@@ -335,23 +357,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
 // MARK: - Shimmer
 extension View {
-    func shimmering() -> some View {
-        self.modifier(ShimmerModifier())
-    }
+    func shimmering() -> some View { self.modifier(ShimmerModifier()) }
 }
 
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
-
     func body(content: Content) -> some View {
         content
             .overlay(
                 LinearGradient(
-                    gradient: Gradient(colors: [
-                        .clear,
-                        Color.white.opacity(0.4),
-                        .clear
-                    ]),
+                    gradient: Gradient(colors: [.clear, Color.white.opacity(0.4), .clear]),
                     startPoint: .init(x: phase - 0.3, y: 0.5),
                     endPoint: .init(x: phase + 0.3, y: 0.5)
                 )

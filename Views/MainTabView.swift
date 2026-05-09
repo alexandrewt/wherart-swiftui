@@ -7,11 +7,13 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
 
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
-                }
-                .tag(0)
+            NavigationStack {
+                HomeView()
+            }
+            .tabItem {
+                Label("Home", systemImage: "house.fill")
+            }
+            .tag(0)
 
             NavigationStack {
                 MapView()
@@ -34,7 +36,6 @@ struct MainTabView: View {
                 .tag(3)
         }
         .tint(.white)
-        .preferredColorScheme(.dark)
     }
 }
 

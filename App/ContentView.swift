@@ -26,7 +26,6 @@ struct ContentView: View {
                 LoginView()
             }
         }
-        .preferredColorScheme(.dark)
         .onChange(of: service.isAuthenticated) { authenticated in
             if authenticated {
                 checkOnboardingStatus()

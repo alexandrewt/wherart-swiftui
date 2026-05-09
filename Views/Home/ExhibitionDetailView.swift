@@ -27,15 +27,16 @@ struct ExhibitionDetailView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 320)
+                    .frame(height: 360)
                     .clipped()
 
                     LinearGradient(
-                        colors: [.clear, .black.opacity(0.7)],
+                        colors: [.clear, .black.opacity(0.75)],
                         startPoint: .center,
                         endPoint: .bottom
                     )
-                    .frame(height: 320)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 360)
 
                     VStack(alignment: .leading, spacing: 6) {
                         TagBadge(label: exhibition.type, color: Color(red: 0.58, green: 0.77, blue: 0.99))
@@ -47,10 +48,13 @@ struct ExhibitionDetailView: View {
                             .foregroundColor(.white.opacity(0.85))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(20)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.leading, -20)
 
+                // MARK: - Content
                 VStack(alignment: .leading, spacing: 24) {
 
                     HStack(spacing: 12) {
@@ -71,7 +75,6 @@ struct ExhibitionDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Available visits")
                             .font(.system(size: 16, weight: .semibold))
-
                         RoundedRectangle(cornerRadius: 16)
                             .fill(visitsCount ?? 0 > 0 ? Color.green.opacity(0.1) : Color(.systemGray6))
                             .frame(height: 52)
@@ -162,20 +165,19 @@ struct ExhibitionDetailView: View {
                             }
                         }
                     }
+                    .padding(.bottom, 16)
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
             }
-            .frame(maxWidth: .infinity)
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: { dismiss() }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
                         .frame(width: 36, height: 36)
                         .background(.ultraThinMaterial)
                         .clipShape(Circle())
@@ -186,7 +188,7 @@ struct ExhibitionDetailView: View {
                     Button(action: { Task { await toggleViewed() } }) {
                         Image(systemName: isViewed ? "eye.fill" : "eye")
                             .font(.system(size: 15))
-                            .foregroundColor(isViewed ? .blue : .white)
+                            .foregroundColor(isViewed ? .blue : .primary)
                             .frame(width: 36, height: 36)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
@@ -194,7 +196,7 @@ struct ExhibitionDetailView: View {
                     Button(action: { Task { await toggleFavorite() } }) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.system(size: 15))
-                            .foregroundColor(isFavorite ? .red : .white)
+                            .foregroundColor(isFavorite ? .red : .primary)
                             .frame(width: 36, height: 36)
                             .background(.ultraThinMaterial)
                             .clipShape(Circle())
@@ -315,10 +317,8 @@ struct ExhibitionDetailView: View {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
         isFavorite.toggle()
         try? await SupabaseService.shared.upsertInteraction(
-            userId: userId,
-            exhibitionId: exhibition.id,
-            isFavorite: isFavorite,
-            isViewed: isViewed
+            userId: userId, exhibitionId: exhibition.id,
+            isFavorite: isFavorite, isViewed: isViewed
         )
     }
 
@@ -326,10 +326,8 @@ struct ExhibitionDetailView: View {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
         isViewed.toggle()
         try? await SupabaseService.shared.upsertInteraction(
-            userId: userId,
-            exhibitionId: exhibition.id,
-            isFavorite: isFavorite,
-            isViewed: isViewed
+            userId: userId, exhibitionId: exhibition.id,
+            isFavorite: isFavorite, isViewed: isViewed
         )
     }
 }
@@ -389,7 +387,6 @@ struct PracticalInfoRow: View {
                     .foregroundColor(.secondary)
                     .frame(width: 20)
                     .padding(.top, 2)
-
                 VStack(alignment: .leading, spacing: 3) {
                     Text(label)
                         .font(.system(size: 12))
@@ -399,9 +396,7 @@ struct PracticalInfoRow: View {
                         .foregroundColor(.primary)
                         .lineLimit(3)
                 }
-
                 Spacer()
-
                 if hasAction {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12))
@@ -445,7 +440,6 @@ struct PricingSheet: View {
     }
 }
 
-// MARK: - Price Row
 struct PriceRow: View {
     let label: String
     let value: String

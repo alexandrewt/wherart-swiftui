@@ -23,7 +23,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(.systemGroupedBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
 
@@ -31,7 +31,7 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<3) { index in
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(index <= currentStep ? Color.white : Color.white.opacity(0.2))
+                            .fill(index <= currentStep ? Color.blue : Color(.systemGray4))
                             .frame(height: 3)
                     }
                 }
@@ -54,16 +54,20 @@ struct OnboardingView: View {
                 // MARK: - CTA
                 Button(action: handleNext) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(canProceed ? Color.white : Color.white.opacity(0.2))
-                            .frame(height: 52)
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(canProceed ? Color.blue : Color(.systemGray4))
+                            .frame(height: 56)
+                            .shadow(
+                                color: canProceed ? Color.blue.opacity(0.3) : Color.clear,
+                                radius: 12, x: 0, y: 4
+                            )
 
                         if isLoading {
-                            ProgressView().tint(.black)
+                            ProgressView().tint(.white)
                         } else {
                             Text(currentStep == 2 ? "Get started" : "Continue")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(canProceed ? .black : .gray)
+                                .foregroundColor(.white)
                         }
                     }
                 }
@@ -76,33 +80,32 @@ struct OnboardingView: View {
 
     // MARK: - Step Views
     private var stepWelcome: some View {
-        VStack(spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Welcome to Wherart")
                 .font(.system(size: 32, weight: .bold))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
+                .foregroundColor(.primary)
 
-            Text("Discover art exhibitions in Paris tailored to your taste")
-                .font(.system(size: 16))
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            Text("Let's personalise your art discovery experience")
+                .font(.system(size: 15))
+                .foregroundColor(.secondary)
         }
-        .padding(.horizontal, 32)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
     }
 
     private var stepArtTypes: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("What art do you love?")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Text("Select at least one")
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
 
             FlowLayout(items: artTypes) { type in
-                ChipButton(
+                OnboardingChip(
                     label: type,
                     isSelected: selectedTypes.contains(type),
                     action: { toggleType(type) }
@@ -113,18 +116,18 @@ struct OnboardingView: View {
     }
 
     private var stepVenueTypes: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Where do you like to go?")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Text("Select at least one")
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
 
             FlowLayout(items: venueTypes) { venue in
-                ChipButton(
+                OnboardingChip(
                     label: venue,
                     isSelected: selectedVenues.contains(venue),
                     action: { toggleVenue(venue) }
@@ -184,8 +187,8 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Chip Button
-struct ChipButton: View {
+// MARK: - Onboarding Chip
+struct OnboardingChip: View {
     let label: String
     let isSelected: Bool
     let action: () -> Void
@@ -194,12 +197,18 @@ struct ChipButton: View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? .black : .white)
+                .foregroundColor(isSelected ? .white : .primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(isSelected ? Color.white : Color.white.opacity(0.1))
-                .cornerRadius(20)
+                .background(isSelected ? Color.blue : Color.white)
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+                .overlay(
+                    Capsule()
+                        .stroke(isSelected ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                )
         }
+        .buttonStyle(.plain)
     }
 }
 

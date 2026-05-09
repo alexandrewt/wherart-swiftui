@@ -28,6 +28,7 @@
 		B5C8EB632FA3F7D6009A2A74 /* CreateVisitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */; };
 		B5C8EB652FA3F96D009A2A74 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB642FA3F96B009A2A74 /* FavoritesView.swift */; };
 		B5C8EB672FA3F998009A2A74 /* ViewedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB662FA3F998009A2A74 /* ViewedView.swift */; };
+		B5C8EB692FA3FFA9009A2A74 /* FilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 		B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVisitView.swift; sourceTree = "<group>"; };
 		B5C8EB642FA3F96B009A2A74 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
 		B5C8EB662FA3F998009A2A74 /* ViewedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewedView.swift; sourceTree = "<group>"; };
+		B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -189,6 +191,7 @@
 		B5C8EB402FA3AF9F009A2A74 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -283,6 +286,7 @@
 			files = (
 				B5C8EB5F2FA3F798009A2A74 /* VisitView.swift in Sources */,
 				B5C8EB242FA3A748009A2A74 /* ContentView.swift in Sources */,
+				B5C8EB692FA3FFA9009A2A74 /* FilterSheet.swift in Sources */,
 				B5C8EB5D2FA3F680009A2A74 /* ProfileView.swift in Sources */,
 				B5C8EB5B2FA3F3CC009A2A74 /* MapView.swift in Sources */,
 				B5C8EB472FA3E1F6009A2A74 /* LoginView.swift in Sources */,

@@ -66,17 +66,25 @@ struct ExhibitionCard: View {
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
 
-                    HStack(spacing: 16) {
-                        if let distance = exhibition.distance {
-                            Label(String(format: "%.1f km", distance), systemImage: "location.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                        }
-                        if let schedule = exhibition.schedule {
-                            Label(schedule, systemImage: "clock")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
+                    HStack {
+
+                        Spacer()
+
+                        HStack(spacing: 8) {
+                            if let distance = exhibition.distance {
+                                Text(String(format: "%.1f km", distance))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            }
+                            if exhibition.isFree {
+                                Text("Free")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            } else if let price = exhibition.price {
+                                Text(price)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            }
                         }
                     }
 

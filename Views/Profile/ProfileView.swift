@@ -267,7 +267,7 @@ struct EditPreferencesSheet: View {
                         Text("Art types")
                             .font(.system(size: 16, weight: .semibold))
                         FlowLayout(items: artTypes) { type in
-                            ChipButton(
+                            OnboardingChip(
                                 label: type,
                                 isSelected: selectedTypes.contains(type),
                                 action: {
@@ -285,7 +285,7 @@ struct EditPreferencesSheet: View {
                         Text("Venue types")
                             .font(.system(size: 16, weight: .semibold))
                         FlowLayout(items: venueTypes) { venue in
-                            ChipButton(
+                            OnboardingChip(
                                 label: venue,
                                 isSelected: selectedVenues.contains(venue),
                                 action: {

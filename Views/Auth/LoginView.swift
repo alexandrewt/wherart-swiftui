@@ -7,92 +7,94 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var firstName = ""
+    @State private var lastName = ""
     @State private var isSignUp = false
     @State private var isLoading = false
     @State private var errorMessage: String? = nil
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(.systemGroupedBackground).ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 32) {
+            VStack {
+                Spacer()
+
+                VStack(alignment: .leading, spacing: 32) {
 
                     // MARK: - Logo
-                    VStack(spacing: 8) {
-                        Text("Wherart")
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Discover art in Paris")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(.gray)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Welcome to Wherart")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Curated for you, enjoyed together")
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
                     }
-                    .padding(.top, 80)
 
                     // MARK: - Form
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
 
                         if isSignUp {
-                            TextField("First name", text: $firstName)
-                                .textFieldStyle(WherartTextFieldStyle())
+                            RNTextField(placeholder: "First name *", text: $firstName)
                                 .textContentType(.givenName)
+                            RNTextField(placeholder: "Last name (optional)", text: $lastName)
+                                .textContentType(.familyName)
                         }
 
-                        TextField("Email", text: $email)
-                            .textFieldStyle(WherartTextFieldStyle())
+                        RNTextField(placeholder: "your@email.com", text: $email)
                             .textContentType(.emailAddress)
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
 
-                        SecureField("Password", text: $password)
-                            .textFieldStyle(WherartTextFieldStyle())
+                        RNSecureField(placeholder: "Password", text: $password)
                             .textContentType(isSignUp ? .newPassword : .password)
 
                         if let error = errorMessage {
                             Text(error)
                                 .font(.system(size: 13))
                                 .foregroundColor(.red)
-                                .multilineTextAlignment(.center)
+                                .multilineTextAlignment(.leading)
                         }
 
-                        // MARK: - CTA
                         Button(action: handleSubmit) {
                             ZStack {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(Color.white)
-                                    .frame(height: 52)
-
+                                RoundedRectangle(cornerRadius: 28)
+                                    .fill(Color.blue)
+                                    .frame(height: 56)
                                 if isLoading {
-                                    ProgressView()
-                                        .tint(.black)
+                                    ProgressView().tint(.white)
                                 } else {
-                                    Text(isSignUp ? "Create account" : "Sign in")
+                                    Text(isSignUp ? "Create my account" : "Sign in")
                                         .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(.white)
                                 }
                             }
                         }
                         .disabled(isLoading)
+                        .padding(.top, 8)
 
-                        // MARK: - Toggle
-                        Button(action: {
-                            withAnimation {
-                                isSignUp.toggle()
-                                errorMessage = nil
-                            }
-                        }) {
-                            Text(isSignUp ? "Already have an account? Sign in" : "No account? Create one")
+                        HStack(spacing: 4) {
+                            Text(isSignUp ? "Already have an account?" : "No account yet?")
                                 .font(.system(size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
+                            Button(action: {
+                                withAnimation { isSignUp.toggle(); errorMessage = nil }
+                            }) {
+                                Text(isSignUp ? "Sign in" : "Create an account")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
                         }
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    .padding(.horizontal, 24)
                 }
+                .padding(.horizontal, 24)
+
+                Spacer()
             }
         }
     }
 
-    // MARK: - Actions
     private func handleSubmit() {
         errorMessage = nil
         guard !email.isEmpty, !password.isEmpty else {
@@ -103,7 +105,6 @@ struct LoginView: View {
             errorMessage = "Please enter your first name"
             return
         }
-
         isLoading = true
         Task {
             do {
@@ -120,20 +121,59 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Custom TextField Style
-struct WherartTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
+// MARK: - RN-style TextField
+struct RNTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        TextField(placeholder, text: $text)
             .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Color.white.opacity(0.08))
-            .cornerRadius(12)
-            .foregroundColor(.white)
-            .font(.system(size: 16))
-            .tint(.white)
+            .padding(.vertical, 16)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 28))
+            .overlay(
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(isFocused ? Color.blue : Color.clear, lineWidth: 1.5)
+            )
+            .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+            .font(.system(size: 15))
+            .focused($isFocused)
     }
 }
 
-#Preview {
-    LoginView()
+// MARK: - RN-style SecureField
+struct RNSecureField: View {
+    let placeholder: String
+    @Binding var text: String
+    @State private var isVisible = false
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack {
+            if isVisible {
+                TextField(placeholder, text: $text)
+                    .focused($isFocused)
+            } else {
+                SecureField(placeholder, text: $text)
+                    .focused($isFocused)
+            }
+            Button(action: { isVisible.toggle() }) {
+                Image(systemName: isVisible ? "eye.slash" : "eye")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(isFocused ? Color.blue : Color.clear, lineWidth: 1.5)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+        .font(.system(size: 15))
+    }
 }
