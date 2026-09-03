@@ -10,49 +10,47 @@ struct ViewedView: View {
     @State private var selectedExhibition: Exhibition? = nil
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if exhibitions.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "eye.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        Text("No viewed exhibitions")
-                            .font(.system(size: 18, weight: .semibold))
-                        Text("Exhibitions you mark as viewed will appear here")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
+        Group {
+            if isLoading {
+                ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(exhibitions) { exhibition in
-                                ExhibitionCard(
-                                    exhibition: exhibition,
-                                    isFavorite: favoriteIds.contains(exhibition.id),
-                                    isViewed: viewedIds.contains(exhibition.id),
-                                    onTap: { selectedExhibition = exhibition },
-                                    onToggleFavorite: { Task { await toggleFavorite(exhibition) } },
-                                    onToggleViewed: { Task { await toggleViewed(exhibition) } }
-                                )
-                            }
+            } else if exhibitions.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "eye.slash")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text(String(localized: "no_viewed_exhibitions"))
+                        .font(.system(size: 18, weight: .semibold))
+                    Text(String(localized: "viewed_will_appear_here"))
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(exhibitions) { exhibition in
+                            ExhibitionCard(
+                                exhibition: exhibition,
+                                isFavorite: favoriteIds.contains(exhibition.id),
+                                isViewed: viewedIds.contains(exhibition.id),
+                                onTap: { selectedExhibition = exhibition },
+                                onToggleFavorite: { Task { await toggleFavorite(exhibition) } },
+                                onToggleViewed: { Task { await toggleViewed(exhibition) } }
+                            )
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 32)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 32)
                 }
             }
-            .navigationTitle("Viewed")
-            .navigationBarTitleDisplayMode(.large)
-            .navigationDestination(item: $selectedExhibition) { exhibition in
-                ExhibitionDetailView(exhibition: exhibition)
-            }
+        }
+        .navigationTitle(String(localized: "viewed_title"))
+        .navigationBarTitleDisplayMode(.large)
+        .navigationDestination(item: $selectedExhibition) { exhibition in
+            ExhibitionDetailView.init(exhibition: exhibition)
         }
         .task {
             await loadViewed()
@@ -100,6 +98,11 @@ struct ViewedView: View {
                 favoriteIds.append(exhibition.id)
             }
         }
+        if wasFavorite {
+            NotificationService.shared.cancelNotification(
+                identifier: NotificationService.endingSoonIdentifier(exhibitionId: exhibition.id)
+            )
+        }
         try? await SupabaseService.shared.upsertInteraction(
             userId: userId,
             exhibitionId: exhibition.id,
@@ -129,5 +132,7 @@ struct ViewedView: View {
 }
 
 #Preview {
-    ViewedView()
+    NavigationStack {
+        ViewedView()
+    }
 }

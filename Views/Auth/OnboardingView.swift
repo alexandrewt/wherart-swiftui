@@ -9,16 +9,20 @@ struct OnboardingView: View {
     @State private var selectedTypes: [String] = []
     @State private var selectedVenues: [String] = []
     @State private var isLoading = false
+    @State private var acceptedTerms = false
+    @State private var onboardingStartTime: Date?
 
     let artTypes = [
-        "Contemporary Art", "Photography", "Painting", "Sculpture",
-        "Drawing", "Video Art", "Street Art", "Design",
-        "Architecture", "Digital Art", "Illustration", "Printmaking"
+        "Painting", "Sculpture", "Photography", "Contemporary Art", "Street Art",
+        "Abstract Art", "Installation", "Modern Art", "Asian Art", "Design",
+        "Drawing", "Video Art", "Architecture", "Digital Art", "Illustration",
+        "Printmaking", "Mixed Media", "Textile Art", "Ceramics", "Performance"
     ]
 
     let venueTypes = [
         "Museums", "Galleries", "Art Centers", "Foundations",
-        "Cultural Centers", "Auction Houses", "Art Fairs", "Public Spaces"
+        "Cultural Centers", "Art Fairs", "Auction Houses", "Libraries",
+        "Public Spaces", "Churches & Heritage", "Cultural Institutes", "Artist Studios"
     ]
 
     var body: some View {
@@ -51,10 +55,62 @@ struct OnboardingView: View {
 
                 Spacer()
 
+                // MARK: - Terms checkbox (step 0 uniquement)
+                if currentStep == 0 {
+                    Button(action: { acceptedTerms.toggle() }) {
+                        HStack(alignment: .top, spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(acceptedTerms ? Color.blue : Color(.systemGray3), lineWidth: 1.5)
+                                    .frame(width: 22, height: 22)
+                                if acceptedTerms {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.blue)
+                                        .frame(width: 22, height: 22)
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+
+                            Group {
+                                Text(String(localized: "accept_terms_prefix"))
+                                    .foregroundColor(.secondary)
+                                + Text(String(localized: "privacy_policy"))
+                                    .foregroundColor(.blue)
+                                + Text(String(localized: "and_the"))
+                                    .foregroundColor(.secondary)
+                                + Text(String(localized: "terms_of_use"))
+                                    .foregroundColor(.blue)
+                            }
+                            .font(.system(size: 13))
+                            .multilineTextAlignment(.leading)
+                            .overlay(
+                                HStack(spacing: 0) {
+                                    // Zones de tap sur les liens
+                                    Color.clear
+                                        .frame(maxWidth: .infinity)
+                                        .onTapGesture {
+                                            UIApplication.shared.open(URL(string: "https://wherart.figma.site/politique-confidentialite")!)
+                                        }
+                                    Color.clear
+                                        .frame(maxWidth: .infinity)
+                                        .onTapGesture {
+                                            UIApplication.shared.open(URL(string: "https://wherart.figma.site/conditions-utilisation")!)
+                                        }
+                                }
+                            )
+                        }
+                        .padding(.horizontal, 24)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, 16)
+                }
+
                 // MARK: - CTA
                 Button(action: handleNext) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 28)
+                        RoundedRectangle(cornerRadius: 24)
                             .fill(canProceed ? Color.blue : Color(.systemGray4))
                             .frame(height: 56)
                             .shadow(
@@ -65,7 +121,7 @@ struct OnboardingView: View {
                         if isLoading {
                             ProgressView().tint(.white)
                         } else {
-                            Text(currentStep == 2 ? "Get started" : "Continue")
+                            Text(currentStep == 2 ? String(localized: "get_started") : String(localized: "continue_button"))
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.white)
                         }
@@ -76,16 +132,21 @@ struct OnboardingView: View {
                 .padding(.bottom, 48)
             }
         }
+        .onAppear {
+            onboardingStartTime = Date()
+            AnalyticsService.shared.track("onboarding_started", properties: [
+                "user_id": userId
+            ])
+        }
     }
 
     // MARK: - Step Views
     private var stepWelcome: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Welcome to Wherart")
+            Text(String(localized: "welcome_title"))
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(.primary)
-
-            Text("Let's personalise your art discovery experience")
+            Text(String(localized: "onboarding_welcome_subtitle"))
                 .font(.system(size: 15))
                 .foregroundColor(.secondary)
         }
@@ -96,17 +157,16 @@ struct OnboardingView: View {
     private var stepArtTypes: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("What art do you love?")
+                Text(String(localized: "onboarding_art_question"))
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.primary)
-                Text("Select at least one")
+                Text(String(localized: "select_at_least_one"))
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
             }
-
             FlowLayout(items: artTypes) { type in
                 OnboardingChip(
-                    label: type,
+                    label: ArtTaxonomy.displayLabel(for: type),
                     isSelected: selectedTypes.contains(type),
                     action: { toggleType(type) }
                 )
@@ -118,17 +178,16 @@ struct OnboardingView: View {
     private var stepVenueTypes: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Where do you like to go?")
+                Text(String(localized: "onboarding_venue_question"))
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.primary)
-                Text("Select at least one")
+                Text(String(localized: "select_at_least_one"))
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
             }
-
             FlowLayout(items: venueTypes) { venue in
                 OnboardingChip(
-                    label: venue,
+                    label: ArtTaxonomy.displayLabel(for: venue),
                     isSelected: selectedVenues.contains(venue),
                     action: { toggleVenue(venue) }
                 )
@@ -140,7 +199,7 @@ struct OnboardingView: View {
     // MARK: - Logic
     private var canProceed: Bool {
         switch currentStep {
-        case 0: return true
+        case 0: return acceptedTerms
         case 1: return !selectedTypes.isEmpty
         case 2: return !selectedVenues.isEmpty
         default: return false
@@ -148,23 +207,41 @@ struct OnboardingView: View {
     }
 
     private func toggleType(_ type: String) {
-        if selectedTypes.contains(type) {
-            selectedTypes.removeAll { $0 == type }
-        } else {
+        let isSelected = !selectedTypes.contains(type)
+        if isSelected {
             selectedTypes.append(type)
+        } else {
+            selectedTypes.removeAll { $0 == type }
         }
+        AnalyticsService.shared.track("onboarding_preferences_changed", properties: [
+            "preference_type": "art_type",
+            "preference_value": type,
+            "is_selected": isSelected
+        ])
     }
 
     private func toggleVenue(_ venue: String) {
-        if selectedVenues.contains(venue) {
-            selectedVenues.removeAll { $0 == venue }
-        } else {
+        let isSelected = !selectedVenues.contains(venue)
+        if isSelected {
             selectedVenues.append(venue)
+        } else {
+            selectedVenues.removeAll { $0 == venue }
         }
+        AnalyticsService.shared.track("onboarding_preferences_changed", properties: [
+            "preference_type": "venue_type",
+            "preference_value": venue,
+            "is_selected": isSelected
+        ])
     }
 
     private func handleNext() {
         if currentStep < 2 {
+            let stepNames = ["terms_acceptance", "art_types", "venue_types"]
+            AnalyticsService.shared.track("onboarding_step_completed", properties: [
+                "step_name": stepNames[currentStep],
+                "step_number": currentStep,
+                "preferences_count": currentStep == 0 ? 0 : (currentStep == 1 ? selectedTypes.count : selectedVenues.count)
+            ])
             withAnimation { currentStep += 1 }
         } else {
             saveAndComplete()
@@ -174,14 +251,32 @@ struct OnboardingView: View {
     private func saveAndComplete() {
         isLoading = true
         Task {
-            try? await SupabaseService.shared.updatePreferences(
-                userId: userId,
-                preferences: selectedTypes,
-                venueTypes: selectedVenues
-            )
-            await MainActor.run {
-                isLoading = false
-                onComplete()
+            do {
+                try await SupabaseService.shared.updatePreferences(
+                    userId: userId,
+                    preferences: selectedTypes,
+                    venueTypes: selectedVenues
+                )
+                let duration = Int(Date().timeIntervalSince(onboardingStartTime ?? Date()))
+                AnalyticsService.shared.track("onboarding_completed", properties: [
+                    "user_id": userId,
+                    "art_types_count": selectedTypes.count,
+                    "venue_types_count": selectedVenues.count,
+                    "duration_seconds": duration
+                ])
+                await MainActor.run {
+                    isLoading = false
+                    onComplete()
+                }
+            } catch {
+                AnalyticsService.shared.track("onboarding_error", properties: [
+                    "user_id": userId,
+                    "error_type": String(describing: type(of: error)),
+                    "error_message": error.localizedDescription
+                ])
+                await MainActor.run {
+                    isLoading = false
+                }
             }
         }
     }

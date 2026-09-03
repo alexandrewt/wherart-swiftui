@@ -3,38 +3,99 @@ import Auth
 
 struct ContentView: View {
 
-    @StateObject private var service = SupabaseService.shared
+    private var service: SupabaseService { SupabaseService.shared }
     @State private var needsOnboarding = false
     @State private var isCheckingProfile = false
+    @State private var isInitializing = true  // ← nouveau
+    @State private var showSplash = true
+
+    /// Same lookup `ExhibitionDetailView`/`MapView` etc. would each otherwise
+    /// need on their own — done once here so every screen gets a solid
+    /// status bar background without having to opt in individually.
+    private var safeAreaTop: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.safeAreaInsets.top ?? 59
+    }
 
     var body: some View {
-        Group {
-            if service.isAuthenticated {
-                if isCheckingProfile {
+        ZStack(alignment: .top) {
+            Group {
+                if isInitializing || isCheckingProfile {
+                    // Écran de splash pendant la restauration de session et la
+                    // vérification du profil — même fond que les deux états pour
+                    // éviter le flash blanc→noir au lancement.
                     ZStack {
-                        Color.black.ignoresSafeArea()
-                        ProgressView().tint(.white)
+                        Color(.systemBackground).ignoresSafeArea()
+                        ProgressView()
                     }
-                } else if needsOnboarding, let userId = service.currentUser?.id.uuidString {
-                    OnboardingView(userId: userId) {
-                        needsOnboarding = false
+                } else if service.isAuthenticated {
+                    if needsOnboarding, let userId = service.currentUser?.id.uuidString {
+                        OnboardingView(userId: userId) {
+                            needsOnboarding = false
+                        }
+                    } else {
+                        MainTabView()
                     }
-                } else {
+                } else if service.isGuestMode {
+                    // Guest mode skips onboarding entirely — it's tied to account
+                    // creation (preferences are stored on the profile row), which
+                    // doesn't exist for a guest.
                     MainTabView()
+                } else if showSplash {
+                    // Only shown for signed-out users — someone restoring an
+                    // authenticated session lands straight in MainTabView above,
+                    // never through here.
+                    SplashView(onComplete: {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            showSplash = false
+                        }
+                    })
+                    .transition(.opacity)
+                } else {
+                    LoginView()
+                        .transition(.opacity)
                 }
-            } else {
-                LoginView()
             }
-        }
-        .onChange(of: service.isAuthenticated) { authenticated in
-            if authenticated {
-                checkOnboardingStatus()
+            .onChange(of: service.hasRestoredSession) { restored in
+                if restored {
+                    isInitializing = false
+                }
             }
-        }
-        .onAppear {
-            if service.isAuthenticated {
-                checkOnboardingStatus()
+            .onChange(of: service.isAuthenticated) { authenticated in
+                if isInitializing {
+                    isInitializing = false
+                }
+                if authenticated {
+                    checkOnboardingStatus()
+                }
             }
+            .onAppear {
+                if service.hasRestoredSession {
+                    isInitializing = false
+                }
+                // Safety-net timeout in case Supabase never responds (e.g. no network) —
+                // the real signal is `hasRestoredSession` above, which fires as soon as
+                // the explicit session-restoration check completes.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    if isInitializing {
+                        isInitializing = false
+                    }
+                }
+            }
+            .task {
+                // Warm up StoreKit products early so the paywall/subscribe page
+                // never has to show a loading state on first open.
+                await StoreService.shared.loadProducts()
+            }
+
+            // Permanent white status bar background across every screen —
+            // sits above all content, including hero images/maps that
+            // extend behind the status bar, so no per-screen fix is needed.
+            Color(.systemBackground)
+                .frame(height: safeAreaTop)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
         }
     }
 

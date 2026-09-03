@@ -1,0 +1,248 @@
+/* MARK: - Auth / Login */
+"welcome_title" = "Welcome to Wherart";
+"welcome_subtitle" = "Curated for you, enjoyed together";
+"email_placeholder" = "your@email.com";
+"password_placeholder" = "Password";
+"first_name_required_placeholder" = "First name *";
+"last_name_required_placeholder" = "Last name *";
+"sign_in" = "Sign in";
+"create_my_account" = "Create my account";
+"create_account" = "Create an account";
+"no_account_yet" = "No account yet?";
+"already_have_account" = "Already have an account?";
+"forgot_password" = "Forgot password?";
+"browse_without_account" = "Browse without an account";
+"signup_agree" = "By signing up, you agree to our";
+"privacy_policy" = "Privacy Policy";
+"and_our" = "and our";
+"terms_of_use" = "Terms of Use";
+"please_fill_fields" = "Please fill in all fields";
+"please_enter_first_name" = "Please enter your first name";
+"please_enter_last_name" = "Please enter your last name";
+"enter_email_first" = "Enter your email first";
+"check_inbox_reset_password" = "Check your inbox to reset your password";
+
+/* MARK: - Guest mode / login prompt */
+"sign_in_to_continue" = "Sign in to continue";
+"login_prompt_subtitle" = "Create a free account to save favorites, join visits, and interact with other art lovers.";
+"sign_in_or_create_account" = "Sign in or create an account";
+"not_now" = "Not now";
+
+/* MARK: - Onboarding */
+"onboarding_welcome_subtitle" = "Let's personalise your art discovery experience";
+"onboarding_art_question" = "What art do you love?";
+"select_at_least_one" = "Select at least one";
+"onboarding_venue_question" = "Where do you like to go?";
+"accept_terms_prefix" = "I have read and accept the ";
+"and_the" = " and the ";
+"continue_button" = "Continue";
+"get_started" = "Get started";
+
+/* MARK: - Home */
+"search_exhibitions" = "Search for exhibitions...";
+"search_exhibition_singular" = "Search for an exhibition";
+"exhibitions_for_you" = "Exhibitions for you";
+"exhibitions_might_like" = "Exhibitions you might like";
+"exhibitions_near_you" = "Exhibitions near you";
+"sort_by" = "Sort by";
+"search" = "Search";
+"filters" = "Filters";
+"filters_count_active" = "Filters (%d active)";
+"discover" = "Discover";
+"hello_name" = "Hello %@!";
+"sort_relevance" = "Relevance";
+"sort_closest" = "Closest";
+"sort_ending_soon" = "Ending soon";
+"sort_price_asc" = "Price: low to high";
+"sort_price_desc" = "Price: high to low";
+"sort_duration_asc" = "Duration: shortest first";
+
+/* MARK: - Exhibition card / detail */
+"free" = "Free";
+"mark_as_seen" = "Mark as seen";
+"mark_as_not_seen" = "Mark as not seen";
+"add_to_favorites" = "Add to favourites";
+"remove_from_favorites" = "Remove from favourites";
+"back" = "Back";
+"distance" = "Distance";
+"not_available" = "N/A";
+"get_directions" = "Get directions";
+"pricing" = "Pricing";
+"see_all_prices" = "See all prices";
+"details_available" = "Details available";
+"available_visits" = "Available visits";
+"loading_ellipsis" = "Loading...";
+"visit_scheduled_one" = "%d visit scheduled";
+"visit_scheduled_other" = "%d visits scheduled";
+"no_visit_scheduled" = "No visit scheduled for this exhibition";
+"about" = "About";
+"practical_information" = "Practical information";
+"address" = "Address";
+"opening_hours" = "Opening hours";
+"estimated_duration" = "Estimated duration";
+"accessibility" = "Accessibility";
+"wait_time" = "Wait time";
+"unknown" = "Unknown";
+"estimated_wait_time" = "Estimated wait time";
+"contact" = "Contact";
+"not_provided" = "Not provided";
+"sponsored_label" = "SPONSORED";
+"museum_partner_label" = "MUSEUM PARTNER";
+"visit_with_others" = "Visit with others";
+"organise_visit" = "Organise a visit";
+"buy_ticket" = "Buy a ticket";
+"get_more_info" = "Get more information";
+"add_comment" = "Add a comment...";
+"saved_confirmation" = "Saved ✓";
+"full_pricing_details" = "Full pricing details";
+"help_other_visitors_edit" = "Help other visitors — this info isn't reported by the venue yet.";
+"help_other_visitors_select" = "Help other visitors — select all that apply.";
+"save" = "Save";
+"price_range_format" = "From %@€ to %@€";
+
+/* MARK: - Filter/attribute display labels (canonical values stay English; only the label shown to the user is translated) */
+"filter_free" = "Free";
+"filter_paid" = "Paid";
+"filter_under_1km" = "Under 1 km";
+"filter_1_3km" = "1 - 3 km";
+"filter_3_5km" = "3 - 5 km";
+"filter_over_5km" = "Over 5 km";
+"filter_wheelchair" = "Wheelchair access";
+"filter_lift" = "Lift available";
+"filter_toilets" = "Adapted toilets";
+"filter_audioguide" = "Audioguide available";
+"filter_no_guide_dogs" = "Guide dogs not allowed";
+"filter_wait_under_15" = "< 15 min";
+"filter_wait_15_30" = "15 - 30 min";
+"filter_wait_30_45" = "30 - 45 min";
+"filter_wait_45_1h" = "45 min - 1h";
+"filter_wait_over_1h" = "+ 1h";
+
+/* MARK: - Filter sheet */
+"art_genre" = "Art genre";
+"venue_type" = "Venue type";
+"price" = "Price";
+"distance_filter" = "Distance";
+"duration_filter" = "Duration";
+"reset" = "Reset";
+"apply" = "Apply";
+
+/* MARK: - Map */
+"search_exhibitions_address" = "Search for exhibitions or an address...";
+"clear_search" = "Clear search";
+"locating" = "Locating...";
+"view_exhibition" = "View exhibition";
+
+/* MARK: - Visits */
+"my_visits" = "My Visits";
+"no_visits_yet" = "No visits yet";
+"be_first_organise_visit" = "Be the first to organise a visit";
+"no_visits_planned" = "No visits planned";
+"join_or_create_visit" = "Join or create a visit to get started";
+"leave" = "Leave";
+"join_visit" = "Join visit";
+"leave_visit" = "Leave visit";
+"delete_visit" = "Delete visit";
+"host" = "Host";
+"open_full_chat" = "Open full chat";
+"message_placeholder" = "Message...";
+"members" = "Members";
+"members_count" = "Members (%d)";
+"no_messages_yet" = "No messages yet — say hello!";
+"chat" = "Chat";
+"visit_details" = "Visit details";
+"date_label" = "Date";
+"time_label" = "Time";
+"you_badge" = "You";
+"member_fallback" = "Member";
+"are_you_sure" = "Are you sure?";
+"delete" = "Delete";
+"delete_visit_warning" = "This will delete the visit for all members.";
+"leave_visit_warning" = "You will leave this visit.";
+"join_this_visit" = "Join this visit?";
+"visit_name" = "Visit name";
+"confirm" = "Confirm";
+"cancel" = "Cancel";
+
+/* MARK: - Create visit */
+"create_a_visit" = "Create a visit";
+"visit_name_placeholder" = "e.g. Sunday at Pompidou";
+"exhibition_label" = "Exhibition";
+"search_an_exhibition" = "Search an exhibition...";
+"max_members_count" = "Max members: %d";
+"please_select_exhibition" = "Please select an exhibition";
+"create_visit_button" = "Create visit";
+
+/* MARK: - Profile */
+"favourites" = "Favourites";
+"seen" = "Seen";
+"visits" = "Visits";
+"my_preferences" = "My artistic preferences";
+"edit" = "Edit";
+"art_genres" = "Art genres";
+"favourite_venues" = "Favourite venues";
+"no_preferences" = "No preferences set";
+"edit_profile" = "Edit Profile";
+"settings" = "Settings";
+"subscribe" = "Subscribe";
+"change_password" = "Change password";
+"share_app" = "Share the app";
+"share_subject" = "Discover art exhibitions in Paris";
+"share_message" = "I use Wherart to discover art exhibitions in Paris and organise group visits. Check it out!";
+"sign_out" = "Sign out";
+"send_reset_email" = "Send reset email";
+"reset_link_message" = "We'll send a password reset link to %@.";
+"your_email_fallback" = "your email";
+"email_sent" = "Email sent";
+"ok" = "OK";
+"edit_preferences" = "Edit preferences";
+"art_types" = "Art types";
+"venue_types" = "Venue types";
+"contact_support" = "Contact support";
+"delete_account" = "Delete my account";
+"delete_account_confirm_title" = "Delete your account?";
+"delete_account_warning" = "This will permanently delete your account and all your data. This action cannot be undone.";
+"something_went_wrong" = "Something went wrong";
+"delete_account_error_message" = "Please try again or contact support at alexandre@wherart.com";
+
+/* MARK: - Favorites / Viewed */
+"favorites_title" = "Favorites";
+"no_favorites_yet" = "No favorites yet";
+"tap_heart_to_save" = "Tap the heart on any exhibition to save it here";
+"viewed_title" = "Viewed";
+"no_viewed_exhibitions" = "No viewed exhibitions";
+"viewed_will_appear_here" = "Exhibitions you mark as viewed will appear here";
+
+/* MARK: - Edit profile */
+"first_name" = "First name";
+"last_name" = "Last name";
+"email_label" = "Email";
+"email_change_not_available" = "Changing your email requires a separate verification flow and isn't available here yet.";
+
+/* MARK: - Subscribe */
+"coming_soon" = "Coming soon";
+"wherart_pass_coming_soon_body" = "The Wherart Pass is currently in development. Stay tuned for exclusive features and early access.";
+
+/* MARK: - Paywall */
+"paywall_subtitle" = "Discover art differently";
+"billing_monthly" = "Monthly";
+"billing_annual" = "Annual";
+"per_year_save" = "per year — save 17%";
+"per_month" = "per month";
+"most_popular" = "⭐ Most popular";
+"feature_vernissage_title" = "Private vernissages";
+"feature_vernissage_subtitle" = "Early access to new exhibitions";
+"feature_skip_line_title" = "Skip-the-line tickets";
+"feature_skip_line_subtitle" = "No more waiting at partner museums";
+"feature_guided_visit_title" = "1 guided visit/month";
+"feature_guided_visit_subtitle" = "With a professional guide";
+"active_wherart_pass" = "Active — Wherart Pass";
+"subscribe_annual_price" = "Subscribe — €49.99/year";
+"subscribe_monthly_price" = "Subscribe — €4.99/month";
+"restore_purchases" = "Restore purchases";
+"continue_without_subscription" = "Continue without subscription";
+
+/* MARK: - Tab bar */
+"home" = "Home";
+"map_tab" = "Map";
+"profile_tab" = "Profile";

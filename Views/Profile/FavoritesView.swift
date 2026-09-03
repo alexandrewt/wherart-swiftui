@@ -10,49 +10,47 @@ struct FavoritesView: View {
     @State private var selectedExhibition: Exhibition? = nil
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if exhibitions.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "heart.slash")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        Text("No favorites yet")
-                            .font(.system(size: 18, weight: .semibold))
-                        Text("Tap the heart on any exhibition to save it here")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
+        Group {
+            if isLoading {
+                ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(exhibitions) { exhibition in
-                                ExhibitionCard(
-                                    exhibition: exhibition,
-                                    isFavorite: favoriteIds.contains(exhibition.id),
-                                    isViewed: viewedIds.contains(exhibition.id),
-                                    onTap: { selectedExhibition = exhibition },
-                                    onToggleFavorite: { Task { await toggleFavorite(exhibition) } },
-                                    onToggleViewed: { Task { await toggleViewed(exhibition) } }
-                                )
-                            }
+            } else if exhibitions.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "heart.slash")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text(String(localized: "no_favorites_yet"))
+                        .font(.system(size: 18, weight: .semibold))
+                    Text(String(localized: "tap_heart_to_save"))
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(exhibitions) { exhibition in
+                            ExhibitionCard(
+                                exhibition: exhibition,
+                                isFavorite: favoriteIds.contains(exhibition.id),
+                                isViewed: viewedIds.contains(exhibition.id),
+                                onTap: { selectedExhibition = exhibition },
+                                onToggleFavorite: { Task { await toggleFavorite(exhibition) } },
+                                onToggleViewed: { Task { await toggleViewed(exhibition) } }
+                            )
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 32)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 32)
                 }
             }
-            .navigationTitle("Favorites")
-            .navigationBarTitleDisplayMode(.large)
-            .navigationDestination(item: $selectedExhibition) { exhibition in
-                ExhibitionDetailView(exhibition: exhibition)
-            }
+        }
+        .navigationTitle(String(localized: "favorites_title"))
+        .navigationBarTitleDisplayMode(.large)
+        .navigationDestination(item: $selectedExhibition) { exhibition in
+            ExhibitionDetailView(exhibition: exhibition)
         }
         .task {
             await loadFavorites()
@@ -85,6 +83,10 @@ struct FavoritesView: View {
                 self.exhibitions = favExhibitions
                 self.isLoading = false
             }
+
+            for exhibition in favExhibitions {
+                NotificationService.shared.scheduleEndingSoonNotification(for: exhibition)
+            }
         } catch {
             await MainActor.run { isLoading = false }
         }
@@ -97,6 +99,9 @@ struct FavoritesView: View {
             if wasFavorite {
                 favoriteIds.removeAll { $0 == exhibition.id }
                 exhibitions.removeAll { $0.id == exhibition.id }
+                NotificationService.shared.cancelNotification(
+                    identifier: NotificationService.endingSoonIdentifier(exhibitionId: exhibition.id)
+                )
             } else {
                 favoriteIds.append(exhibition.id)
             }
@@ -129,5 +134,7 @@ struct FavoritesView: View {
 }
 
 #Preview {
-    FavoritesView()
+    NavigationStack {
+        FavoritesView()
+    }
 }

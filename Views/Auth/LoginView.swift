@@ -1,8 +1,9 @@
 import SwiftUI
+import Auth
 
 struct LoginView: View {
 
-    @StateObject private var service = SupabaseService.shared
+    private var service: SupabaseService { SupabaseService.shared }
 
     @State private var email = ""
     @State private var password = ""
@@ -11,10 +12,43 @@ struct LoginView: View {
     @State private var isSignUp = false
     @State private var isLoading = false
     @State private var errorMessage: String? = nil
+    @State private var successMessage: String? = nil
+    @State private var appeared = false
+
+    /// The sign-up legal disclaimer as one attributed string, so it renders
+    /// (and wraps) as a single paragraph in `Text` rather than as separate
+    /// Text/Link rows on fixed lines — see the "Privacy Policy" section in
+    /// `body` for why that matters. Colors are set per-run explicitly (not
+    /// via a `.foregroundColor` view modifier) since that modifier would
+    /// apply uniformly and erase the link/plain-text color distinction.
+    private var legalText: AttributedString {
+        let brandBlue = Color(red: 0.15, green: 0.39, blue: 0.92)
+
+        var prefix = AttributedString(String(localized: "signup_agree") + " ")
+        prefix.foregroundColor = .secondary
+
+        var privacy = AttributedString(String(localized: "privacy_policy"))
+        privacy.foregroundColor = brandBlue
+        privacy.link = URL(string: "https://wherart.figma.site/politique-confidentialite")
+
+        var middle = AttributedString(" " + String(localized: "and_our") + " ")
+        middle.foregroundColor = .secondary
+
+        var terms = AttributedString(String(localized: "terms_of_use"))
+        terms.foregroundColor = brandBlue
+        terms.link = URL(string: "https://wherart.figma.site/conditions-utilisation")
+
+        return prefix + privacy + middle + terms
+    }
 
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(.systemBackground), Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.04)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack {
                 Spacer()
@@ -23,69 +57,134 @@ struct LoginView: View {
 
                     // MARK: - Logo
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Welcome to Wherart")
+                        Text(String(localized: "welcome_title"))
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.primary)
                         Text("Curated for you, enjoyed together")
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
                     }
+                    .padding(.bottom, 32)
+                    .offset(y: appeared ? 0 : 20)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.05), value: appeared)
 
                     // MARK: - Form
                     VStack(spacing: 12) {
 
-                        if isSignUp {
-                            RNTextField(placeholder: "First name *", text: $firstName)
-                                .textContentType(.givenName)
-                            RNTextField(placeholder: "Last name (optional)", text: $lastName)
-                                .textContentType(.familyName)
+                        // MARK: Fields
+                        VStack(spacing: 12) {
+                            if isSignUp {
+                                RNTextField(placeholder: String(localized: "first_name_required_placeholder"), text: $firstName)
+                                    .textContentType(.givenName)
+                                RNTextField(placeholder: String(localized: "last_name_required_placeholder"), text: $lastName)
+                                    .textContentType(.familyName)
+                            }
+
+                            RNTextField(placeholder: String(localized: "email_placeholder"), text: $email)
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+
+                            RNSecureField(placeholder: String(localized: "password_placeholder"), text: $password)
+                                .textContentType(isSignUp ? .newPassword : .password)
+
+                            if !isSignUp {
+                                Button(action: handleForgotPassword) {
+                                    Text(String(localized: "forgot_password"))
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.blue)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+
+                            if let error = errorMessage {
+                                Text(error)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            if let success = successMessage {
+                                Text(success)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.green)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                         }
+                        .offset(y: appeared ? 0 : 20)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.4).delay(0.15), value: appeared)
 
-                        RNTextField(placeholder: "your@email.com", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-
-                        RNSecureField(placeholder: "Password", text: $password)
-                            .textContentType(isSignUp ? .newPassword : .password)
-
-                        if let error = errorMessage {
-                            Text(error)
-                                .font(.system(size: 13))
-                                .foregroundColor(.red)
-                                .multilineTextAlignment(.leading)
-                        }
-
-                        Button(action: handleSubmit) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 28)
-                                    .fill(Color.blue)
-                                    .frame(height: 56)
-                                if isLoading {
-                                    ProgressView().tint(.white)
-                                } else {
-                                    Text(isSignUp ? "Create my account" : "Sign in")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.white)
+                        // MARK: Actions
+                        VStack(spacing: 12) {
+                            Button(action: handleSubmit) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .fill(Color(red: 0.15, green: 0.39, blue: 0.92))
+                                        .frame(height: 56)
+                                        .shadow(color: Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.35), radius: 12, x: 0, y: 4)
+                                    if isLoading {
+                                        ProgressView().tint(.white)
+                                    } else {
+                                        Text(isSignUp ? String(localized: "create_my_account") : String(localized: "sign_in"))
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
                                 }
                             }
-                        }
-                        .disabled(isLoading)
-                        .padding(.top, 8)
+                            .disabled(isLoading)
+                            .padding(.top, 8)
 
-                        HStack(spacing: 4) {
-                            Text(isSignUp ? "Already have an account?" : "No account yet?")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                            Button(action: {
-                                withAnimation { isSignUp.toggle(); errorMessage = nil }
-                            }) {
-                                Text(isSignUp ? "Sign in" : "Create an account")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.blue)
+                            // MARK: - Privacy Policy (sign up only)
+                            if isSignUp {
+                                // A single attributed Text wraps as one natural paragraph —
+                                // the previous two-HStack layout forced a fixed line break
+                                // between "...notre" and "Politique de confidentialité"
+                                // regardless of available width, which produced a choppy,
+                                // non-wrapping rendering instead of a centered paragraph.
+                                Text(legalText)
+                                    .font(.system(size: 12))
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+
+                            HStack(spacing: 4) {
+                                Text(isSignUp ? String(localized: "already_have_account") : String(localized: "no_account_yet"))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                                Button(action: {
+                                    withAnimation {
+                                        isSignUp.toggle()
+                                        errorMessage = nil
+                                        successMessage = nil
+                                    }
+                                }) {
+                                    Text(isSignUp ? String(localized: "sign_in") : String(localized: "create_account"))
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+
+                            if isSignUp {
+                                Button(action: {
+                                    AnalyticsService.shared.track("guest_mode_selected", properties: [:])
+                                    SupabaseService.shared.isGuestMode = true
+                                }) {
+                                    Text(String(localized: "browse_without_account"))
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.top, 16)
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        .offset(y: appeared ? 0 : 20)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.4).delay(0.25), value: appeared)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -93,30 +192,103 @@ struct LoginView: View {
                 Spacer()
             }
         }
+        .onAppear {
+            DispatchQueue.main.async {
+                appeared = true
+            }
+        }
     }
 
+    // MARK: - Actions
     private func handleSubmit() {
         errorMessage = nil
+        successMessage = nil
         guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Please fill in all fields"
+            errorMessage = String(localized: "please_fill_fields")
             return
         }
         if isSignUp && firstName.isEmpty {
-            errorMessage = "Please enter your first name"
+            errorMessage = String(localized: "please_enter_first_name")
+            return
+        }
+        if isSignUp && lastName.isEmpty {
+            errorMessage = String(localized: "please_enter_last_name")
+            return
+        }
+        isLoading = true
+
+        let authEvent = isSignUp ? "signup_started" : "login_started"
+        AnalyticsService.shared.track(authEvent, properties: ["email": email])
+
+        Task {
+            do {
+                if isSignUp {
+                    try await SupabaseService.shared.signUp(email: email, password: password, firstName: firstName)
+                    await MainActor.run {
+                        AnalyticsService.shared.track("signup_completed", properties: [
+                            "email": email,
+                            "method": "email"
+                        ])
+                        if let userId = SupabaseService.shared.currentUser?.id.uuidString {
+                            AnalyticsService.shared.identify(userId: userId)
+                        }
+                    }
+                } else {
+                    try await SupabaseService.shared.signIn(email: email, password: password)
+                    await MainActor.run {
+                        AnalyticsService.shared.track("login_completed", properties: [
+                            "email": email,
+                            "method": "email"
+                        ])
+                        if let userId = SupabaseService.shared.currentUser?.id.uuidString {
+                            AnalyticsService.shared.identify(userId: userId)
+                        }
+                    }
+                }
+            } catch {
+                let failEvent = isSignUp ? "signup_failed" : "login_failed"
+                await MainActor.run {
+                    AnalyticsService.shared.track(failEvent, properties: [
+                        "email": email,
+                        "error_type": String(describing: type(of: error)),
+                        "error_message": error.localizedDescription
+                    ])
+                    errorMessage = error.localizedDescription
+                }
+            }
+            await MainActor.run { isLoading = false }
+        }
+    }
+
+    private func handleForgotPassword() {
+        errorMessage = nil
+        successMessage = nil
+        guard !email.isEmpty else {
+            errorMessage = String(localized: "enter_email_first")
             return
         }
         isLoading = true
         Task {
             do {
-                if isSignUp {
-                    try await service.signUp(email: email, password: password, firstName: firstName)
-                } else {
-                    try await service.signIn(email: email, password: password)
+                try await SupabaseService.shared.resetPassword(email: email)
+                await MainActor.run {
+                    AnalyticsService.shared.track("password_reset_completed", properties: [
+                        "email": email
+                    ])
+                    successMessage = String(localized: "check_inbox_reset_password")
+                    isLoading = false
                 }
             } catch {
-                errorMessage = error.localizedDescription
+                await MainActor.run {
+                    AnalyticsService.shared.track("password_reset_failed", properties: [
+                        "email": email,
+                        "error_type": String(describing: type(of: error)),
+                        "error_message": error.localizedDescription
+                    ])
+                    errorMessage = error.localizedDescription
+                    isLoading = false
+                }
             }
-            isLoading = false
         }
     }
 }
@@ -131,13 +303,13 @@ struct RNTextField: View {
         TextField(placeholder, text: $text)
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 28))
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 24))
             .overlay(
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 24)
                     .stroke(isFocused ? Color.blue : Color.clear, lineWidth: 1.5)
             )
-            .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
             .font(.system(size: 15))
             .focused($isFocused)
     }
@@ -167,13 +339,17 @@ struct RNSecureField: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(
-            RoundedRectangle(cornerRadius: 28)
+            RoundedRectangle(cornerRadius: 24)
                 .stroke(isFocused ? Color.blue : Color.clear, lineWidth: 1.5)
         )
-        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         .font(.system(size: 15))
     }
+}
+
+#Preview {
+    LoginView()
 }

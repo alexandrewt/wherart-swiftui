@@ -4,20 +4,33 @@ import Auth
 struct CreateVisitView: View {
 
     let onCreated: (WherartGroup) -> Void
-    @Environment(\.dismiss) private var dismiss
+    let preselectedExhibition: Exhibition?
 
+    init(preselectedExhibition: Exhibition? = nil, onCreated: @escaping (WherartGroup) -> Void) {
+        self.preselectedExhibition = preselectedExhibition
+        self.onCreated = onCreated
+    }
+
+    @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var startDate = Date()
     @State private var time = Date()
     @State private var maxMembers = 6
-    @State private var exhibitionId = ""
     @State private var isCreating = false
     @State private var errorMessage: String? = nil
+    @State private var exhibitionSearch = ""
+    @State private var searchResults: [Exhibition] = []
+    @State private var selectedExhibition: Exhibition? = nil
+    @State private var isSearching = false
+
+    private let successFeedback = UINotificationFeedbackGenerator()
+    private let selectionFeedback = UISelectionFeedbackGenerator()
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Create a visit")
+                Text(String(localized: "create_a_visit"))
                     .font(.system(size: 20, weight: .bold))
                 Spacer()
                 Button(action: { dismiss() }) {
@@ -32,45 +45,157 @@ struct CreateVisitView: View {
                 VStack(spacing: 20) {
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Visit name")
+                        Text(String(localized: "visit_name"))
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.secondary)
-                        TextField("e.g. Sunday at Pompidou", text: $name)
+                        TextField(String(localized: "visit_name_placeholder"), text: $name)
                             .padding(14)
                             .background(Color(.systemGray6))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Exhibition ID")
+                        Text(String(localized: "exhibition_label"))
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.secondary)
-                        TextField("Exhibition ID", text: $exhibitionId)
-                            .keyboardType(.numberPad)
+
+                        if let selected = selectedExhibition {
+                            HStack(spacing: 12) {
+                                AsyncImage(url: URL(string: selected.image ?? "")) { phase in
+                                    Group {
+                                        switch phase {
+                                        case .success(let image):
+                                            image.resizable().aspectRatio(contentMode: .fill)
+                                                .transition(.opacity)
+                                        default:
+                                            Rectangle().fill(Color(.systemGray5))
+                                        }
+                                    }
+                                    .animation(.easeIn(duration: 0.25), value: phase.image != nil)
+                                }
+                                .frame(width: 48, height: 48)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(selected.title)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .lineLimit(1)
+                                    Text(selected.venue)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
+                                Spacer()
+                                Button(action: {
+                                    impactFeedback.impactOccurred()
+                                    selectedExhibition = nil
+                                    exhibitionSearch = ""
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(12)
+                            .background(Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.06))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.3), lineWidth: 1)
+                            )
+                        } else {
+                            HStack {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 14))
+                                TextField(String(localized: "search_an_exhibition"), text: $exhibitionSearch)
+                                    .font(.system(size: 15))
+                                    .onChange(of: exhibitionSearch) { value in
+                                        searchExhibitions(query: value)
+                                    }
+                                if isSearching {
+                                    ProgressView().scaleEffect(0.7)
+                                }
+                            }
                             .padding(14)
                             .background(Color(.systemGray6))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            if !searchResults.isEmpty {
+                                VStack(spacing: 0) {
+                                    ForEach(searchResults) { exhibition in
+                                        Button(action: {
+                                            selectionFeedback.selectionChanged()
+                                            selectedExhibition = exhibition
+                                            exhibitionSearch = ""
+                                            searchResults = []
+                                        }) {
+                                            HStack(spacing: 12) {
+                                                AsyncImage(url: URL(string: exhibition.image ?? "")) { phase in
+                                                    Group {
+                                                        switch phase {
+                                                        case .success(let image):
+                                                            image.resizable().aspectRatio(contentMode: .fill)
+                                                                .transition(.opacity)
+                                                        default:
+                                                            Rectangle().fill(Color(.systemGray5))
+                                                        }
+                                                    }
+                                                    .animation(.easeIn(duration: 0.25), value: phase.image != nil)
+                                                }
+                                                .frame(width: 44, height: 44)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(exhibition.title)
+                                                        .font(.system(size: 14, weight: .medium))
+                                                        .foregroundColor(.primary)
+                                                        .lineLimit(1)
+                                                    Text(exhibition.venue)
+                                                        .font(.system(size: 12))
+                                                        .foregroundColor(.secondary)
+                                                        .lineLimit(1)
+                                                }
+                                                Spacer()
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 10)
+                                        }
+                                        .buttonStyle(.plain)
+
+                                        if exhibition.id != searchResults.last?.id {
+                                            Divider().padding(.leading, 68)
+                                        }
+                                    }
+                                }
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            }
+                        }
                     }
 
-                    DatePicker("Date", selection: $startDate, displayedComponents: .date)
+                    DatePicker(String(localized: "date_label"), selection: $startDate, displayedComponents: .date)
                         .padding(14)
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                    DatePicker("Time", selection: $time, displayedComponents: .hourAndMinute)
+                    DatePicker(String(localized: "time_label"), selection: $time, displayedComponents: .hourAndMinute)
                         .padding(14)
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Max members: \(maxMembers)")
+                        Text(String(format: String(localized: "max_members_count"), maxMembers))
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.secondary)
                         Slider(value: Binding(
                             get: { Double(maxMembers) },
-                            set: { maxMembers = Int($0) }
+                            set: { newVal in
+                                selectionFeedback.selectionChanged()
+                                maxMembers = Int(newVal)
+                            }
                         ), in: 2...20, step: 1)
-                        .tint(.blue)
+                        .tint(Color(red: 0.15, green: 0.39, blue: 0.92))
                     }
                     .padding(14)
                     .background(Color(.systemGray6))
@@ -88,13 +213,13 @@ struct CreateVisitView: View {
 
             Button(action: handleCreate) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(canCreate ? Color.blue : Color(.systemGray4))
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(canCreate ? Color(red: 0.15, green: 0.39, blue: 0.92) : Color(.systemGray4))
                         .frame(height: 52)
                     if isCreating {
                         ProgressView().tint(.white)
                     } else {
-                        Text("Create visit")
+                        Text(String(localized: "create_visit_button"))
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                     }
@@ -103,16 +228,41 @@ struct CreateVisitView: View {
             .disabled(!canCreate || isCreating)
             .padding(24)
         }
+        .onAppear {
+            if let preselected = preselectedExhibition {
+                selectedExhibition = preselected
+            }
+        }
     }
 
     private var canCreate: Bool {
-        !name.isEmpty && !exhibitionId.isEmpty
+        !name.isEmpty && selectedExhibition != nil
+    }
+
+    private func searchExhibitions(query: String) {
+        guard query.count >= 2 else {
+            searchResults = []
+            return
+        }
+        isSearching = true
+        Task {
+            if let results = try? await SupabaseService.shared.fetchExhibitions() {
+                let filtered = results.filter {
+                    $0.title.localizedCaseInsensitiveContains(query) ||
+                    $0.venue.localizedCaseInsensitiveContains(query)
+                }.prefix(6)
+                await MainActor.run {
+                    searchResults = Array(filtered)
+                    isSearching = false
+                }
+            }
+        }
     }
 
     private func handleCreate() {
-        guard let expoId = Int(exhibitionId),
+        guard let exhibition = selectedExhibition,
               let userId = SupabaseService.shared.currentUser?.id.uuidString else {
-            errorMessage = "Please fill in all fields correctly"
+            errorMessage = String(localized: "please_select_exhibition")
             return
         }
 
@@ -130,7 +280,7 @@ struct CreateVisitView: View {
         Task {
             do {
                 let group = try await SupabaseService.shared.createGroup(
-                    exhibitionId: expoId,
+                    exhibitionId: exhibition.id,
                     name: name,
                     startDate: dateStr,
                     time: timeStr,
@@ -139,11 +289,19 @@ struct CreateVisitView: View {
                 )
                 await MainActor.run {
                     isCreating = false
+                    successFeedback.notificationOccurred(.success)
+                    AnalyticsService.shared.track("visit_created", properties: [
+                        "visit_name": name,
+                        "exhibition_id": exhibition.id,
+                        "exhibition_title": exhibition.title,
+                        "max_members": maxMembers
+                    ])
                     onCreated(group)
                 }
             } catch {
                 await MainActor.run {
                     isCreating = false
+                    successFeedback.notificationOccurred(.error)
                     errorMessage = error.localizedDescription
                 }
             }

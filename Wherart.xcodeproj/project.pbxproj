@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		55C169B8C4B2FB6D824DD7D0 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1BB362A6EC71B1E34943BC /* EditProfileView.swift */; };
+		A13297680C2779020DFD689C /* ChatFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273E965AC408E7811F5F616 /* ChatFullView.swift */; };
+		A1B2C3D4E5F607182930A1B5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182930A1B2 /* Localizable.strings */; };
+		B5361AC12FAF8CD80042B689 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */; };
+		B5361AC32FAFD5F00042B689 /* JoinVisitConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */; };
+		B5361AC52FB35B1A0042B689 /* PaywallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC42FB35B180042B689 /* PaywallSheet.swift */; };
+		B5361AC62FB367F80042B689 /* ExhibitionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB542FA3EE1D009A2A74 /* ExhibitionDetailView.swift */; };
+		B5361AC82FB369400042B689 /* ViewedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC72FB369400042B689 /* ViewedView.swift */; };
+		B539B5B32FBD01B100B6BBAF /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B539B5B22FBD01B100B6BBAF /* StoreKit.framework */; };
+		B539B5B52FBD01DF00B6BBAF /* StoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B539B5B42FBD01DD00B6BBAF /* StoreService.swift */; };
 		B5C8EB242FA3A748009A2A74 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB212FA3A748009A2A74 /* ContentView.swift */; };
 		B5C8EB252FA3A748009A2A74 /* WherartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB222FA3A748009A2A74 /* WherartApp.swift */; };
 		B5C8EB2B2FA3A750009A2A74 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B5C8EB282FA3A750009A2A74 /* Assets.xcassets */; };
@@ -18,7 +28,6 @@
 		B5C8EB4D2FA3E53B009A2A74 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB4C2FA3E539009A2A74 /* MainTabView.swift */; };
 		B5C8EB512FA3E99D009A2A74 /* ExhibitionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB502FA3E99A009A2A74 /* ExhibitionCard.swift */; };
 		B5C8EB532FA3E9BF009A2A74 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB522FA3E9B6009A2A74 /* HomeView.swift */; };
-		B5C8EB552FA3EE1E009A2A74 /* ExhibitionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB542FA3EE1D009A2A74 /* ExhibitionDetailView.swift */; };
 		B5C8EB582FA3F3A4009A2A74 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5C8EB562FA3F389009A2A74 /* MapKit.framework */; };
 		B5C8EB592FA3F3AA009A2A74 /* libswiftMapKit.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B5C8EB572FA3F389009A2A74 /* libswiftMapKit.tbd */; };
 		B5C8EB5B2FA3F3CC009A2A74 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB5A2FA3F3CA009A2A74 /* MapView.swift */; };
@@ -27,12 +36,32 @@
 		B5C8EB612FA3F7BF009A2A74 /* VisitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB602FA3F7BD009A2A74 /* VisitDetailView.swift */; };
 		B5C8EB632FA3F7D6009A2A74 /* CreateVisitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */; };
 		B5C8EB652FA3F96D009A2A74 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB642FA3F96B009A2A74 /* FavoritesView.swift */; };
-		B5C8EB672FA3F998009A2A74 /* ViewedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB662FA3F998009A2A74 /* ViewedView.swift */; };
 		B5C8EB692FA3FFA9009A2A74 /* FilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */; };
+		B5D979712FF9500000000002 /* NavigationSwipeBackFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979702FF9500000000001 /* NavigationSwipeBackFix.swift */; };
+		B5D979752FF9500000000006 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979742FF9500000000005 /* DesignSystem.swift */; };
+		B5D979772FF9500000000008 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979762FF9500000000007 /* NotificationService.swift */; };
+		B5D979792FF950000000000A /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979782FF9500000000009 /* SplashView.swift */; };
+		B5F5A5443048B677004E2CD9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = B5F5A5433048B677004E2CD9 /* PostHog */; };
+		B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */; };
+		B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */; };
+		C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */; };
+		E76C3A086A8FAB61971C2114 /* SubscribeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8699DCBF30405A872CB965B6 /* SubscribeView.swift */; };
+		F1E2D3C4B5A697887766554B /* LoginPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A697887766554A /* LoginPromptSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5273E965AC408E7811F5F616 /* ChatFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFullView.swift; sourceTree = "<group>"; };
+		8699DCBF30405A872CB965B6 /* SubscribeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
+		B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinVisitConfirmView.swift; sourceTree = "<group>"; };
+		B5361AC42FB35B180042B689 /* PaywallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallSheet.swift; sourceTree = "<group>"; };
+		B5361AC72FB369400042B689 /* ViewedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewedView.swift; sourceTree = "<group>"; };
+		B539B5B22FBD01B100B6BBAF /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		B539B5B42FBD01DD00B6BBAF /* StoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreService.swift; sourceTree = "<group>"; };
 		B55343232FA3439A002AB98D /* Wherart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wherart.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B59B58972FB3A50500DDC3CB /* Wherart-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Wherart-Info.plist"; sourceTree = "<group>"; };
 		B5C8EB212FA3A748009A2A74 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B5C8EB222FA3A748009A2A74 /* WherartApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WherartApp.swift; sourceTree = "<group>"; };
 		B5C8EB282FA3A750009A2A74 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -53,8 +82,17 @@
 		B5C8EB602FA3F7BD009A2A74 /* VisitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitDetailView.swift; sourceTree = "<group>"; };
 		B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVisitView.swift; sourceTree = "<group>"; };
 		B5C8EB642FA3F96B009A2A74 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
-		B5C8EB662FA3F998009A2A74 /* ViewedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewedView.swift; sourceTree = "<group>"; };
 		B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheet.swift; sourceTree = "<group>"; };
+		B5D979632FF9496F0054A063 /* WherartDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WherartDebug.entitlements; sourceTree = "<group>"; };
+		B5D979702FF9500000000001 /* NavigationSwipeBackFix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationSwipeBackFix.swift; sourceTree = "<group>"; };
+		B5D979742FF9500000000005 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		B5D979762FF9500000000007 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		B5D979782FF9500000000009 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtTaxonomy.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A697887766554A /* LoginPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPromptSheet.swift; sourceTree = "<group>"; };
+		FC1BB362A6EC71B1E34943BC /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -72,7 +110,9 @@
 			files = (
 				B5C8EB582FA3F3A4009A2A74 /* MapKit.framework in Frameworks */,
 				B5C8EB432FA3B129009A2A74 /* Supabase in Frameworks */,
+				B5F5A5443048B677004E2CD9 /* PostHog in Frameworks */,
 				B5C8EB592FA3F3AA009A2A74 /* libswiftMapKit.tbd in Frameworks */,
+				B539B5B32FBD01B100B6BBAF /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,10 +122,13 @@
 		B553431A2FA3439A002AB98D = {
 			isa = PBXGroup;
 			children = (
+				B5D979632FF9496F0054A063 /* WherartDebug.entitlements */,
+				B59B58972FB3A50500DDC3CB /* Wherart-Info.plist */,
 				B5C8EB4E2FA3E8BE009A2A74 /* Info.plist */,
 				B5C8EB362FA3A870009A2A74 /* App */,
 				B5C8EB332FA3A765009A2A74 /* Config */,
 				B5C8EB282FA3A750009A2A74 /* Assets.xcassets */,
+				A1B2C3D4E5F607182930A1B2 /* Localizable.strings */,
 				B5C8EB372FA3A8D6009A2A74 /* Models */,
 				B5C8EB382FA3A8E1009A2A74 /* Services */,
 				B5C8EB392FA3A8E9009A2A74 /* Views */,
@@ -107,6 +150,9 @@
 			children = (
 				B5C8EB212FA3A748009A2A74 /* ContentView.swift */,
 				B5C8EB222FA3A748009A2A74 /* WherartApp.swift */,
+				B5D979702FF9500000000001 /* NavigationSwipeBackFix.swift */,
+				B5D979742FF9500000000005 /* DesignSystem.swift */,
+				C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -123,6 +169,9 @@
 			isa = PBXGroup;
 			children = (
 				B5C8EB452FA3B20C009A2A74 /* SupabaseService.swift */,
+				B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */,
+				B5D979762FF9500000000007 /* NotificationService.swift */,
+				B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -146,6 +195,7 @@
 			children = (
 				B5C8EB4A2FA3E40C009A2A74 /* OnboardingView.swift */,
 				B5C8EB462FA3B248009A2A74 /* LoginView.swift */,
+				B5D979782FF9500000000009 /* SplashView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -153,6 +203,9 @@
 		B5C8EB3C2FA3AF82009A2A74 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				B539B5B42FBD01DD00B6BBAF /* StoreService.swift */,
+				B5361AC42FB35B180042B689 /* PaywallSheet.swift */,
+				8699DCBF30405A872CB965B6 /* SubscribeView.swift */,
 				B5C8EB542FA3EE1D009A2A74 /* ExhibitionDetailView.swift */,
 				B5C8EB522FA3E9B6009A2A74 /* HomeView.swift */,
 				B5C8EB502FA3E99A009A2A74 /* ExhibitionCard.swift */,
@@ -171,9 +224,11 @@
 		B5C8EB3E2FA3AF90009A2A74 /* Visits */ = {
 			isa = PBXGroup;
 			children = (
+				B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */,
 				B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */,
 				B5C8EB602FA3F7BD009A2A74 /* VisitDetailView.swift */,
 				B5C8EB5E2FA3F796009A2A74 /* VisitView.swift */,
+				5273E965AC408E7811F5F616 /* ChatFullView.swift */,
 			);
 			path = Visits;
 			sourceTree = "<group>";
@@ -181,9 +236,10 @@
 		B5C8EB3F2FA3AF99009A2A74 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				B5C8EB662FA3F998009A2A74 /* ViewedView.swift */,
 				B5C8EB642FA3F96B009A2A74 /* FavoritesView.swift */,
 				B5C8EB5C2FA3F67F009A2A74 /* ProfileView.swift */,
+				B5361AC72FB369400042B689 /* ViewedView.swift */,
+				FC1BB362A6EC71B1E34943BC /* EditProfileView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -191,7 +247,9 @@
 		B5C8EB402FA3AF9F009A2A74 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */,
 				B5C8EB682FA3FFA7009A2A74 /* FilterSheet.swift */,
+				F1E2D3C4B5A697887766554A /* LoginPromptSheet.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -199,6 +257,7 @@
 		B5C8EB412FA3B129009A2A74 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B539B5B22FBD01B100B6BBAF /* StoreKit.framework */,
 				B5C8EB572FA3F389009A2A74 /* libswiftMapKit.tbd */,
 				B5C8EB562FA3F389009A2A74 /* MapKit.framework */,
 			);
@@ -226,6 +285,7 @@
 			name = Wherart;
 			packageProductDependencies = (
 				B5C8EB422FA3B129009A2A74 /* Supabase */,
+				B5F5A5433048B677004E2CD9 /* PostHog */,
 			);
 			productName = Wherart;
 			productReference = B55343232FA3439A002AB98D /* Wherart.app */;
@@ -251,12 +311,14 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				fr,
 				Base,
 			);
 			mainGroup = B553431A2FA3439A002AB98D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B55343312FA38350002AB98D /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B55343242FA3439A002AB98D /* Products */;
@@ -274,6 +336,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B5C8EB2B2FA3A750009A2A74 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F607182930A1B5 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,27 +348,54 @@
 			buildActionMask = 2147483647;
 			files = (
 				B5C8EB5F2FA3F798009A2A74 /* VisitView.swift in Sources */,
+				B539B5B52FBD01DF00B6BBAF /* StoreService.swift in Sources */,
 				B5C8EB242FA3A748009A2A74 /* ContentView.swift in Sources */,
 				B5C8EB692FA3FFA9009A2A74 /* FilterSheet.swift in Sources */,
 				B5C8EB5D2FA3F680009A2A74 /* ProfileView.swift in Sources */,
+				B5361AC62FB367F80042B689 /* ExhibitionDetailView.swift in Sources */,
 				B5C8EB5B2FA3F3CC009A2A74 /* MapView.swift in Sources */,
 				B5C8EB472FA3E1F6009A2A74 /* LoginView.swift in Sources */,
 				B5C8EB532FA3E9BF009A2A74 /* HomeView.swift in Sources */,
-				B5C8EB552FA3EE1E009A2A74 /* ExhibitionDetailView.swift in Sources */,
 				B5C8EB4D2FA3E53B009A2A74 /* MainTabView.swift in Sources */,
 				B5C8EB492FA3E2D6009A2A74 /* Models.swift in Sources */,
 				B5C8EB612FA3F7BF009A2A74 /* VisitDetailView.swift in Sources */,
+				B5361AC32FAFD5F00042B689 /* JoinVisitConfirmView.swift in Sources */,
 				B5C8EB252FA3A748009A2A74 /* WherartApp.swift in Sources */,
+				B5361AC82FB369400042B689 /* ViewedView.swift in Sources */,
+				B5361AC52FB35B1A0042B689 /* PaywallSheet.swift in Sources */,
+				E76C3A086A8FAB61971C2114 /* SubscribeView.swift in Sources */,
+				A13297680C2779020DFD689C /* ChatFullView.swift in Sources */,
+				55C169B8C4B2FB6D824DD7D0 /* EditProfileView.swift in Sources */,
 				B5C8EB482FA3E1FF009A2A74 /* SupabaseService.swift in Sources */,
+				B5361AC12FAF8CD80042B689 /* SharedComponents.swift in Sources */,
 				B5C8EB652FA3F96D009A2A74 /* FavoritesView.swift in Sources */,
-				B5C8EB672FA3F998009A2A74 /* ViewedView.swift in Sources */,
+				B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */,
 				B5C8EB512FA3E99D009A2A74 /* ExhibitionCard.swift in Sources */,
 				B5C8EB632FA3F7D6009A2A74 /* CreateVisitView.swift in Sources */,
 				B5C8EB4B2FA3E418009A2A74 /* OnboardingView.swift in Sources */,
+				B5D979712FF9500000000002 /* NavigationSwipeBackFix.swift in Sources */,
+				B5D979752FF9500000000006 /* DesignSystem.swift in Sources */,
+				B5D979772FF9500000000008 /* NotificationService.swift in Sources */,
+				B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */,
+				B5D979792FF950000000000A /* SplashView.swift in Sources */,
+				F1E2D3C4B5A697887766554B /* LoginPromptSheet.swift in Sources */,
+				C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A1B2C3D4E5F607182930A1B2 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A1B2C3D4E5F607182930A1B3 /* en */,
+				A1B2C3D4E5F607182930A1B4 /* fr */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		B553432C2FA3439B002AB98D /* Debug */ = {
@@ -429,14 +519,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Wherart-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Wherart;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wherart uses your location to show exhibitions near you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -445,15 +539,15 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = wherart.Wherart;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 1.5.4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
+				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -475,13 +569,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Wherart-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Wherart;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wherart uses your location to show exhibitions near you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -490,15 +587,15 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = wherart.Wherart;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 1.5.4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
+				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -546,6 +643,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.71.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -553,6 +658,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B55343312FA38350002AB98D /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		B5F5A5433048B677004E2CD9 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

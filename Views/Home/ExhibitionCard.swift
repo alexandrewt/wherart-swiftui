@@ -16,38 +16,47 @@ struct ExhibitionCard: View {
                 // MARK: - Image
                 ZStack(alignment: .topLeading) {
                     AsyncImage(url: URL(string: exhibition.image ?? "")) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        case .failure:
-                            Rectangle().fill(Color.gray.opacity(0.3))
-                        case .empty:
-                            Rectangle().fill(Color.gray.opacity(0.15))
-                                .overlay(ProgressView())
-                        @unknown default:
-                            EmptyView()
+                        Group {
+                            switch phase {
+                            case .success(let image):
+                                image.resizable().aspectRatio(contentMode: .fill)
+                                    .transition(.opacity)
+                            case .failure:
+                                Rectangle().fill(Color(.systemGray5))
+                            case .empty:
+                                Rectangle().fill(Color(.systemGray6))
+                                    .overlay(ProgressView())
+                            @unknown default:
+                                EmptyView()
+                            }
                         }
+                        .animation(.easeIn(duration: 0.25), value: phase.image != nil)
                     }
+                    .frame(maxWidth: .infinity)
                     .frame(height: 200)
                     .clipped()
 
                     // Tags
                     HStack(spacing: 6) {
-                        TagBadge(label: exhibition.type, color: typeColor(exhibition.type))
-                        TagBadge(label: exhibition.venueType, color: Color.white.opacity(0.9))
+                        TagBadge(label: exhibition.type, color: typeColor(exhibition.type).opacity(0.9))
+                        TagBadge(label: exhibition.venueType, color: Color.white.opacity(0.92))
                     }
                     .padding(12)
 
                     // Actions
                     HStack(spacing: 8) {
-                        ActionButton(
+                        CardActionButton(
                             icon: isViewed ? "eye.fill" : "eye",
-                            color: isViewed ? .blue : .gray,
+                            color: isViewed ? .blue : Color(.systemGray2),
+                            accessibilityLabel: isViewed ? String(localized: "mark_as_not_seen") : String(localized: "mark_as_seen"),
+                            hapticStyle: .light,
                             action: onToggleViewed
                         )
-                        ActionButton(
+                        CardActionButton(
                             icon: isFavorite ? "heart.fill" : "heart",
-                            color: isFavorite ? .red : .gray,
+                            color: isFavorite ? .red : Color(.systemGray2),
+                            accessibilityLabel: isFavorite ? String(localized: "remove_from_favorites") : String(localized: "add_to_favorites"),
+                            hapticStyle: .medium,
                             action: onToggleFavorite
                         )
                     }
@@ -56,45 +65,43 @@ struct ExhibitionCard: View {
                 }
 
                 // MARK: - Info
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(exhibition.title)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-
-                    Text(exhibition.venue)
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-
-                    HStack {
-
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .bottom) {
+                        Text(exhibition.title)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                            .lineLimit(2)
+                            .truncationMode(.tail)
                         Spacer()
-
-                        HStack(spacing: 8) {
-                            if let distance = exhibition.distance {
-                                Text(String(format: "%.1f km", distance))
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.blue)
-                            }
-                            if exhibition.isFree {
-                                Text("Free")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.blue)
-                            } else if let price = exhibition.price {
-                                Text(price)
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.blue)
-                            }
+                        if let distance = exhibition.distance {
+                            Text(String(format: "%.1f km", distance))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.blue)
                         }
                     }
 
-                    if exhibition.endingSoon {
-                        Label("Ending soon", systemImage: "exclamationmark.circle.fill")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.orange)
+                    HStack(alignment: .top) {
+                        Text(exhibition.venue)
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                        Spacer()
+                        let parsed = parsedPriceDisplay(exhibition.price, isFree: exhibition.isFree)
+                        HStack(spacing: 4) {
+                            Text(parsed.summary)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                                .lineLimit(1)
+                            if parsed.hasDetails {
+                                Image(systemName: "info.circle.fill")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                            }
+                        }
                     }
                 }
                 .padding(16)
+                .background(Color(.systemBackground))
             }
         }
         .buttonStyle(.plain)
@@ -102,50 +109,33 @@ struct ExhibitionCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 2)
     }
-
-    private func typeColor(_ type: String) -> Color {
-        switch type {
-        case "Contemporary Art": return Color(red: 0.58, green: 0.77, blue: 0.99)
-        case "Painting": return Color(red: 0.98, green: 0.66, blue: 0.82)
-        case "Sculpture": return Color(red: 0.99, green: 0.73, blue: 0.45)
-        case "Photography": return Color(red: 0.43, green: 0.91, blue: 0.72)
-        case "Street Art": return Color(red: 0.99, green: 0.83, blue: 0.30)
-        default: return Color(red: 0.77, green: 0.71, blue: 0.99)
-        }
-    }
 }
 
-// MARK: - Tag Badge
-struct TagBadge: View {
-    let label: String
-    let color: Color
-
-    var body: some View {
-        Text(label)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(Color(red: 0.12, green: 0.23, blue: 0.37))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(color)
-            .clipShape(Capsule())
-    }
-}
-
-// MARK: - Action Button
-struct ActionButton: View {
+// MARK: - Card Action Button
+struct CardActionButton: View {
     let icon: String
     let color: Color
+    let accessibilityLabel: String
+    /// Fired at tap time, ahead of `action` — centralizes the haptic here
+    /// instead of duplicating it in every screen that uses this button
+    /// (HomeView, FavoritesView, ViewedView).
+    let hapticStyle: UIImpactFeedbackGenerator.FeedbackStyle
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            UIImpactFeedbackGenerator(style: hapticStyle).impactOccurred()
+            action()
+        }) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(color)
-                .frame(width: 34, height: 34)
-                .background(.ultraThinMaterial)
+                .frame(width: 36, height: 36)
+                .background(Color.white.opacity(0.92))
                 .clipShape(Circle())
+                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
     }
 }
