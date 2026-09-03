@@ -22,6 +22,7 @@ struct CreateVisitView: View {
     @State private var searchResults: [Exhibition] = []
     @State private var selectedExhibition: Exhibition? = nil
     @State private var isSearching = false
+    @State private var hasTrackedOpen = false
 
     private let successFeedback = UINotificationFeedbackGenerator()
     private let selectionFeedback = UISelectionFeedbackGenerator()
@@ -232,6 +233,14 @@ struct CreateVisitView: View {
             if let preselected = preselectedExhibition {
                 selectedExhibition = preselected
             }
+
+            if !hasTrackedOpen {
+                AnalyticsService.shared.track("create_visit_opened", properties: [
+                    "exhibition_id": preselectedExhibition?.id ?? 0,
+                    "exhibition_title": preselectedExhibition?.title ?? "None selected"
+                ])
+                hasTrackedOpen = true
+            }
         }
     }
 
@@ -266,6 +275,10 @@ struct CreateVisitView: View {
             return
         }
 
+        AnalyticsService.shared.track("create_visit_info_filled", properties: [
+            "group_name_length": name.count
+        ])
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let dateStr = formatter.string(from: startDate)
@@ -291,10 +304,11 @@ struct CreateVisitView: View {
                     isCreating = false
                     successFeedback.notificationOccurred(.success)
                     AnalyticsService.shared.track("visit_created", properties: [
-                        "visit_name": name,
+                        "visit_id": group.id,
                         "exhibition_id": exhibition.id,
                         "exhibition_title": exhibition.title,
-                        "max_members": maxMembers
+                        "group_name": name,
+                        "initial_members": 1
                     ])
                     onCreated(group)
                 }
@@ -302,6 +316,10 @@ struct CreateVisitView: View {
                 await MainActor.run {
                     isCreating = false
                     successFeedback.notificationOccurred(.error)
+                    AnalyticsService.shared.track("create_visit_error", properties: [
+                        "error_type": String(describing: type(of: error)),
+                        "exhibition_id": exhibition.id
+                    ])
                     errorMessage = error.localizedDescription
                 }
             }

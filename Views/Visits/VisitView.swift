@@ -11,6 +11,7 @@ struct VisitView: View {
     @State private var selectedGroup: WherartGroup? = nil
     @State private var showCreateVisit = false
     @State private var exhibitionsMap: [Int: Exhibition] = [:]
+    @State private var visitsLoadedTime: Date?
 
     private let selectionFeedback = UISelectionFeedbackGenerator()
     private let warningFeedback = UINotificationFeedbackGenerator()
@@ -85,6 +86,8 @@ struct VisitView: View {
             }
         }
         .task {
+            visitsLoadedTime = Date()
+            AnalyticsService.shared.screen("Visits")
             await loadGroups()
         }
         .onAppear {
@@ -92,6 +95,13 @@ struct VisitView: View {
                 selectedTab = 1
                 defaultTab = 0
             }
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            let tabNames = ["discover", "my_visits"]
+            AnalyticsService.shared.track("visits_tab_switched", properties: [
+                "tab": tabNames[newTab],
+                "tab_index": newTab
+            ])
         }
     }
 
@@ -104,7 +114,15 @@ struct VisitView: View {
                     emptyState(icon: "person.2", title: String(localized: "no_visits_yet"), subtitle: String(localized: "be_first_organise_visit"))
                 } else {
                     ForEach(Array(discoverGroups.enumerated()), id: \.element.id) { index, group in
-                        VisitCard(group: group, isMyVisit: false, onTap: { selectedGroup = group }, exhibitionsMap: exhibitionsMap)
+                        VisitCard(group: group, isMyVisit: false, onTap: {
+                            AnalyticsService.shared.track("visit_details_viewed", properties: [
+                                "visit_id": group.id,
+                                "exhibition_title": exhibitionsMap[group.exhibitionId]?.title ?? "Unknown",
+                                "member_count": group.members?.count ?? 0,
+                                "tab_source": "discover"
+                            ])
+                            selectedGroup = group
+                        }, exhibitionsMap: exhibitionsMap)
                             .padding(.horizontal, 16)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                             .animation(
@@ -129,7 +147,15 @@ struct VisitView: View {
                     .listRowBackground(Color.clear)
             } else {
                 ForEach(Array(myGroups.enumerated()), id: \.element.id) { index, group in
-                    VisitCard(group: group, isMyVisit: true, onTap: { selectedGroup = group }, exhibitionsMap: exhibitionsMap)
+                    VisitCard(group: group, isMyVisit: true, onTap: {
+                        AnalyticsService.shared.track("visit_details_viewed", properties: [
+                            "visit_id": group.id,
+                            "exhibition_title": exhibitionsMap[group.exhibitionId]?.title ?? "Unknown",
+                            "member_count": group.members?.count ?? 0,
+                            "tab_source": "my_visits"
+                        ])
+                        selectedGroup = group
+                    }, exhibitionsMap: exhibitionsMap)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -183,11 +209,20 @@ struct VisitView: View {
                 self.discoverGroups = all
                 self.myGroups = mine
                 self.isLoading = false
+
+                AnalyticsService.shared.track("visits_loaded", properties: [
+                    "discover_count": all.count,
+                    "my_visits_count": mine.count
+                ])
             }
         } catch {
             await MainActor.run {
                 self.exhibitionsMap = map
                 self.isLoading = false
+
+                AnalyticsService.shared.track("visits_load_error", properties: [
+                    "error_type": String(describing: type(of: error))
+                ])
             }
         }
     }

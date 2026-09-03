@@ -115,6 +115,13 @@ struct VisitDetailView: View {
         }
         .task {
             await loadData()
+
+            AnalyticsService.shared.track("visit_detail_viewed", properties: [
+                "visit_id": group.id,
+                "creator_id": group.createdBy ?? "Unknown",
+                "member_count": group.members?.count ?? 0,
+                "is_creator": isCreator
+            ])
         }
         .onAppear {
             // Re-establish the subscription when returning to this screen (e.g.
@@ -152,6 +159,13 @@ struct VisitDetailView: View {
         if let sent = try? await SupabaseService.shared.sendMessage(visitId: group.id, userId: userId, firstName: firstName, content: content) {
             await MainActor.run {
                 if !messages.contains(where: { $0.id == sent.id }) { messages.append(sent) }
+
+                AnalyticsService.shared.track("chat_message_sent", properties: [
+                    "visit_id": group.id,
+                    "message_length": content.count,
+                    "message_type": "text"
+                ])
+
                 messageText = ""
                 isSendingMessage = false
                 messageFieldFocused = false
@@ -192,7 +206,8 @@ struct VisitDetailView: View {
                 successFeedback.notificationOccurred(.success)
                 AnalyticsService.shared.track("visit_joined", properties: [
                     "visit_id": group.id,
-                    "visit_name": group.name
+                    "exhibition_id": group.exhibitionId,
+                    "member_count_after": updated.members?.count ?? 0
                 ])
             }
             await startChat()
@@ -203,7 +218,8 @@ struct VisitDetailView: View {
                 successFeedback.notificationOccurred(.success)
                 AnalyticsService.shared.track("visit_joined", properties: [
                     "visit_id": group.id,
-                    "visit_name": group.name
+                    "exhibition_id": group.exhibitionId,
+                    "member_count_after": 1
                 ])
             }
             await startChat()
@@ -217,6 +233,12 @@ struct VisitDetailView: View {
             try? await SupabaseService.shared.deleteGroup(groupId: group.id)
         } else {
             try? await SupabaseService.shared.leaveGroup(groupId: group.id, userId: userId)
+
+            AnalyticsService.shared.track("visit_left", properties: [
+                "visit_id": group.id,
+                "exhibition_id": group.exhibitionId,
+                "member_count_after": (localGroup.members?.count ?? 1) - 1
+            ])
         }
         NotificationService.shared.cancelNotification(identifier: NotificationService.visitReminderIdentifier(groupId: group.id))
         await MainActor.run {
