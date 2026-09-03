@@ -103,6 +103,7 @@ struct Profile: Codable {
     var preferences: [String]
     var venueTypes: [String]
     var avatarUrl: String?
+    var exhibitionReminderThreshold: Int?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -111,6 +112,7 @@ struct Profile: Codable {
         case preferences
         case venueTypes = "venue_types"
         case avatarUrl = "avatar_url"
+        case exhibitionReminderThreshold = "exhibition_reminder_threshold"
     }
 }
 

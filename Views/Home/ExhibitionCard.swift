@@ -62,6 +62,24 @@ struct ExhibitionCard: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(12)
+
+                    // Ending Soon Badge
+                    let daysRemaining = EndingSoonService.shared.daysRemaining(for: exhibition)
+                    let reminderThreshold = EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25)
+                    if daysRemaining > 0 && daysRemaining <= reminderThreshold {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("\(daysRemaining)d")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.red.opacity(0.8))
+                        .cornerRadius(6)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    }
                 }
 
                 // MARK: - Info

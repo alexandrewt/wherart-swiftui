@@ -121,13 +121,24 @@ class SupabaseService: ObservableObject {
         return publicURL.absoluteString
     }
 
-    func updatePreferences(userId: String, preferences: [String], venueTypes: [String]) async throws {
+    func updatePreferences(
+        userId: String,
+        preferences: [String],
+        venueTypes: [String],
+        reminderThreshold: Int? = nil
+    ) async throws {
         struct PrefsUpdate: Encodable {
             let id: String
             let preferences: [String]
             let venue_types: [String]
+            let exhibition_reminder_threshold: Int?
         }
-        let update = PrefsUpdate(id: userId, preferences: preferences, venue_types: venueTypes)
+        let update = PrefsUpdate(
+            id: userId,
+            preferences: preferences,
+            venue_types: venueTypes,
+            exhibition_reminder_threshold: reminderThreshold
+        )
         try await client
             .from("profiles")
             .upsert(update)

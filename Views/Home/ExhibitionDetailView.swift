@@ -837,7 +837,23 @@ struct SponsoredTopBanner: View {
                     .frame(height: contentHeight)
                     .padding(.horizontal, 16)
                 }
-                .frame(width: geo.size.width, height: totalHeight)
+
+                // Ending Soon Badge
+                if EndingSoonService.shared.daysRemaining(for: exhibition) > 0 &&
+                   EndingSoonService.shared.daysRemaining(for: exhibition) <= EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25) {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 14, weight: .bold))
+                        Text("\(EndingSoonService.shared.daysRemaining(for: exhibition)) days left")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(10)
+                    .background(Color.red.opacity(0.85))
+                    .cornerRadius(8)
+                    .padding(16)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                }
             }
             .frame(width: geo.size.width, height: totalHeight)
         }

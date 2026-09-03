@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showEditPrefs = false
     @State private var editTypes: [String] = []
     @State private var editVenues: [String] = []
+    @State private var editReminderThreshold: Double = 25
     @State private var isSaving = false
     @State private var showChangePassword = false
     @State private var passwordResetSent = false
@@ -147,6 +148,7 @@ struct ProfileView: View {
                             ])
                             editTypes = profile?.preferences ?? []
                             editVenues = profile?.venueTypes ?? []
+                            editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
                             showEditPrefs = true
                         }) {
                             HStack(spacing: 4) {
@@ -258,6 +260,7 @@ struct ProfileView: View {
             EditPreferencesSheet(
                 selectedTypes: $editTypes,
                 selectedVenues: $editVenues,
+                reminderThreshold: $editReminderThreshold,
                 artTypes: artTypes,
                 venueTypes: venueTypes,
                 isSaving: $isSaving,
@@ -337,7 +340,8 @@ struct ProfileView: View {
                     "user_id": userId,
                     "favorites_count": self.favoritesCount,
                     "viewed_count": self.viewedCount,
-                    "visits_count": self.visitsCount
+                    "visits_count": self.visitsCount,
+                    "reminder_threshold": fetchedProfile.exhibitionReminderThreshold ?? 25
                 ])
             }
         } catch {
@@ -376,15 +380,22 @@ struct ProfileView: View {
         isSaving = true
         Task {
             do {
-                try await SupabaseService.shared.updatePreferences(userId: userId, preferences: editTypes, venueTypes: editVenues)
+                try await SupabaseService.shared.updatePreferences(
+                    userId: userId,
+                    preferences: editTypes,
+                    venueTypes: editVenues,
+                    reminderThreshold: Int(editReminderThreshold)
+                )
                 await MainActor.run {
                     profile?.preferences = editTypes
                     profile?.venueTypes = editVenues
+                    profile?.exhibitionReminderThreshold = Int(editReminderThreshold)
 
                     AnalyticsService.shared.track("preferences_updated", properties: [
                         "user_id": userId,
                         "art_types_count": editTypes.count,
                         "venue_types_count": editVenues.count,
+                        "reminder_threshold": Int(editReminderThreshold),
                         "art_types": editTypes.joined(separator: ","),
                         "venue_types": editVenues.joined(separator: ",")
                     ])
@@ -633,6 +644,7 @@ struct StatCard: View {
 struct EditPreferencesSheet: View {
     @Binding var selectedTypes: [String]
     @Binding var selectedVenues: [String]
+    @Binding var reminderThreshold: Double
     let artTypes: [String]
     let venueTypes: [String]
     @Binding var isSaving: Bool
@@ -689,6 +701,17 @@ struct EditPreferencesSheet: View {
                                 }.buttonStyle(.plain)
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Ending Soon Reminders").font(.system(size: 16, weight: .semibold))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Remind me when exhibition has").font(.system(size: 14))
+                            HStack {
+                                Slider(value: $reminderThreshold, in: 0...100, step: 5)
+                                Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
+                            }
+                            Text("Days left = Total duration × \(Int(reminderThreshold))%").font(.system(size: 12)).foregroundColor(.secondary)
+                        }
                     }
                 }
                 .padding(.horizontal, 24).padding(.bottom, 24)
