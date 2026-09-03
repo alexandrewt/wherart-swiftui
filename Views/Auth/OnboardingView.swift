@@ -264,6 +264,13 @@ struct OnboardingView: View {
                     "venue_types_count": selectedVenues.count,
                     "duration_seconds": duration
                 ])
+
+                AnalyticsService.shared.updateUserProperties([
+                    "art_preferences": selectedTypes.joined(separator: ","),
+                    "venue_preferences": selectedVenues.joined(separator: ","),
+                    "onboarding_completed_at": Date().ISO8601Format()
+                ])
+
                 await MainActor.run {
                     isLoading = false
                     onComplete()

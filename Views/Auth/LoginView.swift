@@ -230,7 +230,16 @@ struct LoginView: View {
                             "method": "email"
                         ])
                         if let userId = SupabaseService.shared.currentUser?.id.uuidString {
-                            AnalyticsService.shared.identify(userId: userId)
+                            AnalyticsService.shared.identify(userId: userId, properties: [
+                                "email": email,
+                                "created_at": Date().ISO8601Format(),
+                                "signup_method": "email"
+                            ])
+
+                            // Si l'utilisateur était en guest mode avant, créer un alias
+                            if SupabaseService.shared.isGuestMode {
+                                AnalyticsService.shared.createAlias(distinctId: "guest", userId: userId)
+                            }
                         }
                     }
                 } else {
@@ -241,7 +250,10 @@ struct LoginView: View {
                             "method": "email"
                         ])
                         if let userId = SupabaseService.shared.currentUser?.id.uuidString {
-                            AnalyticsService.shared.identify(userId: userId)
+                            AnalyticsService.shared.identify(userId: userId, properties: [
+                                "email": email,
+                                "last_login_at": Date().ISO8601Format()
+                            ])
                         }
                     }
                 }
@@ -253,6 +265,13 @@ struct LoginView: View {
                         "error_type": String(describing: type(of: error)),
                         "error_message": error.localizedDescription
                     ])
+
+                    AnalyticsService.shared.trackError(
+                        domain: "auth",
+                        code: (error as NSError).code,
+                        message: error.localizedDescription,
+                        context: ["flow": isSignUp ? "signup" : "login"]
+                    )
                     errorMessage = error.localizedDescription
                 }
             }
@@ -285,6 +304,13 @@ struct LoginView: View {
                         "error_type": String(describing: type(of: error)),
                         "error_message": error.localizedDescription
                     ])
+
+                    AnalyticsService.shared.trackError(
+                        domain: "auth",
+                        code: (error as NSError).code,
+                        message: error.localizedDescription,
+                        context: ["flow": "password_reset"]
+                    )
                     errorMessage = error.localizedDescription
                     isLoading = false
                 }

@@ -309,6 +309,13 @@ struct ProfileView: View {
                 AnalyticsService.shared.track("logout_error", properties: [
                     "error_type": String(describing: type(of: error))
                 ])
+
+                AnalyticsService.shared.trackError(
+                    domain: "auth",
+                    code: (error as NSError).code,
+                    message: error.localizedDescription,
+                    context: ["flow": "logout"]
+                )
             }
         }
     }

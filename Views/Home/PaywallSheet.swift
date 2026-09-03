@@ -14,6 +14,7 @@ struct PaywallBodyView: View {
     private var store: StoreService { StoreService.shared }
     @State private var billingCycle: BillingCycle = .annual
     @State private var isPurchasing = false
+    @State private var hasTrackedPaywallShow = false
 
     enum BillingCycle { case annual, monthly }
 
@@ -136,16 +137,37 @@ struct PaywallBodyView: View {
                         return
                     }
                     impact.impactOccurred()
+
+                    AnalyticsService.shared.track("purchase_initiated", properties: [
+                        "tier": billingCycle == .annual ? "annual" : "monthly",
+                        "price": product.displayPrice,
+                        "currency": product.priceFormatStyle.locale.currency?.identifier ?? "EUR"
+                    ])
+
                     isPurchasing = true
                     Task {
                         do {
                             try await store.purchase(product)
                             await MainActor.run {
                                 isPurchasing = false
-                                if store.isPremium { onDismiss?() }
+                                if store.isPremium {
+                                    AnalyticsService.shared.track("purchase_completed", properties: [
+                                        "tier": billingCycle == .annual ? "annual" : "monthly",
+                                        "price": product.displayPrice,
+                                        "currency": product.priceFormatStyle.locale.currency?.identifier ?? "EUR"
+                                    ])
+                                    onDismiss?()
+                                }
                             }
                         } catch {
-                            await MainActor.run { isPurchasing = false }
+                            await MainActor.run {
+                                isPurchasing = false
+                                AnalyticsService.shared.track("purchase_failed", properties: [
+                                    "tier": billingCycle == .annual ? "annual" : "monthly",
+                                    "error_type": String(describing: type(of: error)),
+                                    "error_message": error.localizedDescription
+                                ])
+                            }
                         }
                     }
                 }) {
@@ -190,6 +212,24 @@ struct PaywallBodyView: View {
             .padding(.bottom, 28)
         }
         .padding(.horizontal, 24)
+        .onAppear {
+            if !hasTrackedPaywallShow {
+                AnalyticsService.shared.track("paywall_shown", properties: [
+                    "billing_cycle": billingCycle == .annual ? "annual" : "monthly",
+                    "context": "home_view"
+                ])
+                hasTrackedPaywallShow = true
+            }
+        }
+        .onChange(of: billingCycle) { _, newCycle in
+            if let product = selectedProduct {
+                AnalyticsService.shared.track("paywall_tier_selected", properties: [
+                    "tier": newCycle == .annual ? "annual" : "monthly",
+                    "price": product.displayPrice,
+                    "currency": product.priceFormatStyle.locale.currency?.identifier ?? "EUR"
+                ])
+            }
+        }
     }
 }
 
@@ -222,6 +262,8 @@ struct PaywallOverlay: View {
     }
 
     private func dismiss() {
+        AnalyticsService.shared.track("paywall_dismissed", properties: [:])
+
         withAnimation(.easeOut(duration: 0.2)) {
             isVisible = false
         }
