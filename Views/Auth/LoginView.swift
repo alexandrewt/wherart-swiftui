@@ -1,5 +1,6 @@
 import SwiftUI
 import Auth
+import AuthenticationServices
 
 struct LoginView: View {
 
@@ -169,18 +170,60 @@ struct LoginView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .center)
 
-                            if isSignUp {
-                                Button(action: {
-                                    AnalyticsService.shared.track("guest_mode_selected", properties: [:])
-                                    SupabaseService.shared.isGuestMode = true
-                                }) {
-                                    Text(String(localized: "browse_without_account"))
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.secondary)
-                                }
+                            // Divider & OAuth Section
+                            Divider()
+                                .padding(.vertical, 16)
+
+                            Text("Or sign in with")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .center)
-                                .padding(.top, 16)
+
+                            HStack(spacing: 16) {
+                                // SIGN IN WITH APPLE
+                                SignInWithAppleButton(
+                                    onRequest: { request in
+                                        request.requestedScopes = [.fullName, .email]
+                                    },
+                                    onCompletion: { result in
+                                        Task {
+                                            await handleAppleSignIn(result)
+                                        }
+                                    }
+                                )
+                                .signInWithAppleButtonStyle(.black)
+                                .frame(height: 44)
+                                .cornerRadius(8)
+
+                                // SIGN IN WITH GOOGLE
+                                Button(action: {
+                                    Task {
+                                        await handleGoogleSignIn()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "g.circle.fill")
+                                            .font(.system(size: 18))
+                                        Text("Google")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .foregroundColor(.white)
+                                    .background(Color(red: 0.2, green: 0.5, blue: 1.0))
+                                    .cornerRadius(8)
+                                }
                             }
+                            .padding(.vertical, 16)
+
+                            // Continue without account (moved from signup only)
+                            Button(action: handleGuestMode) {
+                                Text(String(localized: "browse_without_account"))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 24)
                         }
                         .offset(y: appeared ? 0 : 20)
                         .opacity(appeared ? 1 : 0)
@@ -316,6 +359,51 @@ struct LoginView: View {
                 }
             }
         }
+    }
+
+    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
+        switch result {
+        case .success(let authorization):
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                let email = appleIDCredential.email ?? ""
+
+                AnalyticsService.shared.track("signin_apple_started", properties: [:])
+
+                await MainActor.run {
+                    AnalyticsService.shared.track("signin_apple_completed", properties: [
+                        "email": email,
+                        "method": "apple"
+                    ])
+                    // User would be logged in - app navigates to HomeView
+                    // TODO: Implement Apple Sign In with Supabase
+                }
+            }
+        case .failure(let error):
+            await MainActor.run {
+                errorMessage = "Apple Sign In error: \(error.localizedDescription)"
+                AnalyticsService.shared.track("signin_apple_failed", properties: [
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+    }
+
+    private func handleGoogleSignIn() async {
+        AnalyticsService.shared.track("signin_google_started", properties: [:])
+
+        // Google Sign In would be implemented here with GoogleSignIn SDK
+        // For now, just show a placeholder
+        await MainActor.run {
+            errorMessage = "Google Sign In coming soon"
+            AnalyticsService.shared.track("signin_google_failed", properties: [
+                "error": "not_implemented"
+            ])
+        }
+    }
+
+    private func handleGuestMode() {
+        AnalyticsService.shared.track("guest_mode_selected", properties: [:])
+        SupabaseService.shared.isGuestMode = true
     }
 }
 

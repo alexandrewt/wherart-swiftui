@@ -148,9 +148,12 @@ class SupabaseService: ObservableObject {
     // MARK: - Exhibitions
 
     func fetchExhibitions() async throws -> [Exhibition] {
+        let today = Date().formatted(date: .numeric, time: .omitted)
+
         let response: [Exhibition] = try await client
             .from("exhibitions")
             .select()
+            .gt("end_date", value: today)
             .order("created_at", ascending: false)
             .execute()
             .value
