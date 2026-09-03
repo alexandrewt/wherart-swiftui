@@ -1,41 +1,29 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isSessionLoading = true
-    @State private var sessionTimeout: Timer?
+    @State private var isReady = false
 
     var body: some View {
-        ZStack {
-            if isSessionLoading {
-                SplashView()
+        if isReady {
+            if WherartApp.supabase.auth.currentSession != nil {
+                MainTabView()
+            } else if SupabaseService.shared.isGuestMode {
+                MainTabView()
             } else {
-                if WherartApp.supabase.auth.currentSession != nil {
-                    MainTabView()
-                } else if SupabaseService.shared.isGuestMode {
-                    MainTabView()
-                } else {
-                    LoginView()
+                LoginView()
+            }
+        } else {
+            SplashView()
+                .onAppear {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        await MainActor.run {
+                            withAnimation {
+                                isReady = true
+                            }
+                        }
+                    }
                 }
-            }
-        }
-        .onAppear {
-            checkSession()
-        }
-    }
-
-    private func checkSession() {
-        sessionTimeout = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
-            print("[ContentView] Session timeout - forcing load")
-            isSessionLoading = false
-        }
-
-        Task {
-            await Task.sleep(500_000_000)
-
-            await MainActor.run {
-                sessionTimeout?.invalidate()
-                isSessionLoading = false
-            }
         }
     }
 }
@@ -44,7 +32,7 @@ struct SplashView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(.systemBackground), Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.04)],
+                colors: [Color(UIColor.systemBackground), Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.04)],
                 startPoint: .top,
                 endPoint: .bottom
             )
