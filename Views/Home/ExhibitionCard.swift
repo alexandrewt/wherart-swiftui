@@ -9,6 +9,14 @@ struct ExhibitionCard: View {
     let onToggleFavorite: () -> Void
     let onToggleViewed: () -> Void
 
+    private var daysRemaining: Int {
+        EndingSoonService.shared.daysRemaining(for: exhibition)
+    }
+
+    private var thresholdDays: Int {
+        EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25)
+    }
+
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 0) {
@@ -64,9 +72,7 @@ struct ExhibitionCard: View {
                     .padding(12)
 
                     // Ending Soon Badge
-                    let daysRemaining = EndingSoonService.shared.daysRemaining(for: exhibition)
-                    let reminderThreshold = EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25)
-                    if daysRemaining > 0 && daysRemaining <= reminderThreshold {
+                    if daysRemaining > 0 && daysRemaining <= thresholdDays {
                         VStack(alignment: .trailing, spacing: 2) {
                             Image(systemName: "clock.fill")
                                 .font(.system(size: 12, weight: .bold))

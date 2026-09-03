@@ -1,11 +1,16 @@
 import SwiftUI
 import Supabase
 import UserNotifications
+import GoogleSignIn
 
 @main
 struct WherartApp: App {
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    init() {
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "YOUR_GOOGLE_CLIENT_ID")
+    }
 
     static let supabase = SupabaseClient(
         supabaseURL: Config.supabaseURL,
@@ -26,11 +31,13 @@ struct WherartApp: App {
                     AnalyticsService.shared.configure()
                     await NotificationService.shared.requestPermission()
                     await EndingSoonService.shared.requestNotificationPermission()
-                    startReminderCheck()
+                    // ⏸️ TEMPORARILY DISABLED - caused AttributeGraph cycle
+                    // startReminderCheck()
                 }
         }
     }
 
+    /*
     private func startReminderCheck() {
         Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
             Task {
@@ -38,6 +45,7 @@ struct WherartApp: App {
             }
         }
     }
+    */
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {

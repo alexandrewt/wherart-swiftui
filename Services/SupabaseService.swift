@@ -92,6 +92,50 @@ class SupabaseService: ObservableObject {
         try await client.auth.resetPasswordForEmail(email)
     }
 
+    func signInWithApple(
+        identityToken: Data,
+        nonce: String,
+        firstName: String?,
+        email: String?
+    ) async throws {
+        
+        let tokenString = String(data: identityToken, encoding: .utf8) ?? ""
+        
+        try await client.auth.signInWithIdToken(
+            credentials: .init(
+                provider: .apple,
+                idToken: tokenString,
+                nonce: nonce
+            )
+        )
+        
+        guard let user = client.auth.currentUser else {
+            throw NSError(domain: "AppleSignIn", code: -1, userInfo: ["message": "No user after sign in"])
+        }
+        
+        print("[AppleSignIn] User authenticated: \(user.id.uuidString)")
+        
+        var profileData: [String: AnyJSON] = [
+            "id": .string(user.id.uuidString),
+            "updated_at": .string(Date().ISO8601Format())
+        ]
+        
+        if let firstName = firstName, !firstName.isEmpty {
+            profileData["first_name"] = .string(firstName)
+        }
+        
+        if let email = email, !email.isEmpty {
+            profileData["email"] = .string(email)
+        }
+        
+        try await client
+            .from("profiles")
+            .upsert(profileData)
+            .execute()
+        
+        print("[AppleSignIn] Profile upserted for user: \(user.id.uuidString)")
+    }
+
     // MARK: - Profile
 
     func fetchProfile(userId: String) async throws -> Profile {
@@ -121,24 +165,14 @@ class SupabaseService: ObservableObject {
         return publicURL.absoluteString
     }
 
-    func updatePreferences(
-        userId: String,
-        preferences: [String],
-        venueTypes: [String],
-        reminderThreshold: Int? = nil
-    ) async throws {
+    func updatePreferences(userId: String, preferences: [String], venueTypes: [String], reminderThreshold: Int? = nil) async throws {
         struct PrefsUpdate: Encodable {
             let id: String
             let preferences: [String]
             let venue_types: [String]
             let exhibition_reminder_threshold: Int?
         }
-        let update = PrefsUpdate(
-            id: userId,
-            preferences: preferences,
-            venue_types: venueTypes,
-            exhibition_reminder_threshold: reminderThreshold
-        )
+        let update = PrefsUpdate(id: userId, preferences: preferences, venue_types: venueTypes, exhibition_reminder_threshold: reminderThreshold)
         try await client
             .from("profiles")
             .upsert(update)
@@ -148,8 +182,7 @@ class SupabaseService: ObservableObject {
     // MARK: - Exhibitions
 
     func fetchExhibitions() async throws -> [Exhibition] {
-        let today = Date().formatted(date: .numeric, time: .omitted)
-
+        let today = Date().formatted(.iso8601.year().month().day())
         let response: [Exhibition] = try await client
             .from("exhibitions")
             .select()

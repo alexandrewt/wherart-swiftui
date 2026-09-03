@@ -100,6 +100,7 @@ struct Profile: Codable {
     let id: String
     var firstName: String?
     var lastName: String?
+    var email: String?
     var preferences: [String]
     var venueTypes: [String]
     var avatarUrl: String?
@@ -108,6 +109,7 @@ struct Profile: Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case firstName = "first_name"
+        case email
         case lastName = "last_name"
         case preferences
         case venueTypes = "venue_types"

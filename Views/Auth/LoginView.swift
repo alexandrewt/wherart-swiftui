@@ -1,6 +1,8 @@
 import SwiftUI
 import Auth
 import AuthenticationServices
+import CryptoKit
+import GoogleSignIn
 
 struct LoginView: View {
 
@@ -15,6 +17,7 @@ struct LoginView: View {
     @State private var errorMessage: String? = nil
     @State private var successMessage: String? = nil
     @State private var appeared = false
+    @State private var currentNonce: String?
 
     /// The sign-up legal disclaimer as one attributed string, so it renders
     /// (and wraps) as a single paragraph in `Text` rather than as separate
@@ -184,6 +187,7 @@ struct LoginView: View {
                                 SignInWithAppleButton(
                                     onRequest: { request in
                                         request.requestedScopes = [.fullName, .email]
+                                        request.nonce = currentNonce
                                     },
                                     onCompletion: { result in
                                         Task {
@@ -238,6 +242,7 @@ struct LoginView: View {
         .onAppear {
             DispatchQueue.main.async {
                 appeared = true
+                currentNonce = randomNonceString()
             }
         }
     }
@@ -364,46 +369,159 @@ struct LoginView: View {
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
         switch result {
         case .success(let authorization):
-            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                let email = appleIDCredential.email ?? ""
-
-                AnalyticsService.shared.track("signin_apple_started", properties: [:])
-
-                await MainActor.run {
-                    AnalyticsService.shared.track("signin_apple_completed", properties: [
-                        "email": email,
-                        "method": "apple"
-                    ])
-                    // User would be logged in - app navigates to HomeView
-                    // TODO: Implement Apple Sign In with Supabase
-                }
-            }
-        case .failure(let error):
-            await MainActor.run {
-                errorMessage = "Apple Sign In error: \(error.localizedDescription)"
+            guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                errorMessage = "Invalid Apple credential"
                 AnalyticsService.shared.track("signin_apple_failed", properties: [
-                    "error": error.localizedDescription
+                    "error": "Invalid credential type"
+                ])
+                return
+            }
+            
+            guard let nonce = currentNonce else {
+                errorMessage = "Security error: nonce not available"
+                AnalyticsService.shared.track("signin_apple_failed", properties: [
+                    "error": "Nonce missing"
+                ])
+                return
+            }
+            
+            guard let identityToken = appleIDCredential.identityToken else {
+                errorMessage = "Unable to fetch identity token"
+                AnalyticsService.shared.track("signin_apple_failed", properties: [
+                    "error": "No identity token"
+                ])
+                return
+            }
+            
+            let email = appleIDCredential.email ?? ""
+            let firstName = appleIDCredential.fullName?.givenName ?? ""
+            
+            print("[AppleSignIn] Starting sign in with email: \(email), name: \(firstName)")
+            
+            AnalyticsService.shared.track("signin_apple_started", properties: [
+                "email": email,
+                "firstName": firstName
+            ])
+            
+            do {
+                try await service.signInWithApple(
+                    identityToken: identityToken,
+                    nonce: nonce,
+                    firstName: firstName.isEmpty ? nil : firstName,
+                    email: email.isEmpty ? nil : email
+                )
+                
+                print("[AppleSignIn] Sign in successful")
+                
+                AnalyticsService.shared.track("signin_apple_completed", properties: [
+                    "email": email,
+                    "firstName": firstName,
+                    "method": "apple"
+                ])
+                
+            } catch {
+                errorMessage = "Apple Sign In failed: \(error.localizedDescription)"
+                print("[AppleSignIn] Error: \(error.localizedDescription)")
+                
+                AnalyticsService.shared.track("signin_apple_failed", properties: [
+                    "error": error.localizedDescription,
+                    "email": email,
+                    "error_domain": (error as NSError).domain,
+                    "error_code": (error as NSError).code
                 ])
             }
+        
+        case .failure(let error):
+            let nsError = error as NSError
+            if nsError.code == ASAuthorizationError.canceled.rawValue {
+                print("[AppleSignIn] User cancelled")
+                return
+            }
+            
+            errorMessage = "Apple Sign In error: \(error.localizedDescription)"
+            print("[AppleSignIn] Authorization error: \(error.localizedDescription)")
+            
+            AnalyticsService.shared.track("signin_apple_failed", properties: [
+                "error": error.localizedDescription,
+                "error_type": "authorization_error"
+            ])
         }
     }
-
     private func handleGoogleSignIn() async {
         AnalyticsService.shared.track("signin_google_started", properties: [:])
 
-        // Google Sign In would be implemented here with GoogleSignIn SDK
-        // For now, just show a placeholder
-        await MainActor.run {
-            errorMessage = "Google Sign In coming soon"
-            AnalyticsService.shared.track("signin_google_failed", properties: [
-                "error": "not_implemented"
-            ])
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let rootViewController = window.rootViewController else {
+            await MainActor.run {
+                errorMessage = "Unable to present Google Sign In"
+                AnalyticsService.shared.track("signin_google_failed", properties: [
+                    "error": "no_root_view_controller"
+                ])
+            }
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            let user = result.user
+            let email = user.profile?.email ?? ""
+
+            await MainActor.run {
+                AnalyticsService.shared.track("signin_google_completed", properties: [
+                    "email": email,
+                    "method": "google"
+                ])
+
+                if let userId = user.userID {
+                    AnalyticsService.shared.identify(userId: userId, properties: [
+                        "email": email,
+                        "created_at": Date().ISO8601Format(),
+                        "signup_method": "google"
+                    ])
+
+                    if SupabaseService.shared.isGuestMode {
+                        AnalyticsService.shared.createAlias(distinctId: "guest", userId: userId)
+                    }
+                }
+
+                errorMessage = nil
+                successMessage = "Signed in with Google!"
+            }
+        } catch let error as NSError {
+            await MainActor.run {
+                errorMessage = "Google Sign In failed: \(error.localizedDescription)"
+                AnalyticsService.shared.track("signin_google_failed", properties: [
+                    "error": error.localizedDescription
+                ])
+                AnalyticsService.shared.trackError(
+                    domain: "auth",
+                    code: error.code,
+                    message: error.localizedDescription,
+                    context: ["flow": "google_signin"]
+                )
+            }
         }
     }
 
     private func handleGuestMode() {
         AnalyticsService.shared.track("guest_mode_selected", properties: [:])
         SupabaseService.shared.isGuestMode = true
+    }
+
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            fatalError("Unable to generate nonce. OSStatus \(errorCode)")
+        }
+        
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
+        let nonce = randomBytes.map { byte in
+            charset[Int(byte) % charset.count]
+        }
+        return String(nonce)
     }
 }
 

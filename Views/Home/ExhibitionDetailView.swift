@@ -37,6 +37,14 @@ struct ExhibitionDetailView: View {
     @State private var showShareSheet = false
     @FocusState private var commentFieldFocused: Bool
 
+    private var daysRemaining: Int {
+        EndingSoonService.shared.daysRemaining(for: exhibition)
+    }
+
+    private var thresholdDays: Int {
+        EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25)
+    }
+
     enum EditableField: Identifiable, Equatable {
         case duration, accessibility, waitTime
         var id: Self { self }
@@ -785,6 +793,14 @@ struct SponsoredTopBanner: View {
     var topInset: CGFloat = 0
     private let contentHeight: CGFloat = 64
 
+    private var daysRemaining: Int {
+        EndingSoonService.shared.daysRemaining(for: exhibition)
+    }
+
+    private var thresholdDays: Int {
+        EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25)
+    }
+
     var body: some View {
         let totalHeight = contentHeight + topInset
 
@@ -839,12 +855,11 @@ struct SponsoredTopBanner: View {
                 }
 
                 // Ending Soon Badge
-                if EndingSoonService.shared.daysRemaining(for: exhibition) > 0 &&
-                   EndingSoonService.shared.daysRemaining(for: exhibition) <= EndingSoonService.shared.reminderThresholdDays(for: exhibition, userThresholdPercent: 25) {
+                if daysRemaining > 0 && daysRemaining <= thresholdDays {
                     VStack(alignment: .trailing, spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 14, weight: .bold))
-                        Text("\(EndingSoonService.shared.daysRemaining(for: exhibition)) days left")
+                        Text("\(daysRemaining) days left")
                             .font(.system(size: 12, weight: .semibold))
                     }
                     .foregroundColor(.white)
