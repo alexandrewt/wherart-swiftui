@@ -1,6 +1,6 @@
 platform :ios, '13.0'
 
 target 'Wherart' do
-  # PostHog has circular dependency issues in all versions
-  # Using built-in analytics instead
+  # All dependencies via SPM (Supabase) or native frameworks
+  # GoogleSignIn removed due to sandbox restrictions with spaces in project path
 end

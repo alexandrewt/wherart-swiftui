@@ -19,7 +19,7 @@ struct LoginView: View {
     @State private var currentNonce: String?
 
     /// The sign-up legal disclaimer as one attributed string, so it renders
-    /// (and wraps) as a single paragraph in `wxText` rather than as separate
+    /// (and wraps) as a single paragraph in `Text` rather than as separate
     /// Text/Link rows on fixed lines — see the "Privacy Policy" section in
     /// `body` for why that matters. Colors are set per-run explicitly (not
     /// via a `.foregroundColor` view modifier) since that modifier would
