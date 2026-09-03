@@ -466,10 +466,32 @@ struct LoginView: View {
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
             let user = result.user
             let email = user.profile?.email ?? ""
+            let firstName = user.profile?.givenName ?? ""
+            let idToken = user.idToken?.tokenString ?? ""
+
+            // Verify we have an ID token
+            guard !idToken.isEmpty else {
+                await MainActor.run {
+                    errorMessage = "Unable to fetch Google ID token"
+                    AnalyticsService.shared.track("signin_google_failed", properties: [
+                        "error": "No ID token",
+                        "email": email
+                    ])
+                }
+                return
+            }
+
+            // Sign in with Supabase
+            try await SupabaseService.shared.signInWithGoogle(
+                idToken: idToken,
+                email: email.isEmpty ? nil : email,
+                firstName: firstName.isEmpty ? nil : firstName
+            )
 
             await MainActor.run {
                 AnalyticsService.shared.track("signin_google_completed", properties: [
                     "email": email,
+                    "firstName": firstName,
                     "method": "google"
                 ])
 
@@ -486,13 +508,20 @@ struct LoginView: View {
                 }
 
                 errorMessage = nil
-                successMessage = "Signed in with Google!"
             }
         } catch let error as NSError {
             await MainActor.run {
+                // Handle cancellation
+                if error.code == GIDSignInError.canceled.rawValue {
+                    print("[GoogleSignIn] User cancelled")
+                    return
+                }
+
                 errorMessage = "Google Sign In failed: \(error.localizedDescription)"
                 AnalyticsService.shared.track("signin_google_failed", properties: [
-                    "error": error.localizedDescription
+                    "error": error.localizedDescription,
+                    "error_domain": error.domain,
+                    "error_code": error.code
                 ])
                 AnalyticsService.shared.trackError(
                     domain: "auth",

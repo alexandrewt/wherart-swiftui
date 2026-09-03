@@ -45,12 +45,16 @@
 		B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */; };
 		B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */; };
 		C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */; };
+		D9061E71FA07934A2E8017E1 /* libPods-Wherart.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 816D914DA91B95EAC1B570CE /* libPods-Wherart.a */; };
 		E76C3A086A8FAB61971C2114 /* SubscribeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8699DCBF30405A872CB965B6 /* SubscribeView.swift */; };
 		F1E2D3C4B5A697887766554B /* LoginPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A697887766554A /* LoginPromptSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		026603311174F12C8E3B0622 /* Pods-Wherart.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wherart.release.xcconfig"; path = "Target Support Files/Pods-Wherart/Pods-Wherart.release.xcconfig"; sourceTree = "<group>"; };
 		5273E965AC408E7811F5F616 /* ChatFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFullView.swift; sourceTree = "<group>"; };
+		62AE073343D032705AA7F9B1 /* Pods-Wherart.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wherart.debug.xcconfig"; path = "Target Support Files/Pods-Wherart/Pods-Wherart.debug.xcconfig"; sourceTree = "<group>"; };
+		816D914DA91B95EAC1B570CE /* libPods-Wherart.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Wherart.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8699DCBF30405A872CB965B6 /* SubscribeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -98,6 +102,8 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5C8EB332FA3A765009A2A74 /* Config */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Config;
 			sourceTree = "<group>";
 		};
@@ -113,12 +119,23 @@
 				B5F5A5443048B677004E2CD9 /* PostHog in Frameworks */,
 				B5C8EB592FA3F3AA009A2A74 /* libswiftMapKit.tbd in Frameworks */,
 				B539B5B32FBD01B100B6BBAF /* StoreKit.framework in Frameworks */,
+				D9061E71FA07934A2E8017E1 /* libPods-Wherart.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9ACAE26C2AB19BA9470F3EF5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				62AE073343D032705AA7F9B1 /* Pods-Wherart.debug.xcconfig */,
+				026603311174F12C8E3B0622 /* Pods-Wherart.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		B553431A2FA3439A002AB98D = {
 			isa = PBXGroup;
 			children = (
@@ -134,6 +151,7 @@
 				B5C8EB392FA3A8E9009A2A74 /* Views */,
 				B5C8EB412FA3B129009A2A74 /* Frameworks */,
 				B55343242FA3439A002AB98D /* Products */,
+				9ACAE26C2AB19BA9470F3EF5 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -260,6 +278,7 @@
 				B539B5B22FBD01B100B6BBAF /* StoreKit.framework */,
 				B5C8EB572FA3F389009A2A74 /* libswiftMapKit.tbd */,
 				B5C8EB562FA3F389009A2A74 /* MapKit.framework */,
+				816D914DA91B95EAC1B570CE /* libPods-Wherart.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -271,9 +290,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B553432E2FA3439B002AB98D /* Build configuration list for PBXNativeTarget "Wherart" */;
 			buildPhases = (
+				451B00475902629EFF66057D /* [CP] Check Pods Manifest.lock */,
 				B553431F2FA3439A002AB98D /* Sources */,
 				B55343202FA3439A002AB98D /* Frameworks */,
 				B55343212FA3439A002AB98D /* Resources */,
+				4FF7226CEFFAA818D37578B8 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -341,6 +362,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		451B00475902629EFF66057D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Wherart-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4FF7226CEFFAA818D37578B8 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Wherart/Pods-Wherart-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Wherart/Pods-Wherart-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Wherart/Pods-Wherart-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B553431F2FA3439A002AB98D /* Sources */ = {
@@ -516,6 +579,7 @@
 		};
 		B553432F2FA3439B002AB98D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 62AE073343D032705AA7F9B1 /* Pods-Wherart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -565,6 +629,7 @@
 		};
 		B55343302FA3439B002AB98D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 026603311174F12C8E3B0622 /* Pods-Wherart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

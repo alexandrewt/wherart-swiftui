@@ -136,6 +136,46 @@ class SupabaseService: ObservableObject {
         print("[AppleSignIn] Profile upserted for user: \(user.id.uuidString)")
     }
 
+    func signInWithGoogle(
+        idToken: String,
+        email: String?,
+        firstName: String?
+    ) async throws {
+
+        try await client.auth.signInWithIdToken(
+            credentials: .init(
+                provider: .google,
+                idToken: idToken
+            )
+        )
+
+        guard let user = client.auth.currentUser else {
+            throw NSError(domain: "GoogleSignIn", code: -1, userInfo: ["message": "No user after sign in"])
+        }
+
+        print("[GoogleSignIn] User authenticated: \(user.id.uuidString)")
+
+        var profileData: [String: AnyJSON] = [
+            "id": .string(user.id.uuidString),
+            "updated_at": .string(Date().ISO8601Format())
+        ]
+
+        if let firstName = firstName, !firstName.isEmpty {
+            profileData["first_name"] = .string(firstName)
+        }
+
+        if let email = email, !email.isEmpty {
+            profileData["email"] = .string(email)
+        }
+
+        try await client
+            .from("profiles")
+            .upsert(profileData)
+            .execute()
+
+        print("[GoogleSignIn] Profile upserted for user: \(user.id.uuidString)")
+    }
+
     // MARK: - Profile
 
     func fetchProfile(userId: String) async throws -> Profile {

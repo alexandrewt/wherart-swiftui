@@ -9,7 +9,7 @@ struct WherartApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     init() {
-        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "YOUR_GOOGLE_CLIENT_ID")
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "491672411506-d24eengmk6605ksmg19qedg0q5m3m0at.apps.googleusercontent.com")
     }
 
     static let supabase = SupabaseClient(
