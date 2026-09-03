@@ -1,6 +1,6 @@
-platform :ios, '17.0'
+platform :ios, '13.0'
 
 target 'Wherart' do
-  use_modular_headers!
-  pod 'GoogleSignIn'
+  # PostHog has circular dependency issues in all versions
+  # Using built-in analytics instead
 end

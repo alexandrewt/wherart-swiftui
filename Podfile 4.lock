@@ -1,0 +1,16 @@
+PODS:
+  - PostHog (3.71.4)
+
+DEPENDENCIES:
+  - PostHog
+
+SPEC REPOS:
+  trunk:
+    - PostHog
+
+SPEC CHECKSUMS:
+  PostHog: c7ccef4afb1d3e5aeb6b02df5a04964cf93f0df4
+
+PODFILE CHECKSUM: ed04c572717671ec9ee21b75489cf6cdb9f93909
+
+COCOAPODS: 1.17.0

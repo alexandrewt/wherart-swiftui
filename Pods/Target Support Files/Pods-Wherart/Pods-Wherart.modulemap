@@ -1,6 +1,0 @@
-module Pods_Wherart {
-  umbrella header "Pods-Wherart-umbrella.h"
-
-  export *
-  module * { export * }
-}
