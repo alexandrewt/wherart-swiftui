@@ -66,21 +66,6 @@ struct MainTabView: View {
                     GuestGateView()
                 } else {
                     NavigationStack {
-                        NotificationsView()
-                    }
-                }
-            }
-            .tabItem {
-                Label(String(localized: "notifications"), systemImage: "bell.fill")
-            }
-            .badge(nav.unreadNotificationsCount)
-            .tag(3)
-
-            Group {
-                if service.isGuestMode {
-                    GuestGateView()
-                } else {
-                    NavigationStack {
                         ProfileView()
                     }
                 }
@@ -88,21 +73,23 @@ struct MainTabView: View {
             .tabItem {
                 Label(String(localized: "profile_tab"), systemImage: "person.fill")
             }
-            .tag(4)
+            .tag(3)
         }
         .tint(Color(red: 0.15, green: 0.39, blue: 0.92))
         .environmentObject(nav)
-        // Visits, Notifications and Profile are entirely account-only in
-        // guest mode — tapping any of them surfaces the login prompt over
-        // the placeholder content above, rather than mounting views that
-        // expect a signed-in user.
+        // Visits and Profile are entirely account-only in guest mode — tapping
+        // either tab surfaces the login prompt over the placeholder content
+        // above, rather than mounting views that expect a signed-in user.
+        // Notifications is reached only from ProfileView's own "Notifications"
+        // row (pushed full-screen), not from a tab — there's no separate tab
+        // bar icon for it.
         .onChange(of: nav.selectedTab) { newTab in
-            let tabNames = ["home", "map", "visits", "notifications", "profile"]
+            let tabNames = ["home", "map", "visits", "profile"]
             if newTab < tabNames.count {
                 AnalyticsService.shared.track("tab_clicked", properties: ["tab": tabNames[newTab]])
             }
 
-            if service.isGuestMode && (2...4).contains(newTab) {
+            if service.isGuestMode && (newTab == 2 || newTab == 3) {
                 showLoginPrompt = true
             }
         }
