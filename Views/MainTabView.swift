@@ -73,6 +73,7 @@ struct MainTabView: View {
             .tabItem {
                 Label(String(localized: "profile_tab"), systemImage: "person.fill")
             }
+            .badge(nav.unreadNotificationsCount)
             .tag(3)
         }
         .tint(Color(red: 0.15, green: 0.39, blue: 0.92))
@@ -92,8 +93,24 @@ struct MainTabView: View {
             if service.isGuestMode && (newTab == 2 || newTab == 3) {
                 showLoginPrompt = true
             }
+
+            // ProfileView's own `.task` only runs once per view identity, so
+            // switching back to an already-mounted Profile tab wouldn't
+            // otherwise pick up a notification read/deleted while on another
+            // tab — refresh explicitly whenever Profile becomes active.
+            if !service.isGuestMode && newTab == 3 {
+                nav.refreshUnreadNotificationsCount()
+            }
         }
         .task {
+            if !service.isGuestMode {
+                nav.refreshUnreadNotificationsCount()
+            }
+        }
+        // Covers the case a notification arrived (or was acted on elsewhere,
+        // e.g. from a notification banner) while the app was backgrounded —
+        // without this the badge would only catch up on the next tab switch.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             if !service.isGuestMode {
                 nav.refreshUnreadNotificationsCount()
             }

@@ -208,7 +208,7 @@
 "ok" = "OK";
 "edit_preferences" = "Modifier les préférences";
 "notifications" = "Notifications";
-"mark_all_read" = "Tout marquer comme lu";
+"mark_all_read" = "marquer comme lu";
 "no_notifications_yet" = "Aucune notification pour l'instant";
 "no_notifications_subtitle" = "Revenez plus tard";
 "ending_soon_reminders" = "Rappels de fin d'exposition";
