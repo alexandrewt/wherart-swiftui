@@ -1,6 +1,6 @@
 /* MARK: - Auth / Login */
 "welcome_title" = "Bienvenue sur Wherart";
-"welcome_subtitle" = "Curated for you, enjoyed together";
+"welcome_subtitle" = "Une sélection pensée pour vous, à découvrir ensemble";
 "email_placeholder" = "votre@email.com";
 "password_placeholder" = "Mot de passe";
 "first_name_required_placeholder" = "Prénom *";
@@ -21,6 +21,16 @@
 "please_enter_last_name" = "Veuillez entrer votre nom";
 "enter_email_first" = "Indiquez d'abord votre email";
 "check_inbox_reset_password" = "Consultez votre boîte mail pour réinitialiser votre mot de passe";
+"oauth_section_signin" = "Ou se connecter avec";
+"oauth_section_signup" = "Ou créer son compte avec";
+"error_invalid_apple_credential" = "Identifiant Apple invalide";
+"error_nonce_unavailable" = "Erreur de sécurité : jeton de sécurité indisponible";
+"error_unable_fetch_identity_token" = "Impossible de récupérer le jeton d'identité";
+"error_apple_signin_failed" = "Échec de la connexion avec Apple : %@";
+"error_apple_signin_error" = "Erreur de connexion avec Apple : %@";
+"error_unable_present_google" = "Impossible d'afficher la connexion Google";
+"error_unable_fetch_google_token" = "Impossible de récupérer le jeton Google";
+"error_google_signin_failed" = "Échec de la connexion avec Google : %@";
 
 /* MARK: - Guest mode / login prompt */
 "sign_in_to_continue" = "Connectez-vous pour continuer";

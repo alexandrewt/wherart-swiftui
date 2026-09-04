@@ -140,26 +140,38 @@ func cleanedScheduleString(_ raw: String) -> String {
 // device saved or filtered on one. This maps a canonical value to its
 // localized *display* text only; the value itself is never touched.
 func localizedAttributeLabel(_ raw: String) -> String {
-    let map: [String: String] = [
-        "Free": String(localized: "filter_free"),
-        "Paid": String(localized: "filter_paid"),
-        "Under 1 km": String(localized: "filter_under_1km"),
-        "1 - 3 km": String(localized: "filter_1_3km"),
-        "3 - 5 km": String(localized: "filter_3_5km"),
-        "Over 5 km": String(localized: "filter_over_5km"),
-        "Wheelchair access": String(localized: "filter_wheelchair"),
-        "Lift available": String(localized: "filter_lift"),
-        "Adapted toilets": String(localized: "filter_toilets"),
-        "Audioguide available": String(localized: "filter_audioguide"),
-        "Guide dogs not allowed": String(localized: "filter_no_guide_dogs"),
-        "Unknown": String(localized: "unknown"),
-        "< 15 min": String(localized: "filter_wait_under_15"),
-        "15 - 30 min": String(localized: "filter_wait_15_30"),
-        "30 - 45 min": String(localized: "filter_wait_30_45"),
-        "45 min - 1h": String(localized: "filter_wait_45_1h"),
-        "+ 1h": String(localized: "filter_wait_over_1h"),
+    // Values coming from the app itself (the filter sheet, the community
+    // edit checkboxes) always use the exact canonical strings on the left.
+    // Values scraped from Paris Open Data don't make that promise — the
+    // same underlying fact ("this venue has wheelchair access") can show up
+    // as "wheelchair accessible", "Wheelchair Accessible", "handicap
+    // accessible", etc., none of which matched this map's old exact-string
+    // lookup and so were displayed as raw, untranslated English even on a
+    // French device. Matched case-insensitively against every known
+    // variant instead of a single exact key.
+    let variants: [(matches: [String], key: String)] = [
+        (["free"], "filter_free"),
+        (["paid"], "filter_paid"),
+        (["under 1 km"], "filter_under_1km"),
+        (["1 - 3 km", "1-3 km"], "filter_1_3km"),
+        (["3 - 5 km", "3-5 km"], "filter_3_5km"),
+        (["over 5 km"], "filter_over_5km"),
+        (["wheelchair access", "wheelchair accessible", "wheelchair accessibility", "handicap accessible", "handicap access"], "filter_wheelchair"),
+        (["lift available", "elevator available"], "filter_lift"),
+        (["adapted toilets", "accessible toilets", "accessible restrooms"], "filter_toilets"),
+        (["audioguide available", "audio guide available"], "filter_audioguide"),
+        (["guide dogs not allowed", "no guide dogs"], "filter_no_guide_dogs"),
+        (["unknown"], "unknown"),
+        (["< 15 min"], "filter_wait_under_15"),
+        (["15 - 30 min", "15-30 min"], "filter_wait_15_30"),
+        (["30 - 45 min", "30-45 min"], "filter_wait_30_45"),
+        (["45 min - 1h", "45 min-1h"], "filter_wait_45_1h"),
+        (["+ 1h", "+1h"], "filter_wait_over_1h"),
     ]
-    return map[raw] ?? raw
+
+    let normalized = raw.trimmingCharacters(in: .whitespaces).lowercased()
+    guard let match = variants.first(where: { $0.matches.contains(normalized) }) else { return raw }
+    return String(localized: String.LocalizationValue(match.key))
 }
 
 // MARK: - Price Parsing

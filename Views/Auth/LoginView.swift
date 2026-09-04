@@ -64,7 +64,7 @@ struct LoginView: View {
                         Text(String(localized: "welcome_title"))
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.primary)
-                        Text("Curated for you, enjoyed together")
+                        Text(String(localized: "welcome_subtitle"))
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
                     }
@@ -177,7 +177,7 @@ struct LoginView: View {
                             Divider()
                                 .padding(.vertical, 16)
 
-                            Text(isSignUp ? "Ou créer son compte avec" : "Ou se connecter avec")
+                            Text(isSignUp ? String(localized: "oauth_section_signup") : String(localized: "oauth_section_signin"))
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -400,7 +400,7 @@ struct LoginView: View {
         switch result {
         case .success(let authorization):
             guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-                errorMessage = "Invalid Apple credential"
+                errorMessage = String(localized: "error_invalid_apple_credential")
                 AnalyticsService.shared.track("signin_apple_failed", properties: [
                     "error": "Invalid credential type"
                 ])
@@ -408,7 +408,7 @@ struct LoginView: View {
             }
             
             guard let nonce = currentNonce else {
-                errorMessage = "Security error: nonce not available"
+                errorMessage = String(localized: "error_nonce_unavailable")
                 AnalyticsService.shared.track("signin_apple_failed", properties: [
                     "error": "Nonce missing"
                 ])
@@ -416,7 +416,7 @@ struct LoginView: View {
             }
             
             guard let identityToken = appleIDCredential.identityToken else {
-                errorMessage = "Unable to fetch identity token"
+                errorMessage = String(localized: "error_unable_fetch_identity_token")
                 AnalyticsService.shared.track("signin_apple_failed", properties: [
                     "error": "No identity token"
                 ])
@@ -453,7 +453,7 @@ struct LoginView: View {
                 ])
                 
             } catch {
-                errorMessage = "Apple Sign In failed: \(error.localizedDescription)"
+                errorMessage = String(format: String(localized: "error_apple_signin_failed"), error.localizedDescription)
                 print("[AppleSignIn] Error: \(error.localizedDescription)")
                 
                 AnalyticsService.shared.track("signin_apple_failed", properties: [
@@ -471,7 +471,7 @@ struct LoginView: View {
                 return
             }
             
-            errorMessage = "Apple Sign In error: \(error.localizedDescription)"
+            errorMessage = String(format: String(localized: "error_apple_signin_error"), error.localizedDescription)
             print("[AppleSignIn] Authorization error: \(error.localizedDescription)")
             
             AnalyticsService.shared.track("signin_apple_failed", properties: [
@@ -488,7 +488,7 @@ struct LoginView: View {
               let window = windowScene.windows.first,
               let rootViewController = window.rootViewController else {
             await MainActor.run {
-                errorMessage = "Unable to present Google Sign In"
+                errorMessage = String(localized: "error_unable_present_google")
                 AnalyticsService.shared.track("signin_google_failed", properties: [
                     "error": "no_root_view_controller"
                 ])
@@ -522,7 +522,7 @@ struct LoginView: View {
 
             guard !idToken.isEmpty else {
                 await MainActor.run {
-                    errorMessage = "Unable to fetch Google ID token"
+                    errorMessage = String(localized: "error_unable_fetch_google_token")
                     AnalyticsService.shared.track("signin_google_failed", properties: [
                         "error": "No ID token",
                         "email": email
@@ -567,7 +567,7 @@ struct LoginView: View {
                     return
                 }
 
-                errorMessage = "Google Sign In failed: \(error.localizedDescription)"
+                errorMessage = String(format: String(localized: "error_google_signin_failed"), error.localizedDescription)
                 AnalyticsService.shared.track("signin_google_failed", properties: [
                     "error": error.localizedDescription,
                     "error_domain": error.domain,

@@ -21,6 +21,16 @@
 "please_enter_last_name" = "Please enter your last name";
 "enter_email_first" = "Enter your email first";
 "check_inbox_reset_password" = "Check your inbox to reset your password";
+"oauth_section_signin" = "Or sign in with";
+"oauth_section_signup" = "Or create your account with";
+"error_invalid_apple_credential" = "Invalid Apple credential";
+"error_nonce_unavailable" = "Security error: nonce not available";
+"error_unable_fetch_identity_token" = "Unable to fetch identity token";
+"error_apple_signin_failed" = "Apple Sign In failed: %@";
+"error_apple_signin_error" = "Apple Sign In error: %@";
+"error_unable_present_google" = "Unable to present Google Sign In";
+"error_unable_fetch_google_token" = "Unable to fetch Google ID token";
+"error_google_signin_failed" = "Google Sign In failed: %@";
 
 /* MARK: - Guest mode / login prompt */
 "sign_in_to_continue" = "Sign in to continue";
