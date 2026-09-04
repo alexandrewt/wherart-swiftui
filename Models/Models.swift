@@ -123,6 +123,25 @@ struct Profile: Codable {
         case exhibitionReminderThreshold = "exhibition_reminder_threshold"
         case endingSoonFrequency = "ending_soon_frequency"
     }
+
+    // Custom decoder: `preferences`/`venue_types` come back as an explicit
+    // JSON `null` (not just a missing key) for a freshly created profile
+    // row (e.g. right after Apple/Google sign-up, before onboarding writes
+    // them) — `decode([String].self, ...)` throws `valueNotFound` on an
+    // explicit null, unlike a missing key, so it needs to be handled
+    // separately rather than via `decodeIfPresent`.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
+        lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        preferences = (try container.decodeIfPresent([String].self, forKey: .preferences)) ?? []
+        venueTypes = (try container.decodeIfPresent([String].self, forKey: .venueTypes)) ?? []
+        avatarUrl = try container.decodeIfPresent(String.self, forKey: .avatarUrl)
+        exhibitionReminderThreshold = try container.decodeIfPresent(Int.self, forKey: .exhibitionReminderThreshold)
+        endingSoonFrequency = try container.decodeIfPresent(String.self, forKey: .endingSoonFrequency)
+    }
 }
 
 // MARK: - ExhibitionEdit

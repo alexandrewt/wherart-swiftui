@@ -522,6 +522,8 @@ struct LoginView: View {
             let lastName = user.profile?.familyName ?? ""
             let idToken = user.idToken?.tokenString ?? ""
 
+            print("[GoogleSignIn] Starting sign in with email: \(email), name: \(firstName) \(lastName)")
+
             guard !idToken.isEmpty else {
                 await MainActor.run {
                     errorMessage = String(localized: "error_unable_fetch_google_token")
@@ -570,6 +572,7 @@ struct LoginView: View {
                 }
 
                 errorMessage = String(format: String(localized: "error_google_signin_failed"), error.localizedDescription)
+                print("[GoogleSignIn] Error: \(error.localizedDescription) (domain: \(error.domain), code: \(error.code))")
                 AnalyticsService.shared.track("signin_google_failed", properties: [
                     "error": error.localizedDescription,
                     "error_domain": error.domain,
