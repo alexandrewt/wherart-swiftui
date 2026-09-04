@@ -140,10 +140,23 @@ class EndingSoonService: NSObject {
             formatter.dateFormat = "yyyy-MM-dd"
             let todayString = formatter.string(from: Date())
 
+            // Ending Soon reminders are opt-in per exhibition — only for
+            // ones the user has actually favorited, not every active
+            // exhibition in the database. Previously fetched every
+            // exhibition unconditionally here, which would have notified
+            // users about shows they never expressed any interest in.
+            let favoriteIds = Set(
+                try await SupabaseService.shared.fetchInteractions(userId: userId)
+                    .filter { $0.isFavorite }
+                    .map { $0.exhibitionId }
+            )
+            guard !favoriteIds.isEmpty else { return }
+
             let exhibitions: [Exhibition] = try await supabase
                 .from("exhibitions")
                 .select()
                 .gt("end_date", value: todayString)
+                .in("id", values: Array(favoriteIds))
                 .execute()
                 .value
 
