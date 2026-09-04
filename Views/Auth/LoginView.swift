@@ -176,7 +176,7 @@ struct LoginView: View {
                             Divider()
                                 .padding(.vertical, 16)
 
-                            Text("Or sign in with")
+                            Text("Ou se connecter avec")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -198,7 +198,7 @@ struct LoginView: View {
                                 .frame(height: 44)
                                 .cornerRadius(8)
                             }
-                            .padding(.vertical, 16)
+                            .padding(.top, 8)
 
                             // Continue without account (moved from signup only)
                             Button(action: handleGuestMode) {
@@ -207,7 +207,7 @@ struct LoginView: View {
                                     .foregroundColor(.secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.top, 24)
+                            .padding(.top, 8)
                         }
                         .offset(y: appeared ? 0 : 20)
                         .opacity(appeared ? 1 : 0)
