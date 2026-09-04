@@ -186,7 +186,7 @@ struct LoginView: View {
 
                             // Divider & OAuth Section
                             Divider()
-                                .padding(.top, 4)
+                                .padding(.top, -4)
                                 .padding(.bottom, 16)
 
                             Text("Ou se connecter avec")
