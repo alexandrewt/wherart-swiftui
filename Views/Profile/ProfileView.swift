@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var viewedCount = 0
     @State private var visitsCount = 0
     @State private var showEditPrefs = false
+    @State private var showNotificationSettings = false
     @State private var editTypes: [String] = []
     @State private var editVenues: [String] = []
     @State private var editReminderThreshold: Double = 25
@@ -210,6 +211,17 @@ struct ProfileView: View {
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "gearshape", label: String(localized: "settings"), action: { showSettings = true })
                     Divider().padding(.leading, 52)
+                    MenuRow(icon: "bell", label: "Notifications", action: {
+                        // savePreferences() writes back editTypes/editVenues too, so they
+                        // must be kept in sync with the current profile here — otherwise
+                        // saving from this sheet alone (without ever opening "Edit
+                        // preferences" first) would wipe them with their default [] state.
+                        editTypes = profile?.preferences ?? []
+                        editVenues = profile?.venueTypes ?? []
+                        editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
+                        showNotificationSettings = true
+                    })
+                    Divider().padding(.leading, 52)
                     MenuRow(icon: "star.fill", label: String(localized: "subscribe"), action: { showPaywall = true })
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "lock", label: String(localized: "change_password"), action: { showChangePassword = true })
@@ -267,6 +279,15 @@ struct ProfileView: View {
                 onSave: savePreferences
             )
             .presentationDetents([.large])
+            .presentationCornerRadius(24)
+        }
+        .sheet(isPresented: $showNotificationSettings) {
+            NotificationSettingsSheet(
+                reminderThreshold: $editReminderThreshold,
+                isSaving: $isSaving,
+                onSave: savePreferences
+            )
+            .presentationDetents([.medium])
             .presentationCornerRadius(24)
         }
         .alert(String(localized: "change_password"), isPresented: $showChangePassword) {
@@ -637,6 +658,58 @@ struct StatCard: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+}
+
+// MARK: - Notification Settings Sheet
+/// Standalone entry point to the "Ending Soon" reminder threshold —
+/// same slider/save logic as EditPreferencesSheet, but reachable directly
+/// from a "Notifications" row in the profile menu instead of being buried
+/// inside the preferences editor.
+struct NotificationSettingsSheet: View {
+    @Binding var reminderThreshold: Double
+    @Binding var isSaving: Bool
+    let onSave: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Notifications").font(.system(size: 20, weight: .bold))
+                Spacer()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundColor(.secondary)
+                }
+            }
+            .padding(24)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Ending Soon Reminders").font(.system(size: 16, weight: .semibold))
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Remind me when exhibition has").font(.system(size: 14))
+                    HStack {
+                        Slider(value: $reminderThreshold, in: 0...100, step: 5)
+                        Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
+                    }
+                    Text("Days left = Total duration × \(Int(reminderThreshold))%").font(.system(size: 12)).foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+
+            Button(action: {
+                onSave()
+                dismiss()
+            }) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 24).fill(Color(red: 0.15, green: 0.39, blue: 0.92)).frame(height: 52)
+                    if isSaving { ProgressView().tint(.white) }
+                    else { Text(String(localized: "save")).font(.system(size: 16, weight: .semibold)).foregroundColor(.white) }
+                }
+            }
+            .disabled(isSaving).padding(24)
+        }
     }
 }
 
