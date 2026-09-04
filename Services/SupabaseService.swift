@@ -64,11 +64,14 @@ class SupabaseService: ObservableObject {
         try await client.auth.signIn(email: email, password: password)
     }
 
-    func signUp(email: String, password: String, firstName: String) async throws {
+    func signUp(email: String, password: String, firstName: String, lastName: String) async throws {
         let response = try await client.auth.signUp(
             email: email,
             password: password,
-            data: ["first_name": AnyJSON.string(firstName)]
+            data: [
+                "first_name": AnyJSON.string(firstName),
+                "last_name": AnyJSON.string(lastName)
+            ]
         )
 
         // Insertion directe dans profiles — ne compte pas sur le trigger
@@ -76,10 +79,11 @@ class SupabaseService: ObservableObject {
             struct ProfileInsert: Encodable {
                 let id: String
                 let first_name: String
+                let last_name: String
             }
             try await client
                 .from("profiles")
-                .upsert(ProfileInsert(id: user.id.uuidString, first_name: firstName))
+                .upsert(ProfileInsert(id: user.id.uuidString, first_name: firstName, last_name: lastName))
                 .execute()
         }
     }

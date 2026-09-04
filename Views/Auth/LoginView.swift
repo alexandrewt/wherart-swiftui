@@ -276,7 +276,7 @@ struct LoginView: View {
         Task {
             do {
                 if isSignUp {
-                    try await SupabaseService.shared.signUp(email: email, password: password, firstName: firstName)
+                    try await SupabaseService.shared.signUp(email: email, password: password, firstName: firstName, lastName: lastName)
                     await MainActor.run {
                         AnalyticsService.shared.track("signup_completed", properties: [
                             "email": email,
