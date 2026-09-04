@@ -146,9 +146,19 @@ struct CardActionButton: View {
     let hapticStyle: UIImpactFeedbackGenerator.FeedbackStyle
     let action: () -> Void
 
+    // A generator created and fired in the same instant (as this used to
+    // do) never gets a chance to spin up the Taptic Engine — `prepare()`
+    // needs a moment's lead time before the trigger call to actually cut
+    // the usual latency, which is why every other haptic site in the
+    // codebase keeps a persistent, pre-prepared generator instead. This is
+    // this card's most frequent interaction (favorite/mark-seen on every
+    // exhibition), so it's the one place that visibly felt laggy/weak.
+    @State private var generator: UIImpactFeedbackGenerator?
+
     var body: some View {
         Button(action: {
-            UIImpactFeedbackGenerator(style: hapticStyle).impactOccurred()
+            generator?.impactOccurred()
+            generator?.prepare() // re-arm immediately for the next tap
             action()
         }) {
             Image(systemName: icon)
@@ -161,5 +171,11 @@ struct CardActionButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
+        .onAppear {
+            guard generator == nil else { return }
+            let g = UIImpactFeedbackGenerator(style: hapticStyle)
+            g.prepare()
+            generator = g
+        }
     }
 }
