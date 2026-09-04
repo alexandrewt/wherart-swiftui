@@ -379,11 +379,24 @@ struct LoginView: View {
     private func handleAppleSignInTapped() async {
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
-        request.nonce = currentNonce
+        // Apple requires the SHA256 hash of the nonce here, not the raw
+        // value — the raw nonce (currentNonce) is kept as-is and sent to
+        // Supabase separately in handleAppleSignIn, which hashes it itself
+        // to compare against the hash Apple embeds in the identity token.
+        // Sending the same (raw or hashed) value to both sides is exactly
+        // what causes a "nonces mismatch" error at the Supabase step.
+        if let nonce = currentNonce {
+            request.nonce = sha256(nonce)
+        }
 
         let coordinator = AppleSignInCoordinator()
         let result = await coordinator.performRequest(request)
         await handleAppleSignIn(result)
+    }
+
+    private func sha256(_ input: String) -> String {
+        let hashed = SHA256.hash(data: Data(input.utf8))
+        return hashed.map { String(format: "%02x", $0) }.joined()
     }
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
