@@ -211,7 +211,7 @@ struct ProfileView: View {
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "gearshape", label: String(localized: "settings"), action: { showSettings = true })
                     Divider().padding(.leading, 52)
-                    MenuRow(icon: "bell", label: "Notifications", action: {
+                    MenuRow(icon: "bell", label: String(localized: "notifications"), action: {
                         // savePreferences() writes back editTypes/editVenues too, so they
                         // must be kept in sync with the current profile here — otherwise
                         // saving from this sheet alone (without ever opening "Edit
@@ -675,7 +675,7 @@ struct NotificationSettingsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Notifications").font(.system(size: 20, weight: .bold))
+                Text(String(localized: "notifications")).font(.system(size: 20, weight: .bold))
                 Spacer()
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundColor(.secondary)
@@ -684,14 +684,14 @@ struct NotificationSettingsSheet: View {
             .padding(24)
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("Ending Soon Reminders").font(.system(size: 16, weight: .semibold))
+                Text(String(localized: "ending_soon_reminders")).font(.system(size: 16, weight: .semibold))
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Remind me when exhibition has").font(.system(size: 14))
+                    Text(String(localized: "remind_me_when_exhibition_has")).font(.system(size: 14))
                     HStack {
                         Slider(value: $reminderThreshold, in: 0...100, step: 5)
                         Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
                     }
-                    Text("Days left = Total duration × \(Int(reminderThreshold))%").font(.system(size: 12)).foregroundColor(.secondary)
+                    Text(String(format: String(localized: "days_left_formula"), Int(reminderThreshold))).font(.system(size: 12)).foregroundColor(.secondary)
                 }
             }
             .padding(.horizontal, 24)
@@ -776,14 +776,14 @@ struct EditPreferencesSheet: View {
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Ending Soon Reminders").font(.system(size: 16, weight: .semibold))
+                        Text(String(localized: "ending_soon_reminders")).font(.system(size: 16, weight: .semibold))
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Remind me when exhibition has").font(.system(size: 14))
+                            Text(String(localized: "remind_me_when_exhibition_has")).font(.system(size: 14))
                             HStack {
                                 Slider(value: $reminderThreshold, in: 0...100, step: 5)
                                 Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
                             }
-                            Text("Days left = Total duration × \(Int(reminderThreshold))%").font(.system(size: 12)).foregroundColor(.secondary)
+                            Text(String(format: String(localized: "days_left_formula"), Int(reminderThreshold))).font(.system(size: 12)).foregroundColor(.secondary)
                         }
                     }
                 }

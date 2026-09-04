@@ -196,6 +196,10 @@
 "email_sent" = "Email sent";
 "ok" = "OK";
 "edit_preferences" = "Edit preferences";
+"notifications" = "Notifications";
+"ending_soon_reminders" = "Ending Soon Reminders";
+"remind_me_when_exhibition_has" = "Remind me when exhibition has";
+"days_left_formula" = "Days left = Total duration × %d%%";
 "art_types" = "Art types";
 "venue_types" = "Venue types";
 "contact_support" = "Contact support";
