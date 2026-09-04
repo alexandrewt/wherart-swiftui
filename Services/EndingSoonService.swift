@@ -120,6 +120,18 @@ class EndingSoonService: NSObject {
     }
 
     // MARK: - Vérifier toutes les expositions et envoyer reminders nécessaires
+    //
+    // Threshold check (has this exhibition crossed the user's reminder %?)
+    // is computed client-side via daysRemaining/reminderThresholdDays.
+    // Whether to actually send — given the user's chosen recurrence
+    // (once/daily/weekly) — is delegated to
+    // SupabaseService.shouldSendEndingSoonNotification, which tracks the
+    // last-sent timestamp per (user, exhibition, frequency) in
+    // ending_soon_notifications_sent. This replaces the older
+    // shouldSendReminder/markReminderSent RPC pair (kept below, unused, in
+    // case anything server-side still depends on them) since that RPC has
+    // no notion of recurrence — once it recorded a reminder as sent, it
+    // would never fire again for that exhibition.
     func checkAndSendReminders() async {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
 
@@ -144,26 +156,52 @@ class EndingSoonService: NSObject {
                 .value
 
             let userThreshold = profile.exhibitionReminderThreshold ?? 25
+            let frequency = profile.endingSoonFrequency ?? "once"
 
             for exhibition in exhibitions {
-                let shouldSend = await shouldSendReminder(userId: userId, exhibitionId: exhibition.id)
+                let daysLeft = daysRemaining(for: exhibition)
+                let thresholdDays = reminderThresholdDays(for: exhibition, userThresholdPercent: userThreshold)
+                guard daysLeft <= thresholdDays else { continue }
 
-                if shouldSend {
-                    let daysLeft = daysRemaining(for: exhibition)
-                    let title = "⏰ \(exhibition.title)"
-                    let body = "Only \(daysLeft) days left! Don't miss this exhibition."
-
-                    await sendLocalNotification(
-                        title: title,
-                        body: body,
-                        userInfo: [
-                            "exhibition_id": exhibition.id,
-                            "days_left": daysLeft
-                        ]
+                do {
+                    let canSend = try await SupabaseService.shared.shouldSendEndingSoonNotification(
+                        userId: userId,
+                        exhibitionId: exhibition.id,
+                        frequency: frequency
                     )
-
-                    await markReminderSent(userId: userId, exhibitionId: exhibition.id)
+                    guard canSend else { continue }
+                } catch {
+                    print("[EndingSoon] Error checking notification frequency: \(error)")
+                    continue
                 }
+
+                let title = "⏰ \(exhibition.title)"
+                let body = "Only \(daysLeft) days left! Don't miss this exhibition."
+
+                await sendLocalNotification(
+                    title: title,
+                    body: body,
+                    userInfo: [
+                        "exhibition_id": exhibition.id,
+                        "days_left": daysLeft
+                    ]
+                )
+
+                do {
+                    try await SupabaseService.shared.markEndingSoonNotificationSent(
+                        userId: userId,
+                        exhibitionId: exhibition.id,
+                        frequency: frequency
+                    )
+                } catch {
+                    print("[EndingSoon] Error marking notification sent: \(error)")
+                }
+
+                AnalyticsService.shared.track("ending_soon_notification_sent", properties: [
+                    "exhibition_id": exhibition.id,
+                    "days_remaining": daysLeft,
+                    "frequency": frequency
+                ])
             }
         } catch {
             print("[EndingSoon] Error checking reminders: \(error)")

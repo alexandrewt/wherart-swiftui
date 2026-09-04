@@ -31,6 +31,11 @@ struct WherartApp: App {
                     AnalyticsService.shared.configure()
                     await NotificationService.shared.requestPermission()
                     await EndingSoonService.shared.requestNotificationPermission()
+                    // Checked once per launch rather than on a recurring
+                    // Timer — a Timer here previously caused an
+                    // AttributeGraph cycle (see startReminderCheck below).
+                    await EndingSoonService.shared.checkAndSendReminders()
+                    await NewExhibitionsService.shared.checkAndSendNewExhibitions()
                     // ⏸️ TEMPORARILY DISABLED - caused AttributeGraph cycle
                     // startReminderCheck()
                 }

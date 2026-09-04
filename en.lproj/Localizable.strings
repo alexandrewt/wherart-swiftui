@@ -200,6 +200,13 @@
 "ending_soon_reminders" = "Ending Soon Reminders";
 "remind_me_when_exhibition_has" = "Remind me when exhibition has";
 "days_left_formula" = "Days left = Total duration × %d%%";
+"reminder_frequency" = "Reminder frequency";
+"frequency_once" = "Once";
+"frequency_daily" = "Daily";
+"frequency_weekly" = "Weekly";
+"frequency_once_description" = "You'll receive the notification only once";
+"frequency_daily_description" = "You'll receive the notification every day until the exhibition ends";
+"frequency_weekly_description" = "You'll receive the notification every week until the exhibition ends";
 "art_types" = "Art types";
 "venue_types" = "Venue types";
 "contact_support" = "Contact support";

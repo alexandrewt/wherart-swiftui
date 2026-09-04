@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var editTypes: [String] = []
     @State private var editVenues: [String] = []
     @State private var editReminderThreshold: Double = 25
+    @State private var editEndingSoonFrequency: String = "once"
     @State private var isSaving = false
     @State private var showChangePassword = false
     @State private var passwordResetSent = false
@@ -150,6 +151,7 @@ struct ProfileView: View {
                             editTypes = profile?.preferences ?? []
                             editVenues = profile?.venueTypes ?? []
                             editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
+                            editEndingSoonFrequency = profile?.endingSoonFrequency ?? "once"
                             showEditPrefs = true
                         }) {
                             HStack(spacing: 4) {
@@ -219,6 +221,7 @@ struct ProfileView: View {
                         editTypes = profile?.preferences ?? []
                         editVenues = profile?.venueTypes ?? []
                         editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
+                        editEndingSoonFrequency = profile?.endingSoonFrequency ?? "once"
                         showNotificationSettings = true
                     })
                     Divider().padding(.leading, 52)
@@ -284,10 +287,11 @@ struct ProfileView: View {
         .sheet(isPresented: $showNotificationSettings) {
             NotificationSettingsSheet(
                 reminderThreshold: $editReminderThreshold,
+                frequency: $editEndingSoonFrequency,
                 isSaving: $isSaving,
                 onSave: savePreferences
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationCornerRadius(24)
         }
         .alert(String(localized: "change_password"), isPresented: $showChangePassword) {
@@ -405,24 +409,28 @@ struct ProfileView: View {
                     userId: userId,
                     preferences: editTypes,
                     venueTypes: editVenues,
-                    reminderThreshold: Int(editReminderThreshold)
+                    reminderThreshold: Int(editReminderThreshold),
+                    endingSoonFrequency: editEndingSoonFrequency
                 )
                 await MainActor.run {
                     profile?.preferences = editTypes
                     profile?.venueTypes = editVenues
                     profile?.exhibitionReminderThreshold = Int(editReminderThreshold)
+                    profile?.endingSoonFrequency = editEndingSoonFrequency
 
                     AnalyticsService.shared.track("preferences_updated", properties: [
                         "user_id": userId,
                         "art_types_count": editTypes.count,
                         "venue_types_count": editVenues.count,
                         "reminder_threshold": Int(editReminderThreshold),
+                        "ending_soon_frequency": editEndingSoonFrequency,
                         "art_types": editTypes.joined(separator: ","),
                         "venue_types": editVenues.joined(separator: ",")
                     ])
 
                     isSaving = false
                     showEditPrefs = false
+                    showNotificationSettings = false
                 }
             } catch {
                 await MainActor.run {
@@ -668,6 +676,7 @@ struct StatCard: View {
 /// inside the preferences editor.
 struct NotificationSettingsSheet: View {
     @Binding var reminderThreshold: Double
+    @Binding var frequency: String
     @Binding var isSaving: Bool
     let onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -683,15 +692,32 @@ struct NotificationSettingsSheet: View {
             }
             .padding(24)
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(String(localized: "ending_soon_reminders")).font(.system(size: 16, weight: .semibold))
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "remind_me_when_exhibition_has")).font(.system(size: 14))
-                    HStack {
-                        Slider(value: $reminderThreshold, in: 0...100, step: 5)
-                        Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(String(localized: "ending_soon_reminders")).font(.system(size: 16, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(String(localized: "remind_me_when_exhibition_has")).font(.system(size: 14))
+                        HStack {
+                            Slider(value: $reminderThreshold, in: 0...100, step: 5)
+                            Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
+                        }
+                        Text(String(format: String(localized: "days_left_formula"), Int(reminderThreshold))).font(.system(size: 12)).foregroundColor(.secondary)
                     }
-                    Text(String(format: String(localized: "days_left_formula"), Int(reminderThreshold))).font(.system(size: 12)).foregroundColor(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(String(localized: "reminder_frequency")).font(.system(size: 16, weight: .semibold))
+
+                    Picker(String(localized: "reminder_frequency"), selection: $frequency) {
+                        Text(String(localized: "frequency_once")).tag("once")
+                        Text(String(localized: "frequency_daily")).tag("daily")
+                        Text(String(localized: "frequency_weekly")).tag("weekly")
+                    }
+                    .pickerStyle(.segmented)
+
+                    Text(frequencyDescription)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(.horizontal, 24)
@@ -709,6 +735,14 @@ struct NotificationSettingsSheet: View {
                 }
             }
             .disabled(isSaving).padding(24)
+        }
+    }
+
+    private var frequencyDescription: String {
+        switch frequency {
+        case "daily": return String(localized: "frequency_daily_description")
+        case "weekly": return String(localized: "frequency_weekly_description")
+        default: return String(localized: "frequency_once_description")
         }
     }
 }

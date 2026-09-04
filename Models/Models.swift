@@ -24,6 +24,7 @@ struct Exhibition: Codable, Identifiable, Hashable {
     let endingSoon: Bool
     let endDate: String?
     var distance: Double?
+    let createdAt: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case id, title, artist, venue, address, schedule, description, image
@@ -35,6 +36,7 @@ struct Exhibition: Codable, Identifiable, Hashable {
         case endingSoon = "ending_soon"
         case endDate = "end_date"
         case waitTime = "wait_time"
+        case createdAt = "created_at"
     }
 }
 
@@ -105,6 +107,10 @@ struct Profile: Codable {
     var venueTypes: [String]
     var avatarUrl: String?
     var exhibitionReminderThreshold: Int?
+    /// "once" | "daily" | "weekly" — how often an ending-soon reminder repeats
+    /// for a given exhibition once its threshold is crossed. See
+    /// `EndingSoonService.checkAndSendReminders()`.
+    var endingSoonFrequency: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -115,6 +121,7 @@ struct Profile: Codable {
         case venueTypes = "venue_types"
         case avatarUrl = "avatar_url"
         case exhibitionReminderThreshold = "exhibition_reminder_threshold"
+        case endingSoonFrequency = "ending_soon_frequency"
     }
 }
 

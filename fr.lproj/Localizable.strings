@@ -200,6 +200,13 @@
 "ending_soon_reminders" = "Rappels de fin d'exposition";
 "remind_me_when_exhibition_has" = "Me rappeler quand l'exposition a";
 "days_left_formula" = "Jours restants = Durée totale × %d%%";
+"reminder_frequency" = "Récurrence des alertes";
+"frequency_once" = "Une fois";
+"frequency_daily" = "Quotidien";
+"frequency_weekly" = "Hebdomadaire";
+"frequency_once_description" = "Vous recevrez la notification une seule fois";
+"frequency_daily_description" = "Vous recevrez la notification chaque jour jusqu'à la fin de l'exposition";
+"frequency_weekly_description" = "Vous recevrez la notification chaque semaine jusqu'à la fin de l'exposition";
 "art_types" = "Types d'art";
 "venue_types" = "Types de lieux";
 "contact_support" = "Contacter le support";

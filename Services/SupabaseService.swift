@@ -212,18 +212,184 @@ class SupabaseService: ObservableObject {
         return publicURL.absoluteString
     }
 
-    func updatePreferences(userId: String, preferences: [String], venueTypes: [String], reminderThreshold: Int? = nil) async throws {
+    func updatePreferences(userId: String, preferences: [String], venueTypes: [String], reminderThreshold: Int? = nil, endingSoonFrequency: String? = nil) async throws {
         struct PrefsUpdate: Encodable {
             let id: String
             let preferences: [String]
             let venue_types: [String]
             let exhibition_reminder_threshold: Int?
+            let ending_soon_frequency: String?
         }
-        let update = PrefsUpdate(id: userId, preferences: preferences, venue_types: venueTypes, exhibition_reminder_threshold: reminderThreshold)
+        let update = PrefsUpdate(id: userId, preferences: preferences, venue_types: venueTypes, exhibition_reminder_threshold: reminderThreshold, ending_soon_frequency: endingSoonFrequency)
         try await client
             .from("profiles")
             .upsert(update)
             .execute()
+    }
+
+    func updateEndingSoonFrequency(_ frequency: String) async throws {
+        guard let userId = currentUser?.id.uuidString else {
+            throw NSError(domain: "SupabaseService", code: -1, userInfo: ["message": "No user"])
+        }
+        struct FrequencyUpdate: Encodable {
+            let ending_soon_frequency: String
+        }
+        try await client
+            .from("profiles")
+            .update(FrequencyUpdate(ending_soon_frequency: frequency))
+            .eq("id", value: userId)
+            .execute()
+    }
+
+    // MARK: - Ending Soon Notification Recurrence
+
+    /// One row per (user, exhibition, frequency) in
+    /// `ending_soon_notifications_sent` — tracks when a reminder was last
+    /// sent at that frequency, so `shouldSendEndingSoonNotification` can
+    /// decide whether enough time has passed to send again.
+    private struct EndingSoonNotificationRecord: Codable {
+        let userId: String
+        let exhibitionId: Int
+        let frequency: String
+        let lastSentAt: String
+
+        enum CodingKeys: String, CodingKey {
+            case userId = "user_id"
+            case exhibitionId = "exhibition_id"
+            case frequency
+            case lastSentAt = "last_sent_at"
+        }
+    }
+
+    /// - Parameter frequency: the user's current `ending_soon_frequency`
+    ///   ("once" | "daily" | "weekly") — pass the caller's already-fetched
+    ///   profile value rather than re-fetching it here.
+    func shouldSendEndingSoonNotification(userId: String, exhibitionId: Int, frequency: String) async throws -> Bool {
+        let existing: [EndingSoonNotificationRecord] = try await client
+            .from("ending_soon_notifications_sent")
+            .select()
+            .eq("user_id", value: userId)
+            .eq("exhibition_id", value: exhibitionId)
+            .eq("frequency", value: frequency)
+            .execute()
+            .value
+
+        guard let record = existing.first else { return true } // never sent at this frequency yet
+
+        if frequency == "once" { return false } // already sent, and "once" never repeats
+
+        guard let lastSent = Self.parseTimestamp(record.lastSentAt) else { return true }
+        let daysSinceLastSent = Calendar.current.dateComponents([.day], from: lastSent, to: Date()).day ?? 0
+
+        switch frequency {
+        case "daily": return daysSinceLastSent >= 1
+        case "weekly": return daysSinceLastSent >= 7
+        default: return false
+        }
+    }
+
+    func markEndingSoonNotificationSent(userId: String, exhibitionId: Int, frequency: String) async throws {
+        struct Upsert: Encodable {
+            let user_id: String
+            let exhibition_id: Int
+            let frequency: String
+            let last_sent_at: String
+        }
+        try await client
+            .from("ending_soon_notifications_sent")
+            .upsert(
+                Upsert(user_id: userId, exhibition_id: exhibitionId, frequency: frequency, last_sent_at: Date().ISO8601Format()),
+                onConflict: "user_id,exhibition_id,frequency"
+            )
+            .execute()
+    }
+
+    // MARK: - New Exhibitions Digest
+
+    private struct NewExhibitionsNotificationRecord: Codable {
+        let userId: String
+        let lastNotificationSentAt: String
+
+        enum CodingKeys: String, CodingKey {
+            case userId = "user_id"
+            case lastNotificationSentAt = "last_notification_sent_at"
+        }
+    }
+
+    /// Caps the "New exhibitions matching your taste" digest at once per day.
+    func shouldSendNewExhibitionsNotification(userId: String) async throws -> Bool {
+        let existing: [NewExhibitionsNotificationRecord] = try await client
+            .from("new_exhibitions_notifications")
+            .select()
+            .eq("user_id", value: userId)
+            .execute()
+            .value
+
+        guard let record = existing.first,
+              let lastSent = Self.parseTimestamp(record.lastNotificationSentAt) else {
+            return true // never sent
+        }
+
+        let daysSinceLastSent = Calendar.current.dateComponents([.day], from: lastSent, to: Date()).day ?? 0
+        return daysSinceLastSent >= 1
+    }
+
+    func markNewExhibitionsNotificationSent(userId: String) async throws {
+        struct Upsert: Encodable {
+            let user_id: String
+            let last_notification_sent_at: String
+        }
+        try await client
+            .from("new_exhibitions_notifications")
+            .upsert(
+                Upsert(user_id: userId, last_notification_sent_at: Date().ISO8601Format()),
+                onConflict: "user_id"
+            )
+            .execute()
+    }
+
+    /// Exhibitions created in the last 24h that are still running, matching
+    /// the user's preferred art types when they have any set (falls back to
+    /// all new exhibitions for a user with no preferences yet).
+    func getNewExhibitionsForUser(userId: String) async throws -> [Exhibition] {
+        let profile = try await fetchProfile(userId: userId)
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        let oneDayAgo = formatter.string(from: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date())
+
+        var query = client
+            .from("exhibitions")
+            .select()
+            .gte("created_at", value: oneDayAgo)
+            .gt("end_date", value: today)
+
+        // `type` is an art-taxonomy string (see ArtTaxonomy) matching what's
+        // stored in profiles.preferences — filter to those when the user has
+        // picked any, otherwise surface all new exhibitions.
+        if !profile.preferences.isEmpty {
+            query = query.in("type", values: profile.preferences)
+        }
+
+        let exhibitions: [Exhibition] = try await query
+            .order("created_at", ascending: false)
+            .limit(3)
+            .execute()
+            .value
+
+        return exhibitions.map { $0.reclassified() }
+    }
+
+    /// Parses the ISO8601-with-fractional-seconds timestamps Postgres
+    /// returns for `timestamptz` columns (what `Date().ISO8601Format()` and
+    /// Supabase's own `NOW()` / upsert defaults produce).
+    private static func parseTimestamp(_ string: String) -> Date? {
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = withFractional.date(from: string) { return date }
+        return ISO8601DateFormatter().date(from: string)
     }
 
     // MARK: - Exhibitions
