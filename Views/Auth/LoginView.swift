@@ -517,6 +517,7 @@ struct LoginView: View {
             let user = result.user
             let email = user.profile?.email ?? ""
             let firstName = user.profile?.givenName ?? ""
+            let lastName = user.profile?.familyName ?? ""
             let idToken = user.idToken?.tokenString ?? ""
 
             guard !idToken.isEmpty else {
@@ -534,7 +535,8 @@ struct LoginView: View {
                 idToken: idToken,
                 nonce: rawNonce,
                 email: email.isEmpty ? nil : email,
-                firstName: firstName.isEmpty ? nil : firstName
+                firstName: firstName.isEmpty ? nil : firstName,
+                lastName: lastName.isEmpty ? nil : lastName
             )
 
             await MainActor.run {

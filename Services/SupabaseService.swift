@@ -145,7 +145,8 @@ class SupabaseService: ObservableObject {
         idToken: String,
         nonce: String,
         email: String?,
-        firstName: String?
+        firstName: String?,
+        lastName: String?
     ) async throws {
 
         try await client.auth.signInWithIdToken(
@@ -169,6 +170,10 @@ class SupabaseService: ObservableObject {
 
         if let firstName = firstName, !firstName.isEmpty {
             profileData["first_name"] = .string(firstName)
+        }
+
+        if let lastName = lastName, !lastName.isEmpty {
+            profileData["last_name"] = .string(lastName)
         }
 
         if let email = email, !email.isEmpty {

@@ -31,16 +31,28 @@ struct OnboardingView: View {
 
             VStack(spacing: 0) {
 
-                // MARK: - Progress
-                HStack(spacing: 8) {
-                    ForEach(0..<3) { index in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(index <= currentStep ? Color.blue : Color(.systemGray4))
-                            .frame(height: 3)
+                // MARK: - Back button + Progress
+                HStack(spacing: 12) {
+                    if currentStep > 0 {
+                        Button(action: handleBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.blue)
+                        }
+                        .transition(.opacity)
+                    }
+
+                    HStack(spacing: 8) {
+                        ForEach(0..<3) { index in
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(index <= currentStep ? Color.blue : Color(.systemGray4))
+                                .frame(height: 3)
+                        }
                     }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 60)
+                .animation(.easeInOut(duration: 0.2), value: currentStep)
 
                 Spacer()
 
@@ -138,6 +150,18 @@ struct OnboardingView: View {
                 "user_id": userId
             ])
         }
+        .gesture(
+            // Swipe right to go back — only past the first step, and only
+            // a clearly horizontal swipe (large width, small vertical
+            // drift) so it doesn't fight with the chip grid's own taps.
+            DragGesture()
+                .onEnded { value in
+                    guard currentStep > 0 else { return }
+                    if value.translation.width > 80 && abs(value.translation.height) < 60 {
+                        handleBack()
+                    }
+                }
+        )
     }
 
     // MARK: - Step Views
@@ -164,15 +188,23 @@ struct OnboardingView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
             }
-            FlowLayout(items: artTypes) { type in
-                OnboardingChip(
-                    label: ArtTaxonomy.displayLabel(for: type),
-                    isSelected: selectedTypes.contains(type),
-                    action: { toggleType(type) }
-                )
+            .padding(.horizontal, 24)
+
+            // Scrollable — 20 chips can overflow the space between the
+            // header and the fixed bottom CTA on smaller devices, which
+            // without a ScrollView here clipped the grid and could push
+            // the CTA itself off-screen.
+            ScrollView(showsIndicators: false) {
+                FlowLayout(items: artTypes) { type in
+                    OnboardingChip(
+                        label: ArtTaxonomy.displayLabel(for: type),
+                        isSelected: selectedTypes.contains(type),
+                        action: { toggleType(type) }
+                    )
+                }
+                .padding(.horizontal, 24)
             }
         }
-        .padding(.horizontal, 24)
     }
 
     private var stepVenueTypes: some View {
@@ -185,15 +217,23 @@ struct OnboardingView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
             }
-            FlowLayout(items: venueTypes) { venue in
-                OnboardingChip(
-                    label: ArtTaxonomy.displayLabel(for: venue),
-                    isSelected: selectedVenues.contains(venue),
-                    action: { toggleVenue(venue) }
-                )
+            .padding(.horizontal, 24)
+
+            // Same overflow issue as stepArtTypes — 12 venue types, some
+            // with long labels ("Churches & Heritage", "Cultural
+            // Institutes"), could push the fixed bottom CTA off-screen on
+            // smaller devices without a ScrollView here.
+            ScrollView(showsIndicators: false) {
+                FlowLayout(items: venueTypes) { venue in
+                    OnboardingChip(
+                        label: ArtTaxonomy.displayLabel(for: venue),
+                        isSelected: selectedVenues.contains(venue),
+                        action: { toggleVenue(venue) }
+                    )
+                }
+                .padding(.horizontal, 24)
             }
         }
-        .padding(.horizontal, 24)
     }
 
     // MARK: - Logic
@@ -245,6 +285,13 @@ struct OnboardingView: View {
             withAnimation { currentStep += 1 }
         } else {
             saveAndComplete()
+        }
+    }
+
+    private func handleBack() {
+        guard currentStep > 0 else { return }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentStep -= 1
         }
     }
 
