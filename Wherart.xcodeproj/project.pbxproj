@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C8DF6BBE2AE6113FCEBA98D /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11370ECD09D5102FDD08672 /* NotificationsView.swift */; };
 		55C169B8C4B2FB6D824DD7D0 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1BB362A6EC71B1E34943BC /* EditProfileView.swift */; };
 		85851FF686DC665D6EA8EF77 /* NewExhibitionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043BCB9BA0B22C4A87AD837 /* NewExhibitionsService.swift */; };
 		A13297680C2779020DFD689C /* ChatFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273E965AC408E7811F5F616 /* ChatFullView.swift */; };
@@ -34,7 +35,6 @@
 		B5C8EB592FA3F3AA009A2A74 /* libswiftMapKit.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B5C8EB572FA3F389009A2A74 /* libswiftMapKit.tbd */; };
 		B5C8EB5B2FA3F3CC009A2A74 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB5A2FA3F3CA009A2A74 /* MapView.swift */; };
 		B5C8EB5D2FA3F680009A2A74 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB5C2FA3F67F009A2A74 /* ProfileView.swift */; };
-		2C8DF6BBE2AE6113FCEBA98D /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11370ECD09D5102FDD08672 /* NotificationsView.swift */; };
 		B5C8EB5F2FA3F798009A2A74 /* VisitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB5E2FA3F796009A2A74 /* VisitView.swift */; };
 		B5C8EB612FA3F7BF009A2A74 /* VisitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB602FA3F7BD009A2A74 /* VisitDetailView.swift */; };
 		B5C8EB632FA3F7D6009A2A74 /* CreateVisitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */; };
@@ -62,6 +62,7 @@
 		8699DCBF30405A872CB965B6 /* SubscribeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B11370ECD09D5102FDD08672 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
 		B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinVisitConfirmView.swift; sourceTree = "<group>"; };
 		B5361AC42FB35B180042B689 /* PaywallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallSheet.swift; sourceTree = "<group>"; };
@@ -85,7 +86,6 @@
 		B5C8EB572FA3F389009A2A74 /* libswiftMapKit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftMapKit.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk/usr/lib/swift/libswiftMapKit.tbd; sourceTree = DEVELOPER_DIR; };
 		B5C8EB5A2FA3F3CA009A2A74 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		B5C8EB5C2FA3F67F009A2A74 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
-		B11370ECD09D5102FDD08672 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		B5C8EB5E2FA3F796009A2A74 /* VisitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitView.swift; sourceTree = "<group>"; };
 		B5C8EB602FA3F7BD009A2A74 /* VisitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitDetailView.swift; sourceTree = "<group>"; };
 		B5C8EB622FA3F7D0009A2A74 /* CreateVisitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVisitView.swift; sourceTree = "<group>"; };
@@ -128,6 +128,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		89317720C4BDCB8B474803C2 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				B11370ECD09D5102FDD08672 /* NotificationsView.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		9ACAE26C2AB19BA9470F3EF5 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -210,14 +218,6 @@
 				89317720C4BDCB8B474803C2 /* Notifications */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		89317720C4BDCB8B474803C2 /* Notifications */ = {
-			isa = PBXGroup;
-			children = (
-				B11370ECD09D5102FDD08672 /* NotificationsView.swift */,
-			);
-			path = Notifications;
 			sourceTree = "<group>";
 		};
 		B5C8EB3B2FA3A925009A2A74 /* Auth */ = {
@@ -626,7 +626,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.5.5;
+				MARKETING_VERSION = 1.5.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
@@ -650,6 +650,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = GHAUCX2368;
@@ -675,7 +676,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.5.5;
+				MARKETING_VERSION = 1.5.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
