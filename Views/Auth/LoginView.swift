@@ -209,8 +209,10 @@ struct LoginView: View {
                                     }
                                 }) {
                                     HStack {
-                                        Image(systemName: "g.circle.fill")
-                                            .font(.system(size: 18))
+                                        Image("GoogleLogo")
+                                            .resizable()
+                                            .renderingMode(.original)
+                                            .frame(width: 18, height: 18)
                                         Text("Google")
                                             .font(.system(size: 16, weight: .semibold))
                                     }
