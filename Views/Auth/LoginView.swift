@@ -497,7 +497,23 @@ struct LoginView: View {
         }
 
         do {
-            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            // Supabase's signInWithIdToken always hashes whatever `nonce`
+            // you pass it and compares that hash to the id_token's nonce
+            // claim (documented on OpenIDConnectCredentials.nonce) — same
+            // rule for every provider, not just Apple. So exactly like the
+            // Apple flow: send the SHA256 hash to the provider (so its JWT
+            // embeds that hash), and send the raw, unhashed nonce to
+            // Supabase. Previously no nonce was passed to
+            // signIn(withPresenting:) at all, which is what caused
+            // "Passed nonce and nonce in id_token should either both exist
+            // or not" — one side had none, the other did.
+            let rawNonce = randomNonceString()
+            let result = try await GIDSignIn.sharedInstance.signIn(
+                withPresenting: rootViewController,
+                hint: nil,
+                additionalScopes: nil,
+                nonce: sha256(rawNonce)
+            )
             let user = result.user
             let email = user.profile?.email ?? ""
             let firstName = user.profile?.givenName ?? ""
@@ -516,6 +532,7 @@ struct LoginView: View {
 
             try await SupabaseService.shared.signInWithGoogle(
                 idToken: idToken,
+                nonce: rawNonce,
                 email: email.isEmpty ? nil : email,
                 firstName: firstName.isEmpty ? nil : firstName
             )

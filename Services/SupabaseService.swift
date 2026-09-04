@@ -143,6 +143,7 @@ class SupabaseService: ObservableObject {
 
     func signInWithGoogle(
         idToken: String,
+        nonce: String,
         email: String?,
         firstName: String?
     ) async throws {
@@ -150,7 +151,8 @@ class SupabaseService: ObservableObject {
         try await client.auth.signInWithIdToken(
             credentials: .init(
                 provider: .google,
-                idToken: idToken
+                idToken: idToken,
+                nonce: nonce
             )
         )
 
