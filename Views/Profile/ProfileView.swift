@@ -236,6 +236,7 @@ struct ProfileView: View {
                             Image(systemName: "chevron.right").font(.system(size: 13)).foregroundColor(.secondary)
                         }
                         .padding(.horizontal, 16).padding(.vertical, 14)
+                        .contentShape(Rectangle())
                     }
                     Divider().padding(.leading, 52)
                     Button(action: handleLogout) {
@@ -245,6 +246,7 @@ struct ProfileView: View {
                             Spacer()
                         }
                         .padding(.horizontal, 16).padding(.vertical, 14)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
@@ -641,6 +643,7 @@ struct MenuRow: View {
                 Image(systemName: "chevron.right").font(.system(size: 13)).foregroundColor(.secondary)
             }
             .padding(.horizontal, 16).padding(.vertical, 14)
+            .contentShape(Rectangle()) // the Spacer's empty middle otherwise doesn't register taps
         }
         .buttonStyle(.plain)
     }
