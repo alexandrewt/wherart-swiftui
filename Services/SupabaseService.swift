@@ -613,9 +613,17 @@ class SupabaseService: ObservableObject {
             isFavorite: isFavorite,
             isViewed: isViewed
         )
+        // `UserInteraction` has no `id` column — (user_id, exhibition_id) is
+        // the real natural key. Without `onConflict` here, PostgREST falls
+        // back to resolving conflicts on the table's primary key, which
+        // this payload never includes — so instead of updating the
+        // existing row, every toggle silently INSERTed a brand-new one.
+        // Reloading (e.g. after switching tabs and back) would then
+        // recompute favorite/viewed state from whichever duplicate row
+        // came back, making a like/unlike look like it "undid itself".
         try await client
             .from("user_interactions")
-            .upsert(interaction)
+            .upsert(interaction, onConflict: "user_id,exhibition_id")
             .execute()
     }
 
