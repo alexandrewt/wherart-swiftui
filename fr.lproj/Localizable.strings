@@ -122,6 +122,7 @@
 "filter_toilets" = "Toilettes adaptées";
 "filter_audioguide" = "Audioguide disponible";
 "filter_no_guide_dogs" = "Chiens guides non autorisés";
+"filter_see_venue_website" = "Voir le site du lieu";
 "filter_wait_under_15" = "< 15 min";
 "filter_wait_15_30" = "15 à 30 min";
 "filter_wait_30_45" = "30 à 45 min";

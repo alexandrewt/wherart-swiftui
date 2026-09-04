@@ -161,6 +161,7 @@ func localizedAttributeLabel(_ raw: String) -> String {
         (["adapted toilets", "accessible toilets", "accessible restrooms"], "filter_toilets"),
         (["audioguide available", "audio guide available"], "filter_audioguide"),
         (["guide dogs not allowed", "no guide dogs"], "filter_no_guide_dogs"),
+        (["see venue website", "check venue website", "see website", "check website"], "filter_see_venue_website"),
         (["unknown"], "unknown"),
         (["< 15 min"], "filter_wait_under_15"),
         (["15 - 30 min", "15-30 min"], "filter_wait_15_30"),

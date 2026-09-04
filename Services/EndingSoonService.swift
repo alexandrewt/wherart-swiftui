@@ -240,6 +240,9 @@ extension EndingSoonService: UNUserNotificationCenterDelegate {
 
         if let exhibitionId = userInfo["exhibition_id"] as? Int {
             print("[EndingSoon] User tapped notification for exhibition \(exhibitionId)")
+            DispatchQueue.main.async {
+                DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
+            }
         }
 
         completionHandler()

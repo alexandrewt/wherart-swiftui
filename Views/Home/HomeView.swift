@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showFilters = false
     @State private var filters = AppFilters()
     @State private var selectedExhibition: Exhibition? = nil
+    @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @State private var showFloatingSearch = false
     @State private var floatingExpanded = false
     @State private var showPaywall = false
@@ -252,6 +253,35 @@ struct HomeView: View {
         }
         .onAppear {
             schedulePaywall()
+            resolvePendingDeepLink()
+        }
+        // Tapping an Ending Soon notification while the app is already
+        // running (backgrounded): MainTabView jumps to this tab when
+        // pendingExhibitionId is set, and this fires here too. The
+        // onAppear call above covers the other case — a cold launch from
+        // tapping the notification, where the router already holds the
+        // value by the time this view first renders and onChange alone
+        // would never fire.
+        .onChange(of: deepLinkRouter.pendingExhibitionId) { _ in
+            resolvePendingDeepLink()
+        }
+    }
+
+    /// Fetches and pushes `deepLinkRouter.pendingExhibitionId`'s exhibition
+    /// the same way tapping its card would, then clears the pending id.
+    private func resolvePendingDeepLink() {
+        guard let exhibitionId = deepLinkRouter.pendingExhibitionId else { return }
+        Task {
+            do {
+                let exhibition = try await SupabaseService.shared.fetchExhibitionById(id: exhibitionId)
+                await MainActor.run {
+                    selectedExhibition = exhibition
+                    deepLinkRouter.pendingExhibitionId = nil
+                }
+            } catch {
+                print("[DeepLink] Failed to fetch exhibition \(exhibitionId): \(error)")
+                await MainActor.run { deepLinkRouter.pendingExhibitionId = nil }
+            }
         }
     }
 

@@ -13,6 +13,7 @@ struct MainTabView: View {
     @StateObject private var nav = AppNavigation()
     private var service: SupabaseService { SupabaseService.shared }
     @State private var showLoginPrompt = false
+    @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
 
     var body: some View {
         TabView(selection: $nav.selectedTab) {
@@ -76,6 +77,24 @@ struct MainTabView: View {
         }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet()
+        }
+        // Tapping an Ending Soon notification sets this from anywhere in
+        // the app (even the background) — jump to Home so HomeView's own
+        // observation of the same router can fetch and push that
+        // exhibition via its navigationDestination(item:). Checked both on
+        // appear (cold launch from tapping the notification — the router
+        // already has the value by the time this view first renders, so
+        // onChange alone would never fire) and on change (app already
+        // running in the background when the notification is tapped).
+        .onAppear {
+            if deepLinkRouter.pendingExhibitionId != nil {
+                nav.selectedTab = 0
+            }
+        }
+        .onChange(of: deepLinkRouter.pendingExhibitionId) { exhibitionId in
+            if exhibitionId != nil {
+                nav.selectedTab = 0
+            }
         }
     }
 }
