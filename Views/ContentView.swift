@@ -15,13 +15,8 @@ struct ContentView: View {
         } else {
             SplashView()
                 .onAppear {
-                    Task {
-                        try? await Task.sleep(nanoseconds: 500_000_000)
-                        await MainActor.run {
-                            withAnimation {
-                                isReady = true
-                            }
-                        }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isReady = true
                     }
                 }
         }
