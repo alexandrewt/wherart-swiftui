@@ -428,19 +428,22 @@ struct LoginView: View {
             
             let email = appleIDCredential.email ?? ""
             let firstName = appleIDCredential.fullName?.givenName ?? ""
-            
-            print("[AppleSignIn] Starting sign in with email: \(email), name: \(firstName)")
-            
+            let lastName = appleIDCredential.fullName?.familyName ?? ""
+
+            print("[AppleSignIn] Starting sign in with email: \(email), name: \(firstName) \(lastName)")
+
             AnalyticsService.shared.track("signin_apple_started", properties: [
                 "email": email,
-                "firstName": firstName
+                "firstName": firstName,
+                "lastName": lastName
             ])
-            
+
             do {
                 try await service.signInWithApple(
                     identityToken: identityToken,
                     nonce: nonce,
                     firstName: firstName.isEmpty ? nil : firstName,
+                    lastName: lastName.isEmpty ? nil : lastName,
                     email: email.isEmpty ? nil : email
                 )
                 

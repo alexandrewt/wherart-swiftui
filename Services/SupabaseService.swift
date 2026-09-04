@@ -96,11 +96,12 @@ class SupabaseService: ObservableObject {
         identityToken: Data,
         nonce: String,
         firstName: String?,
+        lastName: String?,
         email: String?
     ) async throws {
-        
+
         let tokenString = String(data: identityToken, encoding: .utf8) ?? ""
-        
+
         try await client.auth.signInWithIdToken(
             credentials: .init(
                 provider: .apple,
@@ -108,22 +109,26 @@ class SupabaseService: ObservableObject {
                 nonce: nonce
             )
         )
-        
+
         guard let user = client.auth.currentUser else {
             throw NSError(domain: "AppleSignIn", code: -1, userInfo: ["message": "No user after sign in"])
         }
-        
+
         print("[AppleSignIn] User authenticated: \(user.id.uuidString)")
-        
+
         var profileData: [String: AnyJSON] = [
             "id": .string(user.id.uuidString),
             "updated_at": .string(Date().ISO8601Format())
         ]
-        
+
         if let firstName = firstName, !firstName.isEmpty {
             profileData["first_name"] = .string(firstName)
         }
-        
+
+        if let lastName = lastName, !lastName.isEmpty {
+            profileData["last_name"] = .string(lastName)
+        }
+
         if let email = email, !email.isEmpty {
             profileData["email"] = .string(email)
         }
