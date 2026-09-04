@@ -173,21 +173,9 @@ struct LoginView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .center)
 
-                            // Continue without account — placed right above the
-                            // divider, marking the boundary between account
-                            // creation/login and the OAuth section below.
-                            Button(action: handleGuestMode) {
-                                Text(String(localized: "browse_without_account"))
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.top, 8)
-
                             // Divider & OAuth Section
                             Divider()
-                                .padding(.top, -4)
-                                .padding(.bottom, 16)
+                                .padding(.vertical, 16)
 
                             Text(isSignUp ? "Ou créer son compte avec" : "Ou se connecter avec")
                                 .font(.system(size: 14))
@@ -234,6 +222,15 @@ struct LoginView: View {
                                 }
                             }
                             .padding(.top, 8)
+
+                            // Continue without account
+                            Button(action: handleGuestMode) {
+                                Text(String(localized: "browse_without_account"))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 24)
                         }
                         .offset(y: appeared ? 0 : 20)
                         .opacity(appeared ? 1 : 0)
