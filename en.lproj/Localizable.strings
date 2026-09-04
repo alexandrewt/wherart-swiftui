@@ -208,6 +208,9 @@
 "ok" = "OK";
 "edit_preferences" = "Edit preferences";
 "notifications" = "Notifications";
+"mark_all_read" = "Mark all as read";
+"no_notifications_yet" = "No notifications yet";
+"no_notifications_subtitle" = "Check back later";
 "ending_soon_reminders" = "Ending Soon Reminders";
 "remind_me_when_exhibition_has" = "Remind me when exhibition has";
 "days_left_formula" = "Days left = Total duration × %d%%";

@@ -401,6 +401,91 @@ class SupabaseService: ObservableObject {
         return ISO8601DateFormatter().date(from: string)
     }
 
+    // MARK: - Notifications Feed
+    //
+    // Persisted, in-app counterpart to the local UNUserNotificationCenter
+    // pushes EndingSoonService/NewExhibitionsService already schedule —
+    // those only reach the OS notification center, so each send site also
+    // inserts a row here (via `insertNotification`) to back the
+    // NotificationsView list and the unread badge.
+
+    func fetchNotifications(limit: Int = 50) async throws -> [AppNotification] {
+        guard let userId = currentUser?.id.uuidString else {
+            throw NSError(domain: "SupabaseService", code: -1, userInfo: ["message": "No user"])
+        }
+
+        let notifications: [AppNotification] = try await client
+            .from("notifications")
+            .select()
+            .eq("user_id", value: userId)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return notifications
+    }
+
+    /// - Note: needs `count: .exact` for the `Prefer: count=exact` header
+    /// PostgREST reads the row count from — omitting it (as a `head: true`
+    /// select alone does) leaves the response's count unset.
+    func getUnreadNotificationCount() async throws -> Int {
+        guard let userId = currentUser?.id.uuidString else { return 0 }
+
+        let response = try await client
+            .from("notifications")
+            .select("id", head: true, count: .exact)
+            .eq("user_id", value: userId)
+            .eq("is_read", value: false)
+            .execute()
+
+        return response.count ?? 0
+    }
+
+    func markNotificationAsRead(notificationId: UUID) async throws {
+        try await client
+            .from("notifications")
+            .update(["is_read": AnyJSON.bool(true)])
+            .eq("id", value: notificationId.uuidString)
+            .execute()
+    }
+
+    func markAllNotificationsAsRead() async throws {
+        guard let userId = currentUser?.id.uuidString else { return }
+
+        try await client
+            .from("notifications")
+            .update(["is_read": AnyJSON.bool(true)])
+            .eq("user_id", value: userId)
+            .eq("is_read", value: false)
+            .execute()
+    }
+
+    func deleteNotification(notificationId: UUID) async throws {
+        try await client
+            .from("notifications")
+            .delete()
+            .eq("id", value: notificationId.uuidString)
+            .execute()
+    }
+
+    /// Writes the in-app feed row for a notification just scheduled via
+    /// UNUserNotificationCenter. Best-effort by design at call sites (a
+    /// failed insert here shouldn't block the local push itself), but the
+    /// throw is still exposed so callers can log it.
+    func insertNotification(userId: String, exhibitionId: Int?, title: String, body: String) async throws {
+        struct NotificationInsert: Encodable {
+            let user_id: String
+            let exhibition_id: Int?
+            let title: String
+            let body: String
+        }
+        try await client
+            .from("notifications")
+            .insert(NotificationInsert(user_id: userId, exhibition_id: exhibitionId, title: title, body: body))
+            .execute()
+    }
+
     // MARK: - Exhibitions
 
     func fetchExhibitions() async throws -> [Exhibition] {

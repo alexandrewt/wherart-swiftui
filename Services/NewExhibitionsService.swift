@@ -42,6 +42,17 @@ final class NewExhibitionsService {
                 ]
             )
 
+            do {
+                try await SupabaseService.shared.insertNotification(
+                    userId: userId,
+                    exhibitionId: newExhibitions.first?.id,
+                    title: title,
+                    body: body
+                )
+            } catch {
+                print("[NewExhibitions] Error inserting notification row: \(error)")
+            }
+
             try await SupabaseService.shared.markNewExhibitionsNotificationSent(userId: userId)
 
             AnalyticsService.shared.track("new_exhibitions_notification_sent", properties: [

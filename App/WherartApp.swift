@@ -36,6 +36,16 @@ struct WherartApp: App {
                     // AttributeGraph cycle (see startReminderCheck below).
                     await EndingSoonService.shared.checkAndSendReminders()
                     await NewExhibitionsService.shared.checkAndSendNewExhibitions()
+                    // Refresh the app icon badge with however many
+                    // notifications are still unread — the two checks above
+                    // may have just added new ones. MainTabView's own
+                    // `AppNavigation.refreshUnreadNotificationsCount()` keeps
+                    // the in-app tab/Profile badges in sync separately.
+                    if let count = try? await SupabaseService.shared.getUnreadNotificationCount() {
+                        await MainActor.run {
+                            UIApplication.shared.applicationIconBadgeNumber = count
+                        }
+                    }
                     // ⏸️ TEMPORARILY DISABLED - caused AttributeGraph cycle
                     // startReminderCheck()
                 }

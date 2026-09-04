@@ -201,6 +201,19 @@ class EndingSoonService: NSObject {
                 )
 
                 do {
+                    try await SupabaseService.shared.insertNotification(
+                        userId: userId,
+                        exhibitionId: exhibition.id,
+                        title: title,
+                        body: body
+                    )
+                } catch {
+                    // Best-effort: the local push already fired regardless
+                    // of whether the in-app feed row is written.
+                    print("[EndingSoon] Error inserting notification row: \(error)")
+                }
+
+                do {
                     try await SupabaseService.shared.markEndingSoonNotificationSent(
                         userId: userId,
                         exhibitionId: exhibition.id,

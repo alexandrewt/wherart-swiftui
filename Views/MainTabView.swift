@@ -5,6 +5,21 @@ final class AppNavigation: ObservableObject {
     @Published var selectedTab: Int = 0
     @Published var visitsDefaultTab: Int = 0
     @Published var showSubscribe: Bool = false
+    // Single source of truth for the unread notifications badge — shared
+    // by the tab bar icon, ProfileView's "Notifications" row, and the app
+    // icon badge, so marking/deleting a notification anywhere updates all
+    // three at once instead of drifting independently.
+    @Published var unreadNotificationsCount: Int = 0
+
+    func refreshUnreadNotificationsCount() {
+        Task {
+            let count = (try? await SupabaseService.shared.getUnreadNotificationCount()) ?? 0
+            await MainActor.run {
+                self.unreadNotificationsCount = count
+                UIApplication.shared.applicationIconBadgeNumber = count
+            }
+        }
+    }
 }
 
 // MARK: - MainTabView
@@ -51,6 +66,21 @@ struct MainTabView: View {
                     GuestGateView()
                 } else {
                     NavigationStack {
+                        NotificationsView()
+                    }
+                }
+            }
+            .tabItem {
+                Label(String(localized: "notifications"), systemImage: "bell.fill")
+            }
+            .badge(nav.unreadNotificationsCount)
+            .tag(3)
+
+            Group {
+                if service.isGuestMode {
+                    GuestGateView()
+                } else {
+                    NavigationStack {
                         ProfileView()
                     }
                 }
@@ -58,21 +88,27 @@ struct MainTabView: View {
             .tabItem {
                 Label(String(localized: "profile_tab"), systemImage: "person.fill")
             }
-            .tag(3)
+            .tag(4)
         }
         .tint(Color(red: 0.15, green: 0.39, blue: 0.92))
         .environmentObject(nav)
-        // Visits and Profile are entirely account-only in guest mode — tapping
-        // either tab surfaces the login prompt over the placeholder content
-        // above, rather than mounting views that expect a signed-in user.
+        // Visits, Notifications and Profile are entirely account-only in
+        // guest mode — tapping any of them surfaces the login prompt over
+        // the placeholder content above, rather than mounting views that
+        // expect a signed-in user.
         .onChange(of: nav.selectedTab) { newTab in
-            let tabNames = ["home", "map", "visits", "profile"]
+            let tabNames = ["home", "map", "visits", "notifications", "profile"]
             if newTab < tabNames.count {
                 AnalyticsService.shared.track("tab_clicked", properties: ["tab": tabNames[newTab]])
             }
 
-            if service.isGuestMode && (newTab == 2 || newTab == 3) {
+            if service.isGuestMode && (2...4).contains(newTab) {
                 showLoginPrompt = true
+            }
+        }
+        .task {
+            if !service.isGuestMode {
+                nav.refreshUnreadNotificationsCount()
             }
         }
         .sheet(isPresented: $showLoginPrompt) {

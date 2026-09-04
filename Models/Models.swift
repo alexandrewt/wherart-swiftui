@@ -1,5 +1,35 @@
 import Foundation
 
+// MARK: - AppNotification
+// Named `AppNotification` rather than `Notification` — the bare name
+// collides with `Foundation.Notification` (NotificationCenter's payload
+// type), which several services in this codebase already use
+// (EndingSoonService, NewExhibitionsService, NotificationService).
+struct AppNotification: Identifiable, Codable {
+    let id: UUID
+    let userId: UUID
+    let exhibitionId: Int?
+    let title: String
+    let body: String
+    // Kept as a raw ISO8601 string rather than `Date` — the Supabase
+    // client's default JSONDecoder has no custom dateDecodingStrategy
+    // (see Exhibition.createdAt for the same reason), so it can't parse
+    // Postgres's "timestamp with time zone" string directly. Parsed for
+    // display via ISO8601DateFormatter where needed.
+    let createdAt: String
+    var isRead: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case exhibitionId = "exhibition_id"
+        case title
+        case body
+        case createdAt = "created_at"
+        case isRead = "is_read"
+    }
+}
+
 // MARK: - Exhibition
 struct Exhibition: Codable, Identifiable, Hashable {
     let id: Int

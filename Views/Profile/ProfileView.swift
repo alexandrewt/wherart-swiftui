@@ -11,7 +11,7 @@ struct ProfileView: View {
     @State private var viewedCount = 0
     @State private var visitsCount = 0
     @State private var showEditPrefs = false
-    @State private var showNotificationSettings = false
+    @State private var showNotificationsScreen = false
     @State private var editTypes: [String] = []
     @State private var editVenues: [String] = []
     @State private var editReminderThreshold: Double = 25
@@ -213,17 +213,12 @@ struct ProfileView: View {
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "gearshape", label: String(localized: "settings"), action: { showSettings = true })
                     Divider().padding(.leading, 52)
-                    MenuRow(icon: "bell", label: String(localized: "notifications"), action: {
-                        // savePreferences() writes back editTypes/editVenues too, so they
-                        // must be kept in sync with the current profile here — otherwise
-                        // saving from this sheet alone (without ever opening "Edit
-                        // preferences" first) would wipe them with their default [] state.
-                        editTypes = profile?.preferences ?? []
-                        editVenues = profile?.venueTypes ?? []
-                        editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
-                        editEndingSoonFrequency = profile?.endingSoonFrequency ?? "once"
-                        showNotificationSettings = true
-                    })
+                    MenuRow(
+                        icon: "bell",
+                        label: String(localized: "notifications"),
+                        badge: nav.unreadNotificationsCount,
+                        action: { showNotificationsScreen = true }
+                    )
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "star.fill", label: String(localized: "subscribe"), action: { showPaywall = true })
                     Divider().padding(.leading, 52)
@@ -271,6 +266,9 @@ struct ProfileView: View {
         .navigationDestination(isPresented: $showPaywall) {
             SubscribeView()
         }
+        .navigationDestination(isPresented: $showNotificationsScreen) {
+            NotificationsView()
+        }
         .sheet(isPresented: $showEditPrefs) {
             EditPreferencesSheet(
                 selectedTypes: $editTypes,
@@ -282,16 +280,6 @@ struct ProfileView: View {
                 onSave: savePreferences
             )
             .presentationDetents([.large])
-            .presentationCornerRadius(24)
-        }
-        .sheet(isPresented: $showNotificationSettings) {
-            NotificationSettingsSheet(
-                reminderThreshold: $editReminderThreshold,
-                frequency: $editEndingSoonFrequency,
-                isSaving: $isSaving,
-                onSave: savePreferences
-            )
-            .presentationDetents([.medium, .large])
             .presentationCornerRadius(24)
         }
         .alert(String(localized: "change_password"), isPresented: $showChangePassword) {
@@ -314,6 +302,7 @@ struct ProfileView: View {
         .task {
             AnalyticsService.shared.screen("Profile")
             await loadProfile()
+            nav.refreshUnreadNotificationsCount()
         }
         .onChange(of: nav.showSubscribe) { shouldShow in
             guard shouldShow else { return }
@@ -430,7 +419,6 @@ struct ProfileView: View {
 
                     isSaving = false
                     showEditPrefs = false
-                    showNotificationSettings = false
                 }
             } catch {
                 await MainActor.run {
@@ -633,6 +621,7 @@ struct WrapLayout: Layout {
 struct MenuRow: View {
     let icon: String
     let label: String
+    var badge: Int = 0
     let action: () -> Void
 
     var body: some View {
@@ -641,6 +630,14 @@ struct MenuRow: View {
                 Image(systemName: icon).font(.system(size: 18)).foregroundColor(.primary).frame(width: 24)
                 Text(label).font(.system(size: 15)).foregroundColor(.primary)
                 Spacer()
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(minWidth: 20, minHeight: 20)
+                        .background(Color.red)
+                        .clipShape(Circle())
+                }
                 Image(systemName: "chevron.right").font(.system(size: 13)).foregroundColor(.secondary)
             }
             .padding(.horizontal, 16).padding(.vertical, 14)
