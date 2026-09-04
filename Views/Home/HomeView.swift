@@ -452,7 +452,13 @@ struct HomeView: View {
         // favorite/viewed state are tied to a signed-in user, so a guest
         // (nil userId) still gets the full feed, just without personalization.
         let userId = SupabaseService.shared.currentUser?.id.uuidString
-        await locationManager.requestLocation()
+        // Run alongside the network calls below, not before them — this
+        // used to `await` the location's fixed 2s timeout first and only
+        // *then* start fetching exhibitions/profile/interactions, adding a
+        // flat 2s to every load regardless of how fast the network
+        // actually was. Now the total wait is max(2s, network time)
+        // instead of 2s + network time.
+        async let locationTask: () = locationManager.requestLocation()
         async let exhibitionsTask = SupabaseService.shared.fetchExhibitions()
         async let profileTask = fetchProfileIfSignedIn(userId)
         async let interactionsTask = fetchInteractionsIfSignedIn(userId)
@@ -460,6 +466,7 @@ struct HomeView: View {
             let fetchedExhibitions = try await exhibitionsTask
             let fetchedProfile = await profileTask
             let interactions = await interactionsTask
+            _ = await locationTask
             let userLat = locationManager.location?.coordinate.latitude ?? 48.8566
             let userLng = locationManager.location?.coordinate.longitude ?? 2.3522
             let withDistance = fetchedExhibitions.map { ex -> Exhibition in
@@ -699,7 +706,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func requestLocation() async {
         manager.requestWhenInUseAuthorization()
         manager.requestLocation()
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        // Falls back to Paris coordinates in loadData() if this times out
+        // before a fix arrives — 1s is plenty for the "within ~100m"
+        // accuracy requested above, and cutting it from the previous 2s
+        // shaves real time off every launch now that this runs in
+        // parallel with the network calls rather than blocking them.
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

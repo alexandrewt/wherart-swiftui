@@ -1,6 +1,6 @@
 /* MARK: - Auth / Login */
 "welcome_title" = "Bienvenue sur Wherart";
-"welcome_subtitle" = "Une sélection pensée pour vous, à découvrir ensemble";
+"welcome_subtitle" = "Curated for you, enjoyed together";
 "email_placeholder" = "votre@email.com";
 "password_placeholder" = "Mot de passe";
 "first_name_required_placeholder" = "Prénom *";
