@@ -1,5 +1,6 @@
 import SwiftUI
 import Auth
+import Supabase
 
 struct ContentView: View {
 
@@ -94,24 +95,47 @@ struct ContentView: View {
         guard let userId = service.currentUser?.id.uuidString else { return }
         isCheckingProfile = true
         Task {
-            do {
-                let profile = try await SupabaseService.shared.fetchProfile(userId: userId)
-                await MainActor.run {
-                    needsOnboarding = profile.preferences.isEmpty
-                    isCheckingProfile = false
+            var lastError: Error?
+            // Up to 5 attempts, 400ms apart (~2s total) — only for a "0
+            // rows" result, see below.
+            for attempt in 0..<5 {
+                do {
+                    let profile = try await SupabaseService.shared.fetchProfile(userId: userId)
+                    await MainActor.run {
+                        needsOnboarding = profile.preferences.isEmpty
+                        isCheckingProfile = false
+                    }
+                    return
+                } catch {
+                    lastError = error
+                    // A brand-new Apple/Google/email sign-up's profile row
+                    // is written by a concurrent upsert inside
+                    // signInWithApple/signInWithGoogle/signUp — but
+                    // `isAuthenticated` (which triggers this check) is
+                    // flipped by SupabaseService's independent
+                    // listenToAuthChanges() loop as soon as the auth
+                    // session itself exists, with no ordering guarantee
+                    // relative to that upsert. For a genuinely brand-new
+                    // user this races the profile row's very creation:
+                    // fetchProfile can see "0 rows" (PGRST116) before the
+                    // row exists at all. Retry briefly rather than
+                    // treating that as "no onboarding needed" — which
+                    // previously skipped onboarding entirely for new
+                    // Apple/Google accounts.
+                    let isMissingRow = (error as? PostgrestError)?.code == "PGRST116"
+                    guard isMissingRow, attempt < 4 else { break }
+                    try? await Task.sleep(nanoseconds: 400_000_000)
                 }
-            } catch {
-                // Previously forced needsOnboarding = true here on ANY
-                // fetch failure — a transient network hiccup on an already
-                // fully set-up account would wrongly bounce a returning
-                // user back to onboarding every time the app relaunched.
-                // Leave needsOnboarding at whatever it already was (false
-                // on a fresh launch) so a failed check fails open to
-                // MainTabView instead of trapping the user on onboarding.
-                print("[ContentView] Failed to fetch profile for onboarding check: \(error)")
-                await MainActor.run {
-                    isCheckingProfile = false
-                }
+            }
+            // Any other error (or the row still missing after retrying) —
+            // don't force needsOnboarding = true here: a transient network
+            // hiccup on an already fully set-up returning user would
+            // otherwise wrongly bounce them back to onboarding every time
+            // the app relaunches. Fails open to MainTabView instead of
+            // trapping the user on a stuck check.
+            print("[ContentView] Failed to fetch profile for onboarding check: \(String(describing: lastError))")
+            await MainActor.run {
+                isCheckingProfile = false
             }
         }
     }
