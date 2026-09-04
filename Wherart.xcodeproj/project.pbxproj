@@ -41,7 +41,6 @@
 		B5D979752FF9500000000006 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979742FF9500000000005 /* DesignSystem.swift */; };
 		B5D979772FF9500000000008 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979762FF9500000000007 /* NotificationService.swift */; };
 		B5D979792FF950000000000A /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979782FF9500000000009 /* SplashView.swift */; };
-		B5F5A5443048B677004E2CD9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = B5F5A5433048B677004E2CD9 /* PostHog */; };
 		B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */; };
 		B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */; };
 		C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */; };
@@ -102,8 +101,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5C8EB332FA3A765009A2A74 /* Config */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Config;
 			sourceTree = "<group>";
 		};
@@ -116,7 +113,6 @@
 			files = (
 				B5C8EB582FA3F3A4009A2A74 /* MapKit.framework in Frameworks */,
 				B5C8EB432FA3B129009A2A74 /* Supabase in Frameworks */,
-				B5F5A5443048B677004E2CD9 /* PostHog in Frameworks */,
 				B5C8EB592FA3F3AA009A2A74 /* libswiftMapKit.tbd in Frameworks */,
 				B539B5B32FBD01B100B6BBAF /* StoreKit.framework in Frameworks */,
 				D9061E71FA07934A2E8017E1 /* libPods-Wherart.a in Frameworks */,
@@ -132,7 +128,6 @@
 				62AE073343D032705AA7F9B1 /* Pods-Wherart.debug.xcconfig */,
 				026603311174F12C8E3B0622 /* Pods-Wherart.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -305,7 +300,6 @@
 			name = Wherart;
 			packageProductDependencies = (
 				B5C8EB422FA3B129009A2A74 /* Supabase */,
-				B5F5A5433048B677004E2CD9 /* PostHog */,
 			);
 			productName = Wherart;
 			productReference = B55343232FA3439A002AB98D /* Wherart.app */;
@@ -338,7 +332,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B55343312FA38350002AB98D /* XCRemoteSwiftPackageReference "supabase-swift" */,
-				B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B55343242FA3439A002AB98D /* Products */;
@@ -689,14 +682,8 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.5.1;
 			};
-		};
-		B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/PostHog/posthog-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.71.2;
-			};
+			traits = (
+			);
 		};
 /* End XCRemoteSwiftPackageReference section */
 
@@ -705,11 +692,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B55343312FA38350002AB98D /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
-		};
-		B5F5A5433048B677004E2CD9 /* PostHog */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B5F5A5423048B677004E2CD9 /* XCRemoteSwiftPackageReference "posthog-ios" */;
-			productName = PostHog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
