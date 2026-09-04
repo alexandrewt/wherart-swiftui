@@ -189,7 +189,7 @@ struct LoginView: View {
                                 .padding(.top, -4)
                                 .padding(.bottom, 16)
 
-                            Text("Ou se connecter avec")
+                            Text(isSignUp ? "Ou créer son compte avec" : "Ou se connecter avec")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, alignment: .center)
