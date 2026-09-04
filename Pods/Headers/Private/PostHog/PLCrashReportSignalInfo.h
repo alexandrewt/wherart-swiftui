@@ -1,0 +1,1 @@
+../../../PostHog/vendor/PHPLCrashReporter/Source/PLCrashReportSignalInfo.h

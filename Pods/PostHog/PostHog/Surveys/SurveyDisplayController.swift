@@ -1,0 +1,87 @@
+//
+//  SurveyDisplayController.swift
+//  PostHog
+//
+//  Created by Ioannis Josephides on 07/03/2025.
+//
+
+#if os(iOS) || Testing
+    import SwiftUI
+
+    final class SurveyDisplayController: ObservableObject {
+        @Published var displayedSurvey: PostHogDisplaySurvey?
+        @Published var isSurveyCompleted: Bool = false
+        @Published var currentQuestionIndex: Int = 0
+        @Published var showingIntroScreen: Bool = false
+
+        var onSurveyShown: OnPostHogSurveyShown?
+        var onSurveyResponse: OnPostHogSurveyResponse?
+        var onSurveyClosed: OnPostHogSurveyClosed?
+
+        func showSurvey(_ survey: PostHogDisplaySurvey) {
+            guard displayedSurvey == nil else {
+                hedgeLog("[Surveys] Already displaying a survey. Skipping")
+                return
+            }
+
+            displayedSurvey = survey
+            isSurveyCompleted = false
+            currentQuestionIndex = 0
+            // The intro has no default header, so an intro with no copy at all is skipped
+            // instead of drawing an empty sheet with a lone button.
+            let hasIntroContent = survey.appearance?.introScreenHeader?.isEmpty == false
+                || survey.appearance?.introScreenDescription?.isEmpty == false
+            showingIntroScreen = survey.appearance?.displayIntroScreen == true && hasIntroContent
+            onSurveyShown?(survey)
+        }
+
+        /// Replaces the content of the survey currently on screen (e.g. with a new translation)
+        /// without resetting the current question, completion state, or any in-progress answers.
+        ///
+        /// No-op if no survey is displayed or the update targets a different survey.
+        func updateSurvey(_ survey: PostHogDisplaySurvey) {
+            guard let displayedSurvey else {
+                hedgeLog("[Surveys] Received an update but no survey is displayed. Skipping")
+                return
+            }
+            guard displayedSurvey.id == survey.id else {
+                hedgeLog("[Surveys] Received an update for a different survey than the one displayed. Skipping")
+                return
+            }
+
+            self.displayedSurvey = survey
+        }
+
+        /// Advances past the intro screen to the first question. This is a pure UI transition:
+        /// no response is recorded and no survey event is sent.
+        func dismissIntroScreen() {
+            showingIntroScreen = false
+        }
+
+        func onNextQuestion(index: Int, response: PostHogSurveyResponse) {
+            guard let displayedSurvey else { return }
+            guard let next = onSurveyResponse?(displayedSurvey, index, response) else { return }
+
+            currentQuestionIndex = next.questionIndex
+            isSurveyCompleted = next.isSurveyCompleted
+
+            // auto-dismiss survey when completed
+            if isSurveyCompleted, displayedSurvey.appearance?.displayThankYouMessage == false {
+                dismissSurvey()
+            }
+        }
+
+        // User dismissed survey
+        func dismissSurvey() {
+            if let survey = displayedSurvey {
+                onSurveyClosed?(survey)
+            }
+            // Only clear the survey reference. Leave `currentQuestionIndex`/`isSurveyCompleted`
+            // untouched so the sheet, which now observes this controller live, keeps rendering its
+            // final frame through the dismiss animation instead of snapping back to question 1.
+            // Both are reset by `showSurvey` before the next survey is presented.
+            displayedSurvey = nil
+        }
+    }
+
+#endif

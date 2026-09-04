@@ -1,0 +1,1 @@
+../../../PostHog/PostHog/ObjCExceptionSupport/PHObjCExceptionCatcher.h

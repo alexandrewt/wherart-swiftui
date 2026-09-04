@@ -1,0 +1,299 @@
+//
+//  SurveySheet.swift
+//  PostHog
+//
+//  Created by Ioannis Josephides on 12/03/2025.
+//
+
+#if os(iOS)
+
+    import SwiftUI
+
+    @available(iOS 15, *)
+    struct SurveySheet: View {
+        // Observed so the sheet re-renders when the displayed survey is updated in place
+        // (e.g. re-translated after a language change), not just when questions advance.
+        @ObservedObject var displayManager: SurveyDisplayController
+        // The `.sheet(item:)` snapshot: keeps content rendered while the sheet animates out
+        // after dismissal clears `displayedSurvey`.
+        let fallbackSurvey: PostHogDisplaySurvey
+
+        @State private var sheetHeight: CGFloat = .zero
+
+        private var survey: PostHogDisplaySurvey {
+            displayManager.displayedSurvey ?? fallbackSurvey
+        }
+
+        var body: some View {
+            surveyContent(for: survey)
+                .animation(.linear(duration: 0.25), value: displayManager.currentQuestionIndex)
+                .readFrame(in: .named("survey-scroll-view")) { frame in
+                    sheetHeight = frame.height
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        SurveyDismissButton(action: displayManager.dismissSurvey)
+                    }
+                }
+                .surveyBottomSheet(height: sheetHeight)
+                .environment(\.surveyAppearance, appearance)
+        }
+
+        @ViewBuilder
+        private func surveyContent(for survey: PostHogDisplaySurvey) -> some View {
+            if displayManager.isSurveyCompleted, appearance.displayThankYouMessage {
+                ConfirmationMessage(onClose: displayManager.dismissSurvey)
+            } else if displayManager.showingIntroScreen {
+                IntroMessage(onStart: displayManager.dismissIntroScreen)
+            } else if let currentQuestion = currentQuestion(in: survey) {
+                switch currentQuestion {
+                case let currentQuestion as PostHogDisplayOpenQuestion:
+                    OpenTextQuestionView(question: currentQuestion) { resp in
+                        displayManager.onNextQuestion(index: displayManager.currentQuestionIndex, response: .openEnded(resp))
+                    }
+                case let currentQuestion as PostHogDisplayLinkQuestion:
+                    LinkQuestionView(question: currentQuestion) { resp in
+                        displayManager.onNextQuestion(index: displayManager.currentQuestionIndex, response: .link(resp))
+                    }
+                case let currentQuestion as PostHogDisplayRatingQuestion:
+                    RatingQuestionView(question: currentQuestion) { resp in
+                        displayManager.onNextQuestion(index: displayManager.currentQuestionIndex, response: .rating(resp))
+                    }
+                case let currentQuestion as PostHogDisplayChoiceQuestion:
+                    if currentQuestion.isMultipleChoice {
+                        MultipleChoiceQuestionView(question: currentQuestion) { resp in
+                            displayManager.onNextQuestion(index: displayManager.currentQuestionIndex, response: .multipleChoice(resp))
+                        }
+                    } else {
+                        SingleChoiceQuestionView(question: currentQuestion) { resp in
+                            displayManager.onNextQuestion(index: displayManager.currentQuestionIndex, response: .singleChoice(resp))
+                        }
+                    }
+                default:
+                    EmptyView()
+                }
+            }
+        }
+
+        private func currentQuestion(in survey: PostHogDisplaySurvey) -> PostHogDisplaySurveyQuestion? {
+            guard displayManager.currentQuestionIndex <= survey.questions.count - 1 else {
+                return nil
+            }
+            return survey.questions[displayManager.currentQuestionIndex]
+        }
+
+        private var appearance: SwiftUISurveyAppearance {
+            .getAppearanceWithDefaults(survey.appearance)
+        }
+    }
+
+    @available(iOS 15, *)
+    private struct SurveyDismissButton: View {
+        @Environment(\.surveyAppearance) private var appearance
+        let action: () -> Void
+
+        var body: some View {
+            Button(action: action) {
+                Image(systemName: "xmark")
+                    .font(.body)
+                    .foregroundColor(appearance.textColor ?? appearance.backgroundColor.getContrastingTextColor())
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    extension View {
+        @available(iOS 15, *)
+        func surveyBottomSheet(height: CGFloat) -> some View {
+            modifier(
+                SurveyBottomSheetWithWithDetents(height: height)
+            )
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private struct SurveyBottomSheetWithWithDetents: ViewModifier {
+        @Environment(\.surveyAppearance) private var appearance
+
+        @State private var sheetHeight: CGFloat = .zero
+        @State private var safeAreaInsetsTop: CGFloat = .zero
+
+        let height: CGFloat
+
+        func body(content: Content) -> some View {
+            NavigationView {
+                scrolledContent(with: content)
+                    .background(appearance.backgroundColor)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .readSafeAreaInsets { insets in
+                        DispatchQueue.main.async {
+                            if safeAreaInsetsTop == .zero {
+                                safeAreaInsetsTop = insets.top
+                            }
+                        }
+                    }
+            }
+            .interactiveDismissDisabled()
+            .background(
+                SurveyPresentationDetentsRepresentable(detents: sheetDetents)
+            )
+        }
+
+        @ViewBuilder
+        private func scrolledContent(with content: Content) -> some View {
+            if #available(iOS 16.4, *) {
+                ScrollView {
+                    content
+                        .padding(.horizontal, 16)
+                }
+                .coordinateSpace(name: "survey-scroll-view")
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollDismissesKeyboard(.interactively)
+            } else {
+                ScrollView {
+                    content
+                        .padding(.horizontal, 16)
+                }
+                .coordinateSpace(name: "survey-scroll-view")
+            }
+        }
+
+        private var sheetDetents: [SurveyPresentationDetentsRepresentable.Detent] {
+            if adjustedSheetHeight >= UIScreen.main.bounds.height {
+                return [.medium, .large]
+            }
+            return [.height(adjustedSheetHeight)]
+        }
+
+        var adjustedSheetHeight: CGFloat {
+            height + safeAreaInsetsTop
+        }
+    }
+
+    struct SwiftUISurveyAppearance {
+        var fontFamily: Font
+        var backgroundColor: Color
+        var submitButtonColor: Color
+        var submitButtonText: String
+        var submitButtonTextColor: Color
+        var textColor: Color?
+        var descriptionTextColor: Color
+        var ratingButtonColor: Color?
+        var ratingButtonActiveColor: Color?
+        var inputBackground: Color?
+        var inputTextColor: Color?
+        var displayThankYouMessage: Bool
+        var thankYouMessageHeader: String
+        var thankYouMessageDescription: String?
+        var thankYouMessageDescriptionContentType: PostHogDisplaySurveyTextContentType = .text
+        var thankYouMessageCloseButtonText: String
+        var displayIntroScreen: Bool = false
+        var introScreenHeader: String = ""
+        var introScreenDescription: String?
+        var introScreenDescriptionContentType: PostHogDisplaySurveyTextContentType = .text
+        var introScreenButtonText: String = "Get started"
+        var borderColor: Color
+        var placeholder: String?
+    }
+
+    @available(iOS 15.0, *)
+    private struct SurveyAppearanceEnvironmentKey: EnvironmentKey {
+        static let defaultValue: SwiftUISurveyAppearance = .getAppearanceWithDefaults()
+    }
+
+    extension EnvironmentValues {
+        @available(iOS 15.0, *)
+        var surveyAppearance: SwiftUISurveyAppearance {
+            get { self[SurveyAppearanceEnvironmentKey.self] }
+            set { self[SurveyAppearanceEnvironmentKey.self] = newValue }
+        }
+    }
+
+    extension SwiftUISurveyAppearance {
+        @available(iOS 15.0, *)
+        static func getAppearanceWithDefaults(_ appearance: PostHogDisplaySurveyAppearance? = nil) -> SwiftUISurveyAppearance {
+            SwiftUISurveyAppearance(
+                fontFamily: Font.customFont(family: appearance?.fontFamily ?? "") ?? Font.body,
+                backgroundColor: colorFrom(css: appearance?.backgroundColor, defaultColor: .tertiarySystemBackground),
+                submitButtonColor: colorFrom(css: appearance?.submitButtonColor, defaultColor: .black),
+                submitButtonText: appearance?.submitButtonText ?? "Submit",
+                submitButtonTextColor: colorFrom(css: appearance?.submitButtonTextColor, defaultColor: .white),
+                textColor: colorFrom(css: appearance?.textColor),
+                descriptionTextColor: colorFrom(css: appearance?.descriptionTextColor, defaultColor: .secondaryLabel),
+                ratingButtonColor: colorFrom(css: appearance?.ratingButtonColor),
+                ratingButtonActiveColor: colorFrom(css: appearance?.ratingButtonActiveColor),
+                inputBackground: colorFrom(css: appearance?.inputBackground),
+                inputTextColor: colorFrom(css: appearance?.inputTextColor),
+                displayThankYouMessage: appearance?.displayThankYouMessage ?? true,
+                thankYouMessageHeader: appearance?.thankYouMessageHeader ?? "Thank you for your feedback!",
+                thankYouMessageDescription: appearance?.thankYouMessageDescription,
+                thankYouMessageDescriptionContentType: appearance?.thankYouMessageDescriptionContentType ?? .text,
+                thankYouMessageCloseButtonText: appearance?.thankYouMessageCloseButtonText ?? "Close",
+                displayIntroScreen: appearance?.displayIntroScreen ?? false,
+                introScreenHeader: appearance?.introScreenHeader ?? "",
+                introScreenDescription: appearance?.introScreenDescription,
+                introScreenDescriptionContentType: appearance?.introScreenDescriptionContentType ?? .text,
+                introScreenButtonText: appearance?.introScreenButtonText ?? "Get started",
+                borderColor: colorFrom(css: appearance?.borderColor, defaultColor: .systemFill)
+            )
+        }
+
+        @available(iOS 15.0, *)
+        private static func colorFrom(css hex: String?, defaultColor: UIColor) -> Color {
+            guard let hex = hex, !hex.isEmpty else { return Color(uiColor: defaultColor) }
+            return Color(uiColor: UIColor(hex: hex))
+        }
+
+        @available(iOS 15.0, *)
+        private static func colorFrom(css hex: String?) -> Color? {
+            guard let hex = hex, !hex.isEmpty else { return nil }
+            return Color(uiColor: UIColor(hex: hex))
+        }
+
+        /// Computed input background color matching JS SDK behavior:
+        /// - Use user-provided inputBackground if set
+        /// - Otherwise use #f8f8f8 if survey background is white (for slight contrast)
+        /// - Otherwise default to white
+        @available(iOS 15.0, *)
+        var effectiveInputBackground: Color {
+            if let userInputBg = inputBackground {
+                return userInputBg
+            }
+            if backgroundColor == Color.white || backgroundColor == Color(uiColor: .tertiarySystemBackground) {
+                return Color(uiColor: UIColor(hex: "#f8f8f8"))
+            }
+            return .white
+        }
+
+        /// Computed input text color matching JS SDK behavior:
+        /// - Use user-provided inputTextColor if set
+        /// - Otherwise auto-contrast from effectiveInputBackground
+        @available(iOS 15.0, *)
+        var effectiveInputTextColor: Color {
+            inputTextColor ?? effectiveInputBackground.getContrastingTextColor()
+        }
+    }
+
+    @available(iOS 16.0, *)
+    extension PresentationDetent {
+        /// Same as .large detent but without shrinking the source view
+        static let almostLarge = Self.custom(AlmostLarge.self)
+    }
+
+    @available(iOS 16.0, *)
+    struct AlmostLarge: CustomPresentationDetent {
+        static func height(in context: Context) -> CGFloat? {
+            context.maxDetentValue - 0.5
+        }
+    }
+
+    extension Font {
+        static func customFont(family: String) -> Font? {
+            if let uiFont = UIFont(name: family, size: UIFont.systemFontSize) {
+                return Font(uiFont)
+            }
+            return nil
+        }
+    }
+
+#endif
