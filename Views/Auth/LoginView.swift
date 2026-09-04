@@ -196,20 +196,23 @@ struct LoginView: View {
 
                             HStack(spacing: 16) {
                                 // SIGN IN WITH APPLE
-                                SignInWithAppleButton(
-                                    onRequest: { request in
-                                        request.requestedScopes = [.fullName, .email]
-                                        request.nonce = currentNonce
-                                    },
-                                    onCompletion: { result in
-                                        Task {
-                                            await handleAppleSignIn(result)
-                                        }
+                                Button(action: {
+                                    Task {
+                                        await handleAppleSignInTapped()
                                     }
-                                )
-                                .signInWithAppleButtonStyle(.black)
-                                .frame(height: 44)
-                                .cornerRadius(8)
+                                }) {
+                                    HStack {
+                                        Image(systemName: "apple.logo")
+                                            .font(.system(size: 18))
+                                        Text("Apple")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .foregroundColor(.white)
+                                    .background(Color.black)
+                                    .cornerRadius(8)
+                                }
 
                                 // SIGN IN WITH GOOGLE
                                 Button(action: {
@@ -367,6 +370,20 @@ struct LoginView: View {
                 }
             }
         }
+    }
+
+    /// Triggers the Apple authorization request manually (used by the custom
+    /// "Apple" button, styled to match the Google button, rather than the
+    /// native SignInWithAppleButton whose label can't be reduced to just
+    /// "Apple") and forwards the result to the existing handler.
+    private func handleAppleSignInTapped() async {
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = currentNonce
+
+        let coordinator = AppleSignInCoordinator()
+        let result = await coordinator.performRequest(request)
+        await handleAppleSignIn(result)
     }
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
@@ -603,6 +620,40 @@ struct RNSecureField: View {
         )
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         .font(.system(size: 15))
+    }
+}
+
+/// Wraps ASAuthorizationController's delegate-based API in an async call,
+/// so the custom "Apple" button can drive the same Apple ID request the
+/// native SignInWithAppleButton used to, without needing that component's
+/// fixed (localized) label.
+private final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private var continuation: CheckedContinuation<Result<ASAuthorization, Error>, Never>?
+
+    func performRequest(_ request: ASAuthorizationAppleIDRequest) async -> Result<ASAuthorization, Error> {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        continuation?.resume(returning: .success(authorization))
+        continuation = nil
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        continuation?.resume(returning: .failure(error))
+        continuation = nil
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
     }
 }
 
