@@ -2,6 +2,7 @@ import SwiftUI
 import Auth
 import AuthenticationServices
 import CryptoKit
+import GoogleSignIn
 
 struct LoginView: View {
 
@@ -209,6 +210,25 @@ struct LoginView: View {
                                 .signInWithAppleButtonStyle(.black)
                                 .frame(height: 44)
                                 .cornerRadius(8)
+
+                                // SIGN IN WITH GOOGLE
+                                Button(action: {
+                                    Task {
+                                        await handleGoogleSignIn()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "g.circle.fill")
+                                            .font(.system(size: 18))
+                                        Text("Google")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .foregroundColor(.white)
+                                    .background(Color(red: 0.2, green: 0.5, blue: 1.0))
+                                    .cornerRadius(8)
+                                }
                             }
                             .padding(.top, 8)
                         }
@@ -428,6 +448,83 @@ struct LoginView: View {
                 "error": error.localizedDescription,
                 "error_type": "authorization_error"
             ])
+        }
+    }
+
+    private func handleGoogleSignIn() async {
+        AnalyticsService.shared.track("signin_google_started", properties: [:])
+
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let rootViewController = window.rootViewController else {
+            await MainActor.run {
+                errorMessage = "Unable to present Google Sign In"
+                AnalyticsService.shared.track("signin_google_failed", properties: [
+                    "error": "no_root_view_controller"
+                ])
+            }
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            let user = result.user
+            let email = user.profile?.email ?? ""
+            let firstName = user.profile?.givenName ?? ""
+            let idToken = user.idToken?.tokenString ?? ""
+
+            guard !idToken.isEmpty else {
+                await MainActor.run {
+                    errorMessage = "Unable to fetch Google ID token"
+                    AnalyticsService.shared.track("signin_google_failed", properties: [
+                        "error": "No ID token",
+                        "email": email
+                    ])
+                }
+                return
+            }
+
+            try await SupabaseService.shared.signInWithGoogle(
+                idToken: idToken,
+                email: email.isEmpty ? nil : email,
+                firstName: firstName.isEmpty ? nil : firstName
+            )
+
+            await MainActor.run {
+                AnalyticsService.shared.track("signin_google_completed", properties: [
+                    "email": email,
+                    "firstName": firstName,
+                    "method": "google"
+                ])
+
+                if let userId = user.userID {
+                    AnalyticsService.shared.identify(userId: userId, properties: [
+                        "email": email,
+                        "created_at": Date().ISO8601Format(),
+                        "signup_method": "google"
+                    ])
+
+                    if SupabaseService.shared.isGuestMode {
+                        AnalyticsService.shared.createAlias(distinctId: "guest", userId: userId)
+                    }
+                }
+
+                errorMessage = nil
+            }
+        } catch let error as NSError {
+            await MainActor.run {
+                if error.code == GIDSignInError.canceled.rawValue {
+                    print("[GoogleSignIn] User cancelled")
+                    return
+                }
+
+                errorMessage = "Google Sign In failed: \(error.localizedDescription)"
+                AnalyticsService.shared.track("signin_google_failed", properties: [
+                    "error": error.localizedDescription,
+                    "error_domain": error.domain,
+                    "error_code": error.code
+                ])
+            }
         }
     }
 

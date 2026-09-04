@@ -1,11 +1,16 @@
 import SwiftUI
 import Supabase
 import UserNotifications
+import GoogleSignIn
 
 @main
 struct WherartApp: App {
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    init() {
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "491672411506-d24eengmk6605ksmg19qedg0q5m3m0at.apps.googleusercontent.com")
+    }
 
     static let supabase = SupabaseClient(
         supabaseURL: Config.supabaseURL,
@@ -50,6 +55,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = EndingSoonService.shared
         return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        GIDSignIn.sharedInstance.handle(url)
     }
 
     func application(
