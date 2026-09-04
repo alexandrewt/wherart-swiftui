@@ -79,25 +79,15 @@ struct ContentView: View {
                 // never has to show a loading state on first open.
                 await StoreService.shared.loadProducts()
             }
-
-            // Permanent white status bar background across every screen —
-            // sits above all content, including hero images/maps that
-            // extend behind the status bar, so no per-screen fix is needed.
-            // Uses GeometryReader (not UIApplication.shared...safeAreaInsets)
-            // to read the safe area — a direct UIKit read here, synchronously
-            // inside body, was confirmed (via bisection + debug logging) to
-            // trigger an AttributeGraph cycle on first render that silently
-            // corrupted SwiftUI's update graph and froze the launch screen
-            // forever, even though state changes (and the 5s safety-net
-            // timer) kept firing correctly underneath.
-            GeometryReader { proxy in
-                Color(.systemBackground)
-                    .frame(height: proxy.safeAreaInsets.top)
-                    .ignoresSafeArea(edges: .top)
-                    .allowsHitTesting(false)
-            }
-            .ignoresSafeArea(edges: .top)
         }
+        // Note: a global "white status bar" overlay was tried here and
+        // confirmed NOT to work against views that themselves extend
+        // content under the top safe area (e.g. a full-bleed MKMapView) —
+        // that content renders through it regardless of ZStack order. Each
+        // screen that needs to go edge-to-edge must scope its own
+        // .ignoresSafeArea() to exclude .top (see MapView), or otherwise
+        // provide its own opaque covering, rather than relying on a
+        // catch-all here.
     }
 
     private func checkOnboardingStatus() {

@@ -149,7 +149,13 @@ struct MapView: View {
                     selectedExhibition = nil
                 }
             )
-            .ignoresSafeArea()
+            // Only extends edge-to-edge on the sides/bottom — keeping the
+            // top safe area respected here (rather than covering it with
+            // an overlay afterwards) avoids relying on SwiftUI compositing
+            // order against MapKit's own native rendering (route-number
+            // badges etc. draw at a level that a plain Color overlay on
+            // top, in a separate layer, was confirmed not to cover).
+            .ignoresSafeArea(edges: [.horizontal, .bottom])
 
             // MARK: - Top Bar
             VStack(spacing: 8) {
