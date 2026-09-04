@@ -3,20 +3,11 @@ import Auth
 
 struct ContentView: View {
 
-    private var service: SupabaseService { SupabaseService.shared }
+    @ObservedObject private var service = SupabaseService.shared
     @State private var needsOnboarding = false
     @State private var isCheckingProfile = false
     @State private var isInitializing = true  // ← nouveau
     @State private var showSplash = true
-
-    /// Same lookup `ExhibitionDetailView`/`MapView` etc. would each otherwise
-    /// need on their own — done once here so every screen gets a solid
-    /// status bar background without having to opt in individually.
-    private var safeAreaTop: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?.windows.first?.safeAreaInsets.top ?? 59
-    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -92,10 +83,20 @@ struct ContentView: View {
             // Permanent white status bar background across every screen —
             // sits above all content, including hero images/maps that
             // extend behind the status bar, so no per-screen fix is needed.
-            Color(.systemBackground)
-                .frame(height: safeAreaTop)
-                .ignoresSafeArea(edges: .top)
-                .allowsHitTesting(false)
+            // Uses GeometryReader (not UIApplication.shared...safeAreaInsets)
+            // to read the safe area — a direct UIKit read here, synchronously
+            // inside body, was confirmed (via bisection + debug logging) to
+            // trigger an AttributeGraph cycle on first render that silently
+            // corrupted SwiftUI's update graph and froze the launch screen
+            // forever, even though state changes (and the 5s safety-net
+            // timer) kept firing correctly underneath.
+            GeometryReader { proxy in
+                Color(.systemBackground)
+                    .frame(height: proxy.safeAreaInsets.top)
+                    .ignoresSafeArea(edges: .top)
+                    .allowsHitTesting(false)
+            }
+            .ignoresSafeArea(edges: .top)
         }
     }
 
