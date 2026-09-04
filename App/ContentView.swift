@@ -101,8 +101,15 @@ struct ContentView: View {
                     isCheckingProfile = false
                 }
             } catch {
+                // Previously forced needsOnboarding = true here on ANY
+                // fetch failure — a transient network hiccup on an already
+                // fully set-up account would wrongly bounce a returning
+                // user back to onboarding every time the app relaunched.
+                // Leave needsOnboarding at whatever it already was (false
+                // on a fresh launch) so a failed check fails open to
+                // MainTabView instead of trapping the user on onboarding.
+                print("[ContentView] Failed to fetch profile for onboarding check: \(error)")
                 await MainActor.run {
-                    needsOnboarding = true
                     isCheckingProfile = false
                 }
             }
