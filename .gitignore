@@ -1,0 +1,28 @@
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.xcarchive
+
+# CocoaPods (Pods/ itself is intentionally committed for this project)
+Pods/Manifest.lock.bak
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Supabase CLI local/generated state — project ref, pooler URL, linked
+# project metadata. Not secret by itself (no service-role key or DB
+# password lives here), just local tool state that doesn't belong in
+# version control.
+supabase/.temp/
+supabase/.branches/
+
+# Cloudflare Wrangler local cache/auth state.
+.wrangler/
+
+# macOS
+.DS_Store

@@ -701,7 +701,6 @@ struct NotificationSettingsSheet: View {
                             Slider(value: $reminderThreshold, in: 0...100, step: 5)
                             Text("\(Int(reminderThreshold))%").font(.system(size: 14, weight: .bold)).frame(width: 40)
                         }
-                        Text(String(format: String(localized: "days_left_formula"), Int(reminderThreshold))).font(.system(size: 12)).foregroundColor(.secondary)
                     }
                 }
 

@@ -213,7 +213,6 @@
 "no_notifications_subtitle" = "Check back later";
 "ending_soon_reminders" = "Ending Soon Reminders";
 "remind_me_when_exhibition_has" = "Remind me when exhibition has";
-"days_left_formula" = "Days left = Total duration × %d%%";
 "reminder_frequency" = "Reminder frequency";
 "frequency_once" = "Once";
 "frequency_daily" = "Daily";

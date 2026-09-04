@@ -211,9 +211,8 @@
 "mark_all_read" = "Marquer comme lu";
 "no_notifications_yet" = "Aucune notification pour l'instant";
 "no_notifications_subtitle" = "Revenez plus tard";
-"ending_soon_reminders" = "Rappels de fin d'exposition";
-"remind_me_when_exhibition_has" = "Me rappeler quand l'exposition a";
-"days_left_formula" = "Jours restants = Durée totale × %d%%";
+"ending_soon_reminders" = "Rappels de fin de l'exposition";
+"remind_me_when_exhibition_has" = "Pourcentage de jours restants pour voir l'exposition";
 "reminder_frequency" = "Récurrence des alertes";
 "frequency_once" = "Une fois";
 "frequency_daily" = "Quotidien";

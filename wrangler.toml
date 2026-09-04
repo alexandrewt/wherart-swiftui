@@ -1,0 +1,8 @@
+name = "wherart-universal-links"
+main = "web/cloudflare-worker.js"
+compatibility_date = "2025-09-04"
+
+[env.production]
+routes = [
+  { pattern = "wherart.com/*", zone_name = "wherart.com" }
+]
