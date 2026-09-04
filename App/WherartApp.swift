@@ -80,6 +80,34 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         GIDSignIn.sharedInstance.handle(url)
     }
 
+    /// Universal Link entry point (https://wherart.com/e/{id}) — reached
+    /// only when the app is already installed; iOS intercepts the tap at
+    /// the OS level using the cached apple-app-site-association file and
+    /// never touches the web fallback in that case. Reuses DeepLinkRouter,
+    /// the same mechanism EndingSoonService already uses for notification
+    /// taps, so MainTabView/HomeView's existing observation of it handles
+    /// the navigation without any new plumbing there.
+    func application(
+        _ application: UIApplication,
+        continue userActivity: NSUserActivity,
+        restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+    ) -> Bool {
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+              let url = userActivity.webpageURL else {
+            return false
+        }
+        let pathComponents = url.pathComponents // e.g. ["/", "e", "123"]
+        guard let eIndex = pathComponents.firstIndex(of: "e"),
+              pathComponents.count > eIndex + 1,
+              let exhibitionId = Int(pathComponents[eIndex + 1]) else {
+            return false
+        }
+        DispatchQueue.main.async {
+            DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
+        }
+        return true
+    }
+
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data

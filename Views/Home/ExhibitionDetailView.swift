@@ -471,7 +471,7 @@ struct ExhibitionDetailView: View {
             ShareActivityView(
                 itemsToShare: [
                     shareExhibitionText(),
-                    URL(string: "https://wherart.app/exhibition/\(exhibition.id)") ?? URL(string: "https://wherart.app")!
+                    URL(string: "https://wherart.com/e/\(exhibition.id)") ?? URL(string: "https://wherart.com")!
                 ]
             )
         }
