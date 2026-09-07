@@ -5,6 +5,7 @@ import Supabase
 struct ContentView: View {
 
     @ObservedObject private var service = SupabaseService.shared
+    @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @State private var needsOnboarding = false
     @State private var isCheckingProfile = false
     @State private var isInitializing = true  // ← nouveau
@@ -79,6 +80,21 @@ struct ContentView: View {
                 // Warm up StoreKit products early so the paywall/subscribe page
                 // never has to show a loading state on first open.
                 await StoreService.shared.loadProducts()
+            }
+        }
+        // Shown over whatever's currently on screen — signed in, signed
+        // out, mid-onboarding, doesn't matter. Tapping the reset-password
+        // email link can happen from any of those states. `URL` isn't
+        // Identifiable, so this drives the cover off a derived Bool
+        // binding rather than `fullScreenCover(item:)`.
+        .fullScreenCover(isPresented: Binding(
+            get: { deepLinkRouter.pendingPasswordRecoveryURL != nil },
+            set: { if !$0 { deepLinkRouter.pendingPasswordRecoveryURL = nil } }
+        )) {
+            if let url = deepLinkRouter.pendingPasswordRecoveryURL {
+                ResetPasswordView(recoveryURL: url) {
+                    deepLinkRouter.pendingPasswordRecoveryURL = nil
+                }
             }
         }
         // Note: a global "white status bar" overlay was tried here and

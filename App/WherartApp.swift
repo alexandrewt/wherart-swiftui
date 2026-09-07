@@ -77,7 +77,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        GIDSignIn.sharedInstance.handle(url)
+        if url.scheme == "wherart", url.host == "reset-password" {
+            DispatchQueue.main.async {
+                DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
+            }
+            return true
+        }
+        return GIDSignIn.sharedInstance.handle(url)
     }
 
     /// Universal Link entry point (https://wherart.com/e/{id}) — reached

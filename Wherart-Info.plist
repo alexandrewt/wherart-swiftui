@@ -15,6 +15,14 @@
 				<string>com.googleusercontent.apps.491672411506-d24eengmk6605ksmg19qedg0q5m3m0at</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.alexandrewt.wherart.passwordreset</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wherart</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

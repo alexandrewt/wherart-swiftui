@@ -93,7 +93,38 @@ class SupabaseService: ObservableObject {
     }
 
     func resetPassword(email: String) async throws {
-        try await client.auth.resetPasswordForEmail(email)
+        // Without `redirectTo`, Supabase falls back to the project's
+        // dashboard-configured Site URL — which was pointing at the
+        // marketing site (Figma), landing the user on a generic "email
+        // confirmed" page instead of back in the app. `wherart://` is
+        // registered as a URL scheme in Wherart-Info.plist and handled in
+        // WherartApp's `application(_:open:)`.
+        //
+        // This also needs "wherart://reset-password" added to the
+        // project's allowed Redirect URLs in the Supabase dashboard
+        // (Authentication > URL Configuration) — Supabase rejects a
+        // redirect_to that isn't on that allow-list.
+        try await client.auth.resetPasswordForEmail(
+            email,
+            redirectTo: URL(string: "wherart://reset-password")
+        )
+    }
+
+    /// Exchanges the incoming `wherart://reset-password?...` link for a
+    /// live session — the SDK auto-detects whether it's a PKCE `code` or
+    /// an implicit-flow fragment (`#access_token=...&type=recovery`), so
+    /// the raw URL is all that's needed here, not a hand-parsed token.
+    /// The PKCE code verifier this depends on was stored locally when
+    /// resetPassword(email:) was called, so this only works when the link
+    /// is opened on the same device/app install that requested it.
+    func establishSession(fromRecoveryLink url: URL) async throws {
+        _ = try await client.auth.session(from: url)
+    }
+
+    /// Sets a new password for the user of the session established via
+    /// `establishSession(fromRecoveryLink:)`.
+    func updatePassword(_ newPassword: String) async throws {
+        _ = try await client.auth.update(user: UserAttributes(password: newPassword))
     }
 
     func signInWithApple(

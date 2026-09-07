@@ -12,5 +12,12 @@ final class DeepLinkRouter: ObservableObject {
 
     @Published var pendingExhibitionId: Int?
 
+    /// Set from WherartApp's `application(_:open:)` when a
+    /// "wherart://reset-password?..." link is opened (from the password
+    /// reset email). ContentView observes this to present ResetPasswordView
+    /// regardless of the current auth state — the user may well be signed
+    /// out entirely when tapping the link.
+    @Published var pendingPasswordRecoveryURL: URL?
+
     private init() {}
 }

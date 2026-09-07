@@ -21,6 +21,15 @@
 "please_enter_last_name" = "Veuillez entrer votre nom";
 "enter_email_first" = "Indiquez d'abord votre email";
 "check_inbox_reset_password" = "Consultez votre boîte mail pour réinitialiser votre mot de passe";
+"reset_password_title" = "Nouveau mot de passe";
+"reset_password_subtitle" = "Choisissez un nouveau mot de passe pour votre compte";
+"new_password_placeholder" = "Nouveau mot de passe";
+"confirm_password_placeholder" = "Confirmer le mot de passe";
+"reset_password_action" = "Réinitialiser le mot de passe";
+"reset_password_link_invalid" = "Ce lien de réinitialisation est invalide ou a expiré : %@";
+"password_too_short" = "Le mot de passe doit contenir au moins 6 caractères";
+"passwords_dont_match" = "Les mots de passe ne correspondent pas";
+"password_reset_success" = "Mot de passe réinitialisé avec succès";
 "oauth_section_signin" = "Ou se connecter avec";
 "oauth_section_signup" = "Ou créer son compte avec";
 "error_invalid_apple_credential" = "Identifiant Apple invalide";

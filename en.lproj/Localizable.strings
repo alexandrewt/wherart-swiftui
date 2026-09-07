@@ -21,6 +21,15 @@
 "please_enter_last_name" = "Please enter your last name";
 "enter_email_first" = "Enter your email first";
 "check_inbox_reset_password" = "Check your inbox to reset your password";
+"reset_password_title" = "Create new password";
+"reset_password_subtitle" = "Choose a new password for your account";
+"new_password_placeholder" = "New password";
+"confirm_password_placeholder" = "Confirm password";
+"reset_password_action" = "Reset password";
+"reset_password_link_invalid" = "This reset link is invalid or has expired: %@";
+"password_too_short" = "Password must be at least 6 characters";
+"passwords_dont_match" = "Passwords do not match";
+"password_reset_success" = "Password reset successfully";
 "oauth_section_signin" = "Or sign in with";
 "oauth_section_signup" = "Or create your account with";
 "error_invalid_apple_credential" = "Invalid Apple credential";
