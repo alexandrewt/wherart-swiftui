@@ -110,8 +110,6 @@
 "museum_partner_label" = "MUSÉE PARTENAIRE";
 "visit_with_others" = "Visiter à plusieurs";
 "organise_visit" = "Organiser une visite";
-"invite_friends_to_visit" = "Inviter des amis à visiter";
-"invite_friends_share_message" = "Regarde ça — %@ ! Découvre-le sur Wherart : %@";
 "buy_ticket" = "Acheter un billet";
 "get_more_info" = "Plus d'informations";
 "add_comment" = "Ajouter un commentaire...";
@@ -209,7 +207,7 @@
 "edit_profile" = "Modifier le profil";
 "settings" = "Réglages";
 "subscribe" = "S'abonner";
-"change_password" = "Réinitialiser le mot de passe";
+"change_password" = "Changer le mot de passe";
 "share_app" = "Partager l'application";
 "share_subject" = "Découvrez les expositions d'art à Paris";
 "share_message" = "J'utilise Wherart pour découvrir les expositions d'art à Paris et organiser des visites entre amis. Jette un œil !";
