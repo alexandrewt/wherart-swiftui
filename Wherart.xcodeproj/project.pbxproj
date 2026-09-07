@@ -44,10 +44,10 @@
 		B5D979752FF9500000000006 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979742FF9500000000005 /* DesignSystem.swift */; };
 		B5D979772FF9500000000008 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979762FF9500000000007 /* NotificationService.swift */; };
 		B5D979792FF950000000000A /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979782FF9500000000009 /* SplashView.swift */; };
-		D572E2D1464FCFE2D3F11CEE /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */; };
 		B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */; };
 		B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */; };
 		C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */; };
+		D572E2D1464FCFE2D3F11CEE /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */; };
 		D9061E71FA07934A2E8017E1 /* libPods-Wherart.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 816D914DA91B95EAC1B570CE /* libPods-Wherart.a */; };
 		E76C3A086A8FAB61971C2114 /* SubscribeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8699DCBF30405A872CB965B6 /* SubscribeView.swift */; };
 		F1E2D3C4B5A697887766554B /* LoginPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A697887766554A /* LoginPromptSheet.swift */; };
@@ -61,6 +61,7 @@
 		62AE073343D032705AA7F9B1 /* Pods-Wherart.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wherart.debug.xcconfig"; path = "Target Support Files/Pods-Wherart/Pods-Wherart.debug.xcconfig"; sourceTree = "<group>"; };
 		816D914DA91B95EAC1B570CE /* libPods-Wherart.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Wherart.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8699DCBF30405A872CB965B6 /* SubscribeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeView.swift; sourceTree = "<group>"; };
+		91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B11370ECD09D5102FDD08672 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
@@ -97,7 +98,6 @@
 		B5D979742FF9500000000005 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		B5D979762FF9500000000007 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		B5D979782FF9500000000009 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
-		91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		B5F5A54A3048C92B004E2CD9 /* EndingSoonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndingSoonService.swift; sourceTree = "<group>"; };
@@ -606,7 +606,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 60;
+				CURRENT_PROJECT_VERSION = 61;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -630,7 +630,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.6.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
@@ -656,7 +656,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 60;
+				CURRENT_PROJECT_VERSION = 61;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -680,7 +680,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.6.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;

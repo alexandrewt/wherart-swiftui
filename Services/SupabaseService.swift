@@ -114,14 +114,29 @@ class SupabaseService: ObservableObject {
         )
     }
 
-    /// Exchanges the incoming `wherart://reset-password?...` link for a
-    /// live session — the SDK auto-detects whether it's a PKCE `code` or
-    /// an implicit-flow fragment (`#access_token=...&type=recovery`), so
-    /// the raw URL is all that's needed here, not a hand-parsed token.
-    /// The PKCE code verifier this depends on was stored locally when
-    /// resetPassword(email:) was called, so this only works when the link
-    /// is opened on the same device/app install that requested it.
+    /// Exchanges the incoming reset-password link for a live session.
+    ///
+    /// Two link shapes are handled:
+    /// - `?token_hash=...&type=recovery` — the one Supabase's email
+    ///   template should actually send (see resetPassword(email:)'s
+    ///   comment on why: Supabase's own `/auth/v1/verify` GET link burns
+    ///   its one-time token as a side effect of merely being fetched, so a
+    ///   mail client generating a link preview (or a security scanner
+    ///   pre-visiting the link) silently consumes it before the user ever
+    ///   taps it — confirmed in testing via a real device, where the very
+    ///   first, immediate tap on a freshly-sent email already came back
+    ///   "otp_expired". verifyOTP(tokenHash:) is a POST call this app
+    ///   makes deliberately, which a passive GET-only prefetch can't
+    ///   trigger.
+    /// - a PKCE `code` or implicit `#access_token=...&type=recovery`
+    ///   fragment — kept as a fallback for as long as the email template
+    ///   still points at Supabase's own `/auth/v1/verify` link.
     func establishSession(fromRecoveryLink url: URL) async throws {
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+        if let tokenHash = components?.queryItems?.first(where: { $0.name == "token_hash" })?.value {
+            _ = try await client.auth.verifyOTP(tokenHash: tokenHash, type: .recovery)
+            return
+        }
         _ = try await client.auth.session(from: url)
     }
 
