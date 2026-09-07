@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Shown when the app is opened via the "wherart://reset-password" link
-/// from the password reset email (see WherartApp's `application(_:open:)`
-/// and SupabaseService.resetPassword/establishSession(fromRecoveryLink:)).
+/// Shown when the app is opened via the "https://wherart.com/reset-password"
+/// Universal Link from the password reset email (see WherartApp's
+/// `.onOpenURL`/`handleIncomingURL(_:)` and
+/// SupabaseService.resetPassword/establishSession(fromRecoveryLink:)).
 /// Presented at the ContentView root regardless of auth state, since the
 /// user may be signed out when tapping the link.
 struct ResetPasswordView: View {
@@ -72,14 +73,10 @@ struct ResetPasswordView: View {
             }
         }
         .task {
-            // TEMP DIAGNOSTIC
-            print("[ResetPasswordView] .task started with recoveryURL: \(recoveryURL.absoluteString)")
             do {
                 try await SupabaseService.shared.establishSession(fromRecoveryLink: recoveryURL)
-                print("[ResetPasswordView] establishSession succeeded")
                 isEstablishingSession = false
             } catch {
-                print("[ResetPasswordView] establishSession FAILED: \(error)")
                 isEstablishingSession = false
                 errorMessage = String(format: String(localized: "reset_password_link_invalid"), error.localizedDescription)
             }

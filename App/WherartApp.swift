@@ -30,16 +30,19 @@ struct WherartApp: App {
                 // .onOpenURL is SwiftUI's unified handler for BOTH custom
                 // URL schemes and Universal Links (it's fed from both
                 // scene(_:openURLContexts:) and scene(_:continue:)
-                // internally) — simpler and more reliably wired up by
-                // SwiftUI itself than either UIApplicationDelegate method
-                // or .onContinueUserActivity, neither of which ever fired
-                // in testing despite the link demonstrably opening the app.
+                // internally) — confirmed via testing as the one reliable
+                // entry point; AppDelegate's application(_:continue:
+                // restorationHandler:) and .onContinueUserActivity below
+                // never fired even once, on either the reset-password or
+                // exhibition share Universal Link, despite both
+                // demonstrably opening the app with no Safari page shown
+                // in between. Kept as fallbacks regardless — cheap, and
+                // there's no real downside to also handling the activity
+                // if some other launch path ever does route through them.
                 .onOpenURL { url in
-                    print("[WherartApp] onOpenURL fired: \(url.absoluteString)")
                     handleIncomingURL(url)
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
-                    print("[WherartApp] onContinueUserActivity fired, webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
                     if let url = userActivity.webpageURL {
                         handleIncomingURL(url)
                     }
@@ -88,13 +91,9 @@ struct WherartApp: App {
 /// same way whether they arrive as a URL path (https) or a host (custom
 /// scheme, e.g. wherart://reset-password), which is why both are checked.
 func handleIncomingURL(_ url: URL) {
-    print("[handleIncomingURL] \(url.absoluteString)")
-
     if url.path == "/reset-password" || url.host == "reset-password" {
-        print("[handleIncomingURL] reset-password detected")
         DispatchQueue.main.async {
             DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
-            print("[handleIncomingURL] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
         }
         return
     }
@@ -128,8 +127,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        print("[AppDelegate] application(_:open:) fired (fallback path): \(url.absoluteString)")
-
         if url.scheme == "wherart", url.host == "reset-password" {
             handleIncomingURL(url)
             return true
@@ -147,7 +144,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         continue userActivity: NSUserActivity,
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
-        print("[AppDelegate] continue userActivity called (fallback path), activityType: \(userActivity.activityType), webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
         if let url = userActivity.webpageURL {
             handleIncomingURL(url)
         }

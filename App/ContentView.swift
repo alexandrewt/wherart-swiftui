@@ -88,10 +88,7 @@ struct ContentView: View {
         // Identifiable, so this drives the cover off a derived Bool
         // binding rather than `fullScreenCover(item:)`.
         .fullScreenCover(isPresented: Binding(
-            get: {
-                let isSet = deepLinkRouter.pendingPasswordRecoveryURL != nil
-                return isSet
-            },
+            get: { deepLinkRouter.pendingPasswordRecoveryURL != nil },
             set: { if !$0 { deepLinkRouter.pendingPasswordRecoveryURL = nil } }
         )) {
             if let url = deepLinkRouter.pendingPasswordRecoveryURL {
@@ -99,10 +96,6 @@ struct ContentView: View {
                     deepLinkRouter.pendingPasswordRecoveryURL = nil
                 }
             }
-        }
-        // TEMP DIAGNOSTIC
-        .onChange(of: deepLinkRouter.pendingPasswordRecoveryURL) { newValue in
-            print("[ContentView] pendingPasswordRecoveryURL changed to: \(newValue?.absoluteString ?? "nil")")
         }
         // Note: a global "white status bar" overlay was tried here and
         // confirmed NOT to work against views that themselves extend
