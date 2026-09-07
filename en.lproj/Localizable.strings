@@ -30,6 +30,7 @@
 "password_too_short" = "Password must be at least 6 characters";
 "passwords_dont_match" = "Passwords do not match";
 "password_reset_success" = "Password reset successfully";
+"password_reset_success_message" = "Sign in with your new password.";
 "oauth_section_signin" = "Or sign in with";
 "oauth_section_signup" = "Or create your account with";
 "error_invalid_apple_credential" = "Invalid Apple credential";

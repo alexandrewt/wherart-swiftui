@@ -15,7 +15,7 @@ struct ResetPasswordView: View {
     @State private var isEstablishingSession = true
     @State private var isSaving = false
     @State private var errorMessage: String?
-    @State private var successMessage: String?
+    @State private var showSuccessAlert = false
 
     var body: some View {
         ZStack {
@@ -43,12 +43,6 @@ struct ResetPasswordView: View {
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        if let successMessage {
-                            Text(successMessage)
-                                .font(.system(size: 13))
-                                .foregroundColor(.green)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
                     }
 
                     Button(action: resetPassword) {
@@ -65,7 +59,7 @@ struct ResetPasswordView: View {
                             }
                         }
                     }
-                    .disabled(isSaving || successMessage != nil)
+                    .disabled(isSaving)
 
                     Spacer()
                 }
@@ -80,6 +74,13 @@ struct ResetPasswordView: View {
                 isEstablishingSession = false
                 errorMessage = String(format: String(localized: "reset_password_link_invalid"), error.localizedDescription)
             }
+        }
+        .alert(String(localized: "password_reset_success"), isPresented: $showSuccessAlert) {
+            Button(String(localized: "ok")) {
+                finishAfterSuccess()
+            }
+        } message: {
+            Text(String(localized: "password_reset_success_message"))
         }
     }
 
@@ -103,17 +104,27 @@ struct ResetPasswordView: View {
             do {
                 try await SupabaseService.shared.updatePassword(newPassword)
                 await MainActor.run {
-                    successMessage = String(localized: "password_reset_success")
                     isSaving = false
+                    showSuccessAlert = true
                 }
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
-                await MainActor.run { onComplete() }
             } catch {
                 await MainActor.run {
                     errorMessage = error.localizedDescription
                     isSaving = false
                 }
             }
+        }
+    }
+
+    /// establishSession(fromRecoveryLink:) leaves the user signed in (that's
+    /// what lets updatePassword work at all) — sign back out here so
+    /// dismissing to ContentView lands on LoginView, requiring the new
+    /// password to be entered deliberately rather than landing the user
+    /// straight into the app on a session they didn't knowingly start.
+    private func finishAfterSuccess() {
+        Task {
+            try? await SupabaseService.shared.signOut()
+            await MainActor.run { onComplete() }
         }
     }
 }

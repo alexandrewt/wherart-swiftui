@@ -17,8 +17,6 @@ struct ProfileView: View {
     @State private var editReminderThreshold: Double = 25
     @State private var editEndingSoonFrequency: String = "once"
     @State private var isSaving = false
-    @State private var showChangePassword = false
-    @State private var passwordResetSent = false
     @State private var showSettings = false
     @State private var showPaywall = false
     @State private var showEditProfile = false
@@ -222,8 +220,6 @@ struct ProfileView: View {
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "star.fill", label: String(localized: "subscribe"), action: { showPaywall = true })
                     Divider().padding(.leading, 52)
-                    MenuRow(icon: "lock", label: String(localized: "change_password"), action: { showChangePassword = true })
-                    Divider().padding(.leading, 52)
                     ShareLink(
                         item: URL(string: "https://apps.apple.com/app/wherart")!,
                         subject: Text(String(localized: "share_subject")),
@@ -238,17 +234,6 @@ struct ProfileView: View {
                         .padding(.horizontal, 16).padding(.vertical, 14)
                         .contentShape(Rectangle())
                     }
-                    Divider().padding(.leading, 52)
-                    Button(action: handleLogout) {
-                        HStack(spacing: 14) {
-                            Image(systemName: "rectangle.portrait.and.arrow.right").font(.system(size: 18)).foregroundColor(.secondary).frame(width: 24)
-                            Text(String(localized: "sign_out")).font(.system(size: 15)).foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16).padding(.vertical, 14)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
                 }
                 .background(Color(.systemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -284,23 +269,6 @@ struct ProfileView: View {
             .presentationDetents([.large])
             .presentationCornerRadius(24)
         }
-        .alert(String(localized: "change_password"), isPresented: $showChangePassword) {
-            Button(String(localized: "send_reset_email")) {
-                guard let email = service.currentUser?.email else { return }
-                Task {
-                    try? await SupabaseService.shared.resetPassword(email: email)
-                    await MainActor.run { passwordResetSent = true }
-                }
-            }
-            Button(String(localized: "cancel"), role: .cancel) {}
-        } message: {
-            Text(String(format: String(localized: "reset_link_message"), service.currentUser?.email ?? String(localized: "your_email_fallback")))
-        }
-        .alert(String(localized: "email_sent"), isPresented: $passwordResetSent) {
-            Button(String(localized: "ok"), role: .cancel) {}
-        } message: {
-            Text(String(localized: "check_inbox_reset_password"))
-        }
         .task {
             AnalyticsService.shared.screen("Profile")
             await loadProfile()
@@ -314,30 +282,6 @@ struct ProfileView: View {
     }
 
     // MARK: - Actions
-
-    private func handleLogout() {
-        let userId = service.currentUser?.id.uuidString ?? "unknown"
-        AnalyticsService.shared.track("logout_confirmed", properties: [
-            "user_id": userId
-        ])
-        Task {
-            do {
-                try await service.signOut()
-                AnalyticsService.shared.reset()
-            } catch {
-                AnalyticsService.shared.track("logout_error", properties: [
-                    "error_type": String(describing: type(of: error))
-                ])
-
-                AnalyticsService.shared.trackError(
-                    domain: "auth",
-                    code: (error as NSError).code,
-                    message: error.localizedDescription,
-                    context: ["flow": "logout"]
-                )
-            }
-        }
-    }
 
     private func loadProfile() async {
         guard let userId = service.currentUser?.id.uuidString else { return }
@@ -441,6 +385,8 @@ struct SettingsView: View {
     @State private var showDeleteConfirm = false
     @State private var isDeletingAccount = false
     @State private var showDeleteError = false
+    @State private var showChangePassword = false
+    @State private var passwordResetSent = false
 
     var body: some View {
         ScrollView {
@@ -513,6 +459,27 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 24)
 
+                // MARK: - Account
+                VStack(spacing: 0) {
+                    MenuRow(icon: "lock", label: String(localized: "change_password"), action: { showChangePassword = true })
+                    Divider().padding(.leading, 52)
+                    Button(action: handleLogout) {
+                        HStack(spacing: 14) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right").font(.system(size: 18)).foregroundColor(.secondary).frame(width: 24)
+                            Text(String(localized: "sign_out")).font(.system(size: 15)).foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                .padding(.horizontal, 16)
+                .padding(.top, 24)
+
                 // MARK: - Danger Zone
                 VStack(spacing: 0) {
                     Button(action: { showDeleteConfirm = true }) {
@@ -560,9 +527,50 @@ struct SettingsView: View {
         } message: {
             Text(String(localized: "delete_account_error_message"))
         }
+        .alert(String(localized: "change_password"), isPresented: $showChangePassword) {
+            Button(String(localized: "send_reset_email")) {
+                guard let email = service.currentUser?.email else { return }
+                Task {
+                    try? await SupabaseService.shared.resetPassword(email: email)
+                    await MainActor.run { passwordResetSent = true }
+                }
+            }
+            Button(String(localized: "cancel"), role: .cancel) {}
+        } message: {
+            Text(String(format: String(localized: "reset_link_message"), service.currentUser?.email ?? String(localized: "your_email_fallback")))
+        }
+        .alert(String(localized: "email_sent"), isPresented: $passwordResetSent) {
+            Button(String(localized: "ok"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "check_inbox_reset_password"))
+        }
     }
 
     // MARK: - Actions
+
+    private func handleLogout() {
+        let userId = service.currentUser?.id.uuidString ?? "unknown"
+        AnalyticsService.shared.track("logout_confirmed", properties: [
+            "user_id": userId
+        ])
+        Task {
+            do {
+                try await service.signOut()
+                AnalyticsService.shared.reset()
+            } catch {
+                AnalyticsService.shared.track("logout_error", properties: [
+                    "error_type": String(describing: type(of: error))
+                ])
+
+                AnalyticsService.shared.trackError(
+                    domain: "auth",
+                    code: (error as NSError).code,
+                    message: error.localizedDescription,
+                    context: ["flow": "logout"]
+                )
+            }
+        }
+    }
 
     private func handleDeleteAccount() async {
         guard let userId = service.currentUser?.id.uuidString else { return }
