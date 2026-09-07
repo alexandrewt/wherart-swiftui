@@ -10,9 +10,5 @@
 	<array>
 		<string>applinks:wherart.com</string>
 	</array>
-	<key>com.apple.developer.storekit.custom-purchase-link.allowed-regions</key>
-	<array>
-		<string>jp</string>
-	</array>
 </dict>
 </plist>
