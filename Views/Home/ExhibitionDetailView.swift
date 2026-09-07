@@ -35,6 +35,7 @@ struct ExhibitionDetailView: View {
     @State private var savedConfirmationField: EditableField? = nil
     @State private var showLoginPrompt = false
     @State private var showShareSheet = false
+    @State private var showInviteFriendsShare = false
     @FocusState private var commentFieldFocused: Bool
 
     private var daysRemaining: Int {
@@ -412,6 +413,25 @@ struct ExhibitionDetailView: View {
                                     .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color(red: 0.15, green: 0.39, blue: 0.92), lineWidth: 1))
                             }
                         }
+
+                        Button(action: {
+                            AnalyticsService.shared.track("exhibition_invite_friends_tapped", properties: [
+                                "exhibition_id": exhibition.id,
+                                "title": exhibition.title
+                            ])
+                            showInviteFriendsShare = true
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "person.badge.plus")
+                                Text(String(localized: "invite_friends_to_visit"))
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .background(Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
                     }
                     .padding(.bottom, 16)
                 }
@@ -473,6 +493,16 @@ struct ExhibitionDetailView: View {
                     shareExhibitionText(),
                     URL(string: "https://wherart.com/e/\(exhibition.id)") ?? URL(string: "https://wherart.com")!
                 ]
+            )
+        }
+        .sheet(isPresented: $showInviteFriendsShare) {
+            ShareActivityView(
+                itemsToShare: [inviteFriendsMessage()],
+                // Nudges toward chat apps (Messages, WhatsApp) rather than
+                // the full range UIActivityViewController normally offers —
+                // this CTA is specifically "invite a friend to a chat",
+                // not the general-purpose share button above.
+                excludedActivityTypes: [.mail, .print, .copyToPasteboard, .saveToCameraRoll, .assignToContact, .addToReadingList]
             )
         }
         .sheet(isPresented: $showLoginPrompt) {
@@ -770,6 +800,15 @@ struct ExhibitionDetailView: View {
 
         Discover more on Wherart
         """
+    }
+
+    /// A short, casual invite message for the chat-focused share sheet —
+    /// deliberately shorter than shareExhibitionText() above, which is the
+    /// detailed "here's everything about this exhibition" version for the
+    /// general share button.
+    private func inviteFriendsMessage() -> String {
+        let link = "https://wherart.com/e/\(exhibition.id)"
+        return String(format: String(localized: "invite_friends_share_message"), exhibition.title, link)
     }
 
     private func shareExhibition() async {
@@ -1326,6 +1365,7 @@ struct AccessibilitySheet: View {
 
 struct ShareActivityView: UIViewControllerRepresentable {
     let itemsToShare: [Any]
+    var excludedActivityTypes: [UIActivity.ActivityType] = [.addToReadingList, .assignToContact]
     @Environment(\.dismiss) var dismiss
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
@@ -1333,10 +1373,7 @@ struct ShareActivityView: UIViewControllerRepresentable {
             activityItems: itemsToShare,
             applicationActivities: nil
         )
-        controller.excludedActivityTypes = [
-            .addToReadingList,
-            .assignToContact
-        ]
+        controller.excludedActivityTypes = excludedActivityTypes
         controller.completionWithItemsHandler = { _, _, _, _ in
             dismiss()
         }

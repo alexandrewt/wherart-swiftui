@@ -110,6 +110,8 @@
 "museum_partner_label" = "MUSEUM PARTNER";
 "visit_with_others" = "Visit with others";
 "organise_visit" = "Organise a visit";
+"invite_friends_to_visit" = "Invite friends to visit";
+"invite_friends_share_message" = "Check this out — %@! Discover it on Wherart: %@";
 "buy_ticket" = "Buy a ticket";
 "get_more_info" = "Get more information";
 "add_comment" = "Add a comment...";
