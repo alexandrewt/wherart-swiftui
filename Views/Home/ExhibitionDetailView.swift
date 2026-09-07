@@ -58,7 +58,7 @@ struct ExhibitionDetailView: View {
         var options: [String] {
             switch self {
             case .duration: return ["30min", "1h", "1h30", "2h", "2h+"]
-            case .accessibility: return ["Wheelchair access", "Lift available", "Adapted toilets", "Audioguide available", "Guide dogs not allowed"]
+            case .accessibility: return ["Wheelchair access", "Lift available", "Adapted toilets", "Audioguide available", "Guide dogs not allowed", "Kid friendly"]
             case .waitTime: return ["Unknown", "< 15 min", "15 - 30 min", "30 - 45 min", "45 min - 1h", "+ 1h"]
             }
         }

@@ -435,7 +435,16 @@ struct HomeView: View {
                 return false
             }()
             let matchWaitTime = filters.waitTimes.isEmpty || filters.waitTimes.contains(e.waitTime ?? "Unknown")
-            return matchSearch && matchType && matchVenue && matchPrice && matchDist && matchWaitTime
+            // `accessibility` is a single comma-separated string of
+            // canonical values (see ExhibitionDetailView's community edit
+            // UI) — matches if the exhibition has ANY of the selected
+            // options, not all of them (same OR semantics as every other
+            // filter section here).
+            let matchAccessibility = filters.accessibility.isEmpty || {
+                let tags = (e.accessibility ?? "").components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                return filters.accessibility.contains { tags.contains($0) }
+            }()
+            return matchSearch && matchType && matchVenue && matchPrice && matchDist && matchWaitTime && matchAccessibility
         }
     }
 

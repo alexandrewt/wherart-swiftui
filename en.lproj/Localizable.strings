@@ -131,6 +131,7 @@
 "filter_toilets" = "Adapted toilets";
 "filter_audioguide" = "Audioguide available";
 "filter_no_guide_dogs" = "Guide dogs not allowed";
+"filter_kid_friendly" = "Kid friendly";
 "filter_see_venue_website" = "See venue website";
 "filter_wait_under_15" = "< 15 min";
 "filter_wait_15_30" = "15 - 30 min";
