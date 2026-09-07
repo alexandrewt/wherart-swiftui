@@ -34,19 +34,24 @@ const SHARE_FUNCTION_BASE =
 
 const APP_STORE_URL = "https://apps.apple.com/app/id6768729154";
 
-// Reached only when the app ISN'T installed — with the app installed, the
-// Universal Link opens it directly and this worker is never hit at all
-// (see WherartApp's application(_:continue:restorationHandler:)). There's
-// no web password-reset form to fall back to, so the only sensible thing
-// to offer is the App Store — not a "wherart://" scheme redirect, which
-// can't do anything useful without the app already there to catch it.
+// Normally reached only when the app ISN'T installed — with the app
+// installed, the Universal Link opens it directly and this worker is never
+// hit at all (see WherartApp's application(_:continue:restorationHandler:)).
+// But Universal Link resolution isn't 100% reliable even with the app
+// installed (a long-press, or Safari having previously "remembered" to
+// open this domain in-browser can both skip it) — so as a last-ditch,
+// best-effort second attempt, this also tries the wherart:// custom scheme
+// (still registered and handled in application(_:open:)) before settling
+// on the App Store after a short delay. If the scheme attempt succeeds the
+// redirect timer keeps running backgrounded in Safari and can still fire
+// later — a known minor quirk of this pattern, not worth the complexity to
+// fully suppress.
 const RESET_PASSWORD_FALLBACK_HTML = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wherart</title>
-<meta http-equiv="refresh" content="0; url=${APP_STORE_URL}">
 <style>
   body { font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #fafafa; color: #111; text-align: center; }
   a { color: #2563eb; text-decoration: none; font-weight: 600; }
@@ -54,9 +59,17 @@ const RESET_PASSWORD_FALLBACK_HTML = `<!DOCTYPE html>
 </head>
 <body>
   <div>
-    <p>Install Wherart to reset your password.</p>
-    <p><a href="${APP_STORE_URL}">Open in the App Store</a></p>
+    <p>Redirecting to Wherart...</p>
+    <p><a href="${APP_STORE_URL}">If not redirected, open in the App Store</a></p>
   </div>
+  <script>
+    const code = new URLSearchParams(window.location.search).get('code');
+    const deepLink = 'wherart://reset-password' + (code ? '?code=' + encodeURIComponent(code) : '');
+    window.location = deepLink;
+    setTimeout(() => {
+      window.location = '${APP_STORE_URL}';
+    }, 1000);
+  </script>
 </body>
 </html>`;
 
