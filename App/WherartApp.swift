@@ -27,19 +27,22 @@ struct WherartApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(.light)
-                // For a scene-lifecycle SwiftUI app, Universal Link
-                // continuation can be delivered to the scene rather than
-                // (or instead of) UIApplicationDelegate's
-                // application(_:continue:restorationHandler:) below — that
-                // method's own diagnostic print never fired in testing
-                // despite the link demonstrably opening the app (no Safari
-                // page shown), which is exactly this scene-vs-app-delegate
-                // routing gap. This modifier is SwiftUI's own recommended,
-                // scene-native way to receive it, so it's the reliable
-                // primary path; the AppDelegate method stays as a fallback.
+                // .onOpenURL is SwiftUI's unified handler for BOTH custom
+                // URL schemes and Universal Links (it's fed from both
+                // scene(_:openURLContexts:) and scene(_:continue:)
+                // internally) — simpler and more reliably wired up by
+                // SwiftUI itself than either UIApplicationDelegate method
+                // or .onContinueUserActivity, neither of which ever fired
+                // in testing despite the link demonstrably opening the app.
+                .onOpenURL { url in
+                    print("[WherartApp] onOpenURL fired: \(url.absoluteString)")
+                    handleIncomingURL(url)
+                }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
                     print("[WherartApp] onContinueUserActivity fired, webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
-                    handleUniversalLink(userActivity)
+                    if let url = userActivity.webpageURL {
+                        handleIncomingURL(url)
+                    }
                 }
                 .task {
                     AnalyticsService.shared.configure()
@@ -77,20 +80,21 @@ struct WherartApp: App {
     */
 }
 
-/// Shared by both the `.onContinueUserActivity` SwiftUI modifier (the
-/// primary path) and AppDelegate's `application(_:continue:restorationHandler:)`
-/// (kept as a fallback) — see WherartApp.body for why both exist.
-func handleUniversalLink(_ userActivity: NSUserActivity) {
-    guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
-          let url = userActivity.webpageURL else {
-        return
-    }
+/// Shared handler for any incoming URL — custom scheme (wherart://) or
+/// Universal Link (https://wherart.com/...) — regardless of which of the
+/// several entry points (.onOpenURL, .onContinueUserActivity, AppDelegate's
+/// application(_:open:)/application(_:continue:restorationHandler:))
+/// actually received it. Both /e/{id} and /reset-password paths work the
+/// same way whether they arrive as a URL path (https) or a host (custom
+/// scheme, e.g. wherart://reset-password), which is why both are checked.
+func handleIncomingURL(_ url: URL) {
+    print("[handleIncomingURL] \(url.absoluteString)")
 
-    if url.path == "/reset-password" {
-        print("[handleUniversalLink] reset-password detected, full URL: \(url.absoluteString)")
+    if url.path == "/reset-password" || url.host == "reset-password" {
+        print("[handleIncomingURL] reset-password detected")
         DispatchQueue.main.async {
             DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
-            print("[handleUniversalLink] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
+            print("[handleIncomingURL] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
         }
         return
     }
@@ -115,38 +119,27 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 
+    /// Fallback path — see WherartApp.body's `.onOpenURL`, which is the
+    /// primary handler now (both this and it call the same
+    /// handleIncomingURL(_:)). Google Sign In's own callback still only
+    /// arrives here, never through SwiftUI's modifiers, so this stays.
     func application(
         _ application: UIApplication,
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        // TEMP DIAGNOSTIC — remove once the reset-password deep link is
-        // confirmed working end to end.
-        print("[AppDelegate] Received deep link: \(url.scheme ?? "nil")://\(url.host ?? "nil")?query=\(url.query ?? "nil")")
+        print("[AppDelegate] application(_:open:) fired (fallback path): \(url.absoluteString)")
 
         if url.scheme == "wherart", url.host == "reset-password" {
-            print("[AppDelegate] ✅ Reset password deep link detected — setting pendingPasswordRecoveryURL")
-            print("[AppDelegate] Full URL: \(url.absoluteString)")
-            DispatchQueue.main.async {
-                DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
-                print("[AppDelegate] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
-            }
+            handleIncomingURL(url)
             return true
         }
 
-        print("[AppDelegate] URL is not wherart://reset-password, delegating to Google Sign In")
         return GIDSignIn.sharedInstance.handle(url)
     }
 
-    /// Universal Link entry point (https://wherart.com/e/{id}) — reached
-    /// only when the app is already installed; iOS intercepts the tap at
-    /// the OS level using the cached apple-app-site-association file and
-    /// never touches the web fallback in that case. Reuses DeepLinkRouter,
-    /// the same mechanism EndingSoonService already uses for notification
-    /// taps, so MainTabView/HomeView's existing observation of it handles
-    /// the navigation without any new plumbing there.
-    /// Fallback path — see WherartApp.body's `.onContinueUserActivity` for
-    /// why the SwiftUI modifier is the primary one now. Kept in case some
+    /// Fallback path — see WherartApp.body's `.onContinueUserActivity`/
+    /// `.onOpenURL`, which are the primary handlers now. Kept in case some
     /// launch scenario still routes through the app delegate instead of
     /// the scene.
     func application(
@@ -155,7 +148,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
         print("[AppDelegate] continue userActivity called (fallback path), activityType: \(userActivity.activityType), webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
-        handleUniversalLink(userActivity)
+        if let url = userActivity.webpageURL {
+            handleIncomingURL(url)
+        }
         return true
     }
 
