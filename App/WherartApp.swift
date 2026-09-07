@@ -107,6 +107,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         continue userActivity: NSUserActivity,
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
+        // TEMP DIAGNOSTIC
+        print("[AppDelegate] continue userActivity called, activityType: \(userActivity.activityType), webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
               let url = userActivity.webpageURL else {
             return false
@@ -117,9 +119,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // plumbing the old wherart://reset-password custom scheme drove;
         // only how the link reaches the app changed.
         if url.path == "/reset-password" {
-            print("[AppDelegate] Universal Link: reset-password detected")
+            print("[AppDelegate] Universal Link: reset-password detected, full URL: \(url.absoluteString)")
             DispatchQueue.main.async {
                 DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
+                print("[AppDelegate] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
             }
             return true
         }

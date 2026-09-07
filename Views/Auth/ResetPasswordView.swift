@@ -72,10 +72,14 @@ struct ResetPasswordView: View {
             }
         }
         .task {
+            // TEMP DIAGNOSTIC
+            print("[ResetPasswordView] .task started with recoveryURL: \(recoveryURL.absoluteString)")
             do {
                 try await SupabaseService.shared.establishSession(fromRecoveryLink: recoveryURL)
+                print("[ResetPasswordView] establishSession succeeded")
                 isEstablishingSession = false
             } catch {
+                print("[ResetPasswordView] establishSession FAILED: \(error)")
                 isEstablishingSession = false
                 errorMessage = String(format: String(localized: "reset_password_link_invalid"), error.localizedDescription)
             }
