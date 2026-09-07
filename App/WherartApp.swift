@@ -27,6 +27,20 @@ struct WherartApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(.light)
+                // For a scene-lifecycle SwiftUI app, Universal Link
+                // continuation can be delivered to the scene rather than
+                // (or instead of) UIApplicationDelegate's
+                // application(_:continue:restorationHandler:) below — that
+                // method's own diagnostic print never fired in testing
+                // despite the link demonstrably opening the app (no Safari
+                // page shown), which is exactly this scene-vs-app-delegate
+                // routing gap. This modifier is SwiftUI's own recommended,
+                // scene-native way to receive it, so it's the reliable
+                // primary path; the AppDelegate method stays as a fallback.
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                    print("[WherartApp] onContinueUserActivity fired, webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
+                    handleUniversalLink(userActivity)
+                }
                 .task {
                     AnalyticsService.shared.configure()
                     await NotificationService.shared.requestPermission()
@@ -61,6 +75,35 @@ struct WherartApp: App {
         }
     }
     */
+}
+
+/// Shared by both the `.onContinueUserActivity` SwiftUI modifier (the
+/// primary path) and AppDelegate's `application(_:continue:restorationHandler:)`
+/// (kept as a fallback) — see WherartApp.body for why both exist.
+func handleUniversalLink(_ userActivity: NSUserActivity) {
+    guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+          let url = userActivity.webpageURL else {
+        return
+    }
+
+    if url.path == "/reset-password" {
+        print("[handleUniversalLink] reset-password detected, full URL: \(url.absoluteString)")
+        DispatchQueue.main.async {
+            DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
+            print("[handleUniversalLink] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
+        }
+        return
+    }
+
+    let pathComponents = url.pathComponents // e.g. ["/", "e", "123"]
+    guard let eIndex = pathComponents.firstIndex(of: "e"),
+          pathComponents.count > eIndex + 1,
+          let exhibitionId = Int(pathComponents[eIndex + 1]) else {
+        return
+    }
+    DispatchQueue.main.async {
+        DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
+    }
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -102,40 +145,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     /// the same mechanism EndingSoonService already uses for notification
     /// taps, so MainTabView/HomeView's existing observation of it handles
     /// the navigation without any new plumbing there.
+    /// Fallback path — see WherartApp.body's `.onContinueUserActivity` for
+    /// why the SwiftUI modifier is the primary one now. Kept in case some
+    /// launch scenario still routes through the app delegate instead of
+    /// the scene.
     func application(
         _ application: UIApplication,
         continue userActivity: NSUserActivity,
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
-        // TEMP DIAGNOSTIC
-        print("[AppDelegate] continue userActivity called, activityType: \(userActivity.activityType), webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
-        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
-              let url = userActivity.webpageURL else {
-            return false
-        }
-
-        // Password reset — see SupabaseService.resetPassword's redirectTo.
-        // Reuses the exact same pendingPasswordRecoveryURL/ResetPasswordView
-        // plumbing the old wherart://reset-password custom scheme drove;
-        // only how the link reaches the app changed.
-        if url.path == "/reset-password" {
-            print("[AppDelegate] Universal Link: reset-password detected, full URL: \(url.absoluteString)")
-            DispatchQueue.main.async {
-                DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
-                print("[AppDelegate] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
-            }
-            return true
-        }
-
-        let pathComponents = url.pathComponents // e.g. ["/", "e", "123"]
-        guard let eIndex = pathComponents.firstIndex(of: "e"),
-              pathComponents.count > eIndex + 1,
-              let exhibitionId = Int(pathComponents[eIndex + 1]) else {
-            return false
-        }
-        DispatchQueue.main.async {
-            DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
-        }
+        print("[AppDelegate] continue userActivity called (fallback path), activityType: \(userActivity.activityType), webpageURL: \(userActivity.webpageURL?.absoluteString ?? "nil")")
+        handleUniversalLink(userActivity)
         return true
     }
 
