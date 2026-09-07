@@ -63,8 +63,12 @@ const RESET_PASSWORD_FALLBACK_HTML = `<!DOCTYPE html>
     <p><a href="${APP_STORE_URL}">If not redirected, open in the App Store</a></p>
   </div>
   <script>
-    const code = new URLSearchParams(window.location.search).get('code');
-    const deepLink = 'wherart://reset-password' + (code ? '?code=' + encodeURIComponent(code) : '');
+    // Forward the query string as-is — the Supabase email template links
+    // here with ?token_hash=...&type=recovery, not the older PKCE
+    // ?code=... shape this used to special-case. Passing it through
+    // verbatim means this doesn't need updating again if the link shape
+    // ever changes.
+    const deepLink = 'wherart://reset-password' + window.location.search;
     window.location = deepLink;
     setTimeout(() => {
       window.location = '${APP_STORE_URL}';
