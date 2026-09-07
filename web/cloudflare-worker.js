@@ -23,7 +23,7 @@ const AASA_JSON = {
     details: [
       {
         appID: "GHAUCX2368.com.alexandrewt.wherart",
-        paths: ["/e/*"],
+        paths: ["/e/*", "/reset-password"],
       },
     ],
   },

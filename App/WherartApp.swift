@@ -77,12 +77,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
+        // TEMP DIAGNOSTIC — remove once the reset-password deep link is
+        // confirmed working end to end.
+        print("[AppDelegate] Received deep link: \(url.scheme ?? "nil")://\(url.host ?? "nil")?query=\(url.query ?? "nil")")
+
         if url.scheme == "wherart", url.host == "reset-password" {
+            print("[AppDelegate] ✅ Reset password deep link detected — setting pendingPasswordRecoveryURL")
+            print("[AppDelegate] Full URL: \(url.absoluteString)")
             DispatchQueue.main.async {
                 DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
+                print("[AppDelegate] pendingPasswordRecoveryURL set to: \(DeepLinkRouter.shared.pendingPasswordRecoveryURL?.absoluteString ?? "nil")")
             }
             return true
         }
+
+        print("[AppDelegate] URL is not wherart://reset-password, delegating to Google Sign In")
         return GIDSignIn.sharedInstance.handle(url)
     }
 
@@ -102,6 +111,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
               let url = userActivity.webpageURL else {
             return false
         }
+
+        // Password reset — see SupabaseService.resetPassword's redirectTo.
+        // Reuses the exact same pendingPasswordRecoveryURL/ResetPasswordView
+        // plumbing the old wherart://reset-password custom scheme drove;
+        // only how the link reaches the app changed.
+        if url.path == "/reset-password" {
+            print("[AppDelegate] Universal Link: reset-password detected")
+            DispatchQueue.main.async {
+                DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
+            }
+            return true
+        }
+
         let pathComponents = url.pathComponents // e.g. ["/", "e", "123"]
         guard let eIndex = pathComponents.firstIndex(of: "e"),
               pathComponents.count > eIndex + 1,

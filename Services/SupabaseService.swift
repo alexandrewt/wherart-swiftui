@@ -93,20 +93,24 @@ class SupabaseService: ObservableObject {
     }
 
     func resetPassword(email: String) async throws {
-        // Without `redirectTo`, Supabase falls back to the project's
-        // dashboard-configured Site URL — which was pointing at the
-        // marketing site (Figma), landing the user on a generic "email
-        // confirmed" page instead of back in the app. `wherart://` is
-        // registered as a URL scheme in Wherart-Info.plist and handled in
-        // WherartApp's `application(_:open:)`.
+        // A bare custom-scheme redirect_to (wherart://reset-password) means
+        // Safari has to navigate straight from an https page to a
+        // non-http(s) scheme, which triggers iOS's "Open in Wherart?"
+        // confirmation and — in practice, on at least one real device —
+        // could still fail to actually hand off to the app afterwards.
+        // A Universal Link (https://wherart.com/reset-password) opens the
+        // app directly with no dialog at all, using the same
+        // apple-app-site-association + associated-domains entitlement the
+        // exhibition share links already rely on — see WherartApp's
+        // application(_:continue:restorationHandler:).
         //
-        // This also needs "wherart://reset-password" added to the
-        // project's allowed Redirect URLs in the Supabase dashboard
-        // (Authentication > URL Configuration) — Supabase rejects a
-        // redirect_to that isn't on that allow-list.
+        // Needs "https://wherart.com/reset-password" on the project's
+        // allowed Redirect URLs in the Supabase dashboard (Authentication >
+        // URL Configuration) — Supabase rejects a redirect_to that isn't on
+        // that allow-list.
         try await client.auth.resetPasswordForEmail(
             email,
-            redirectTo: URL(string: "wherart://reset-password")
+            redirectTo: URL(string: "https://wherart.com/reset-password")
         )
     }
 
