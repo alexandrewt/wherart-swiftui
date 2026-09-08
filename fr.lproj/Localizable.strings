@@ -212,6 +212,8 @@
 "share_subject" = "Découvrez les expositions d'art à Paris";
 "share_message" = "J'utilise Wherart pour découvrir les expositions d'art à Paris et organiser des visites entre amis. Jette un œil !";
 "sign_out" = "Se déconnecter";
+"sign_out_confirm_title" = "Se déconnecter ?";
+"sign_out_confirm_message" = "Vous devrez vous reconnecter pour accéder à votre compte.";
 "send_reset_email" = "Envoyer l'email de réinitialisation";
 "reset_link_message" = "Nous allons envoyer un lien de réinitialisation à %@.";
 "your_email_fallback" = "votre adresse email";

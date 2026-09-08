@@ -387,6 +387,7 @@ struct SettingsView: View {
     @State private var showDeleteError = false
     @State private var showChangePassword = false
     @State private var passwordResetSent = false
+    @State private var showSignOutConfirm = false
 
     var body: some View {
         ScrollView {
@@ -463,7 +464,7 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     MenuRow(icon: "lock", label: String(localized: "change_password"), action: { showChangePassword = true })
                     Divider().padding(.leading, 52)
-                    Button(action: handleLogout) {
+                    Button(action: { showSignOutConfirm = true }) {
                         HStack(spacing: 14) {
                             Image(systemName: "rectangle.portrait.and.arrow.right").font(.system(size: 18)).foregroundColor(.secondary).frame(width: 24)
                             Text(String(localized: "sign_out")).font(.system(size: 15)).foregroundColor(.secondary)
@@ -514,6 +515,14 @@ struct SettingsView: View {
         .navigationTitle(String(localized: "settings"))
         .navigationBarTitleDisplayMode(.large)
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .alert(String(localized: "sign_out_confirm_title"), isPresented: $showSignOutConfirm) {
+            Button(String(localized: "sign_out"), role: .destructive) {
+                handleLogout()
+            }
+            Button(String(localized: "cancel"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "sign_out_confirm_message"))
+        }
         .alert(String(localized: "delete_account_confirm_title"), isPresented: $showDeleteConfirm) {
             Button(String(localized: "delete"), role: .destructive) {
                 Task { await handleDeleteAccount() }

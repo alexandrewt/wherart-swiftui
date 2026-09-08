@@ -212,6 +212,8 @@
 "share_subject" = "Discover art exhibitions in Paris";
 "share_message" = "I use Wherart to discover art exhibitions in Paris and organise group visits. Check it out!";
 "sign_out" = "Sign out";
+"sign_out_confirm_title" = "Sign out?";
+"sign_out_confirm_message" = "You'll need to sign back in to access your account.";
 "send_reset_email" = "Send reset email";
 "reset_link_message" = "We'll send a password reset link to %@.";
 "your_email_fallback" = "your email";
