@@ -103,15 +103,22 @@ struct ExhibitionPreviewCard: View {
                             .scaledToFill()
                             .frame(height: 150)
                             .clipped()
-                    case .loading:
-                        ProgressView()
-                            .frame(height: 150)
                     case .empty:
-                        Color.gray.frame(height: 150)
+                        ZStack {
+                            Color(.systemGray5)
+                            ProgressView()
+                        }
+                        .frame(height: 150)
+                    case .failure:
+                        Color(.systemGray4)
+                            .frame(height: 150)
                     @unknown default:
                         Color.gray.frame(height: 150)
                     }
                 }
+            } else {
+                Color(.systemGray5)
+                    .frame(height: 150)
             }
 
             VStack(alignment: .leading, spacing: 4) {
