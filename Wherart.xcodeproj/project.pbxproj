@@ -13,6 +13,7 @@
 		A13297680C2779020DFD689C /* ChatFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273E965AC408E7811F5F616 /* ChatFullView.swift */; };
 		A1B2C3D4E5F607182930A1B5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182930A1B2 /* Localizable.strings */; };
 		A4B294DB30AE05FBAEF43116 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313DEE9B8C7FC5309BD59DEE /* DeepLinkRouter.swift */; };
+		A76739C8D85A4CE143BA15BC /* AIAssistantSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9907DF2A1AB180F3F6CD56C7 /* AIAssistantSheet.swift */; };
 		B5166365304A0B6700B54BAB /* EndingSoonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A54A3048C92B004E2CD9 /* EndingSoonService.swift */; };
 		B5361AC12FAF8CD80042B689 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */; };
 		B5361AC32FAFD5F00042B689 /* JoinVisitConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */; };
@@ -62,6 +63,7 @@
 		816D914DA91B95EAC1B570CE /* libPods-Wherart.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Wherart.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8699DCBF30405A872CB965B6 /* SubscribeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeView.swift; sourceTree = "<group>"; };
 		91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
+		9907DF2A1AB180F3F6CD56C7 /* AIAssistantSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistantSheet.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B11370ECD09D5102FDD08672 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 				B5C8EB542FA3EE1D009A2A74 /* ExhibitionDetailView.swift */,
 				B5C8EB522FA3E9B6009A2A74 /* HomeView.swift */,
 				B5C8EB502FA3E99A009A2A74 /* ExhibitionCard.swift */,
+				9907DF2A1AB180F3F6CD56C7 /* AIAssistantSheet.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -434,6 +437,7 @@
 				B5C8EB5D2FA3F680009A2A74 /* ProfileView.swift in Sources */,
 				2C8DF6BBE2AE6113FCEBA98D /* NotificationsView.swift in Sources */,
 				B5361AC62FB367F80042B689 /* ExhibitionDetailView.swift in Sources */,
+				A76739C8D85A4CE143BA15BC /* AIAssistantSheet.swift in Sources */,
 				B5C8EB5B2FA3F3CC009A2A74 /* MapView.swift in Sources */,
 				B5C8EB472FA3E1F6009A2A74 /* LoginView.swift in Sources */,
 				B5C8EB532FA3E9BF009A2A74 /* HomeView.swift in Sources */,
@@ -606,7 +610,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 62;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -630,7 +634,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
@@ -656,7 +660,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = WherartDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 62;
 				DEVELOPMENT_TEAM = GHAUCX2368;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -680,7 +684,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;

@@ -283,3 +283,10 @@
 "home" = "Home";
 "map_tab" = "Map";
 "profile_tab" = "Profile";
+
+/* MARK: - AI Assistant */
+"ai_assistant_title" = "Wherart AI";
+"ai_assistant_placeholder" = "Ask about exhibitions...";
+"ai_assistant_greeting" = "Hi! I'm Wherart AI. Tell me what kind of exhibition you're looking for, and I'll help you find the perfect match.";
+"ai_assistant_error" = "Sorry, I had trouble processing that. Please try again.";
+"done" = "Done";

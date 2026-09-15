@@ -283,3 +283,11 @@
 "home" = "Accueil";
 "map_tab" = "Carte";
 "profile_tab" = "Profil";
+
+/* MARK: - AI Assistant */
+"ai_assistant_title" = "Wherart AI";
+"ai_assistant_placeholder" = "Pose une question sur une exposition...";
+"ai_assistant_greeting" = "Salut ! Je suis Wherart AI. Dis-moi quel genre d'exposition tu cherches, et je t'aide à trouver la perle rare.";
+"ai_assistant_error" = "Désolé, une erreur s'est produite. Réessaie.";
+"done" = "Terminé";
+

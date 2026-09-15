@@ -8,7 +8,7 @@ import Foundation
 struct AppNotification: Identifiable, Codable {
     let id: UUID
     let userId: UUID
-    let exhibitionId: Int?
+    let exhibitionIds: [Int]?
     let title: String
     let body: String
     // Kept as a raw ISO8601 string rather than `Date` — the Supabase
@@ -22,11 +22,15 @@ struct AppNotification: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
-        case exhibitionId = "exhibition_id"
+        case exhibitionIds = "exhibition_ids"
         case title
         case body
         case createdAt = "created_at"
         case isRead = "is_read"
+    }
+
+    var hasMultipleExhibitions: Bool {
+        (exhibitionIds?.count ?? 0) >= 2
     }
 }
 
@@ -124,6 +128,41 @@ extension Exhibition {
         }
 
         return copy
+    }
+}
+
+// MARK: - AIExhibitionSummary
+// Trimmed-down view of `Exhibition` sent to the `ask-wherart-ai` Edge
+// Function — only the fields the AI needs to reason about and cite, so the
+// request payload (and the Claude API token cost) stays small regardless of
+// how many exhibitions are in the catalog.
+struct AIExhibitionSummary: Encodable {
+    let id: Int
+    let title: String
+    let artist: String
+    let venue: String
+    let venueType: String
+    let type: String
+    let address: String
+    let schedule: String?
+    let price: String?
+    let isFree: Bool
+    let endDate: String?
+    let distance: Double?
+
+    init(exhibition: Exhibition) {
+        id = exhibition.id
+        title = exhibition.title
+        artist = exhibition.artist
+        venue = exhibition.venue
+        venueType = exhibition.venueType
+        type = exhibition.type
+        address = exhibition.address
+        schedule = exhibition.schedule
+        price = exhibition.price
+        isFree = exhibition.isFree
+        endDate = exhibition.endDate
+        distance = exhibition.distance
     }
 }
 

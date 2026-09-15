@@ -832,6 +832,61 @@ class SupabaseService: ObservableObject {
         return channel
     }
 
+    // MARK: - AI Assistant
+
+    private struct AskWherartAIRequest: Encodable {
+        let userMessage: String
+        let userPreferences: Preferences
+        let userFavoriteIds: [Int]
+        let userViewedIds: [Int]
+        let exhibitions: [AIExhibitionSummary]
+
+        struct Preferences: Encodable {
+            let genres: [String]
+            let venues: [String]
+        }
+    }
+
+    private struct AskWherartAIResponse: Decodable {
+        let success: Bool
+        let response: String?
+        let error: String?
+    }
+
+    /// Sends one chat turn to the `ask-wherart-ai` Edge Function (which calls
+    /// the Claude API) and returns the assistant's reply text. `exhibitions`
+    /// should already be trimmed/sorted by the caller (see
+    /// AIAssistantSheet.exhibitionSummaries) — this keeps the request small
+    /// and the per-call Claude cost predictable regardless of catalog size.
+    func askWherartAI(
+        message: String,
+        profile: Profile?,
+        favoriteIds: [Int],
+        viewedIds: [Int],
+        exhibitions: [AIExhibitionSummary]
+    ) async throws -> String {
+        let body = AskWherartAIRequest(
+            userMessage: message,
+            userPreferences: .init(
+                genres: profile?.preferences ?? [],
+                venues: profile?.venueTypes ?? []
+            ),
+            userFavoriteIds: favoriteIds,
+            userViewedIds: viewedIds,
+            exhibitions: exhibitions
+        )
+
+        let response: AskWherartAIResponse = try await client.functions.invoke(
+            "ask-wherart-ai",
+            options: FunctionInvokeOptions(body: body)
+        )
+
+        guard response.success, let text = response.response, !text.isEmpty else {
+            throw NSError(domain: "SupabaseService", code: -1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "AI request failed"])
+        }
+        return text
+    }
+
     // MARK: - Account Deletion
 
     // RGPD: users can request account deletion per Art. 17 GDPR (right to erasure)

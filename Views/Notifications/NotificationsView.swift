@@ -14,6 +14,8 @@ struct NotificationsView: View {
     @State private var isLoading = false
     @State private var showSettings = false
     @State private var selectedExhibition: Exhibition? = nil
+    @State private var showPreviewSheet = false
+    @State private var selectedNotification: AppNotification?
 
     // Bindings for the reused NotificationSettingsSheet.
     @State private var editReminderThreshold: Double = 25
@@ -76,18 +78,33 @@ struct NotificationsView: View {
             } else {
                 List {
                     ForEach(notifications) { notification in
-                        NotificationRow(notification: notification)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                Task { await handleTap(notification) }
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    Task { await delete(notification) }
-                                } label: {
-                                    Label(String(localized: "delete"), systemImage: "trash")
+                        if notification.hasMultipleExhibitions {
+                            NotificationRow(notification: notification)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    Task { await handleTapMultiple(notification) }
                                 }
-                            }
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        Task { await delete(notification) }
+                                    } label: {
+                                        Label(String(localized: "delete"), systemImage: "trash")
+                                    }
+                                }
+                        } else {
+                            NotificationRow(notification: notification)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    Task { await handleTap(notification) }
+                                }
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        Task { await delete(notification) }
+                                    } label: {
+                                        Label(String(localized: "delete"), systemImage: "trash")
+                                    }
+                                }
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -98,6 +115,11 @@ struct NotificationsView: View {
         }
         .navigationDestination(item: $selectedExhibition) { exhibition in
             ExhibitionDetailView(exhibition: exhibition)
+        }
+        .sheet(isPresented: $showPreviewSheet) {
+            if let notification = selectedNotification {
+                NotificationPreviewSheet(notification: notification)
+            }
         }
         .sheet(isPresented: $showSettings) {
             NotificationSettingsSheet(
@@ -166,9 +188,17 @@ struct NotificationsView: View {
         if !notification.isRead {
             await markRead(notification)
         }
-        if let exhibitionId = notification.exhibitionId {
-            selectedExhibition = try? await SupabaseService.shared.fetchExhibitionById(id: exhibitionId)
+        if let exhibitionIds = notification.exhibitionIds, let firstId = exhibitionIds.first {
+            selectedExhibition = try? await SupabaseService.shared.fetchExhibitionById(id: firstId)
         }
+    }
+
+    private func handleTapMultiple(_ notification: AppNotification) async {
+        if !notification.isRead {
+            await markRead(notification)
+        }
+        selectedNotification = notification
+        showPreviewSheet = true
     }
 
     private func markRead(_ notification: AppNotification) async {

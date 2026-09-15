@@ -12,6 +12,31 @@ struct OnboardingView: View {
     @State private var acceptedTerms = false
     @State private var onboardingStartTime: Date?
 
+    /// The terms text as one attributed string with real links, so the
+    /// privacy policy / terms of use stay tappable independently of the
+    /// checkbox — see `LoginView.legalText` for the same pattern. Nesting
+    /// the whole row in a single `Button` (the previous approach) let the
+    /// button swallow taps meant for the nested link zones.
+    private var legalText: AttributedString {
+        let brandBlue = Color.blue
+
+        var prefix = AttributedString(String(localized: "accept_terms_prefix"))
+        prefix.foregroundColor = .secondary
+
+        var privacy = AttributedString(String(localized: "privacy_policy"))
+        privacy.foregroundColor = brandBlue
+        privacy.link = URL(string: "https://wherart.figma.site/politique-confidentialite")
+
+        var middle = AttributedString(String(localized: "and_the"))
+        middle.foregroundColor = .secondary
+
+        var terms = AttributedString(String(localized: "terms_of_use"))
+        terms.foregroundColor = brandBlue
+        terms.link = URL(string: "https://wherart.figma.site/conditions-utilisation")
+
+        return prefix + privacy + middle + terms
+    }
+
     let artTypes = [
         "Painting", "Sculpture", "Photography", "Contemporary Art", "Street Art",
         "Abstract Art", "Installation", "Modern Art", "Asian Art", "Design",
@@ -69,8 +94,8 @@ struct OnboardingView: View {
 
                 // MARK: - Terms checkbox (step 0 uniquement)
                 if currentStep == 0 {
-                    Button(action: { acceptedTerms.toggle() }) {
-                        HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        Button(action: { acceptedTerms.toggle() }) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 6)
                                     .stroke(acceptedTerms ? Color.blue : Color(.systemGray3), lineWidth: 1.5)
@@ -84,38 +109,14 @@ struct OnboardingView: View {
                                         .foregroundColor(.white)
                                 }
                             }
+                        }
+                        .buttonStyle(.plain)
 
-                            Group {
-                                Text(String(localized: "accept_terms_prefix"))
-                                    .foregroundColor(.secondary)
-                                + Text(String(localized: "privacy_policy"))
-                                    .foregroundColor(.blue)
-                                + Text(String(localized: "and_the"))
-                                    .foregroundColor(.secondary)
-                                + Text(String(localized: "terms_of_use"))
-                                    .foregroundColor(.blue)
-                            }
+                        Text(legalText)
                             .font(.system(size: 13))
                             .multilineTextAlignment(.leading)
-                            .overlay(
-                                HStack(spacing: 0) {
-                                    // Zones de tap sur les liens
-                                    Color.clear
-                                        .frame(maxWidth: .infinity)
-                                        .onTapGesture {
-                                            UIApplication.shared.open(URL(string: "https://wherart.figma.site/politique-confidentialite")!)
-                                        }
-                                    Color.clear
-                                        .frame(maxWidth: .infinity)
-                                        .onTapGesture {
-                                            UIApplication.shared.open(URL(string: "https://wherart.figma.site/conditions-utilisation")!)
-                                        }
-                                }
-                            )
-                        }
-                        .padding(.horizontal, 24)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 24)
                     .padding(.bottom, 16)
                 }
 

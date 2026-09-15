@@ -25,6 +25,7 @@ struct HomeView: View {
     @State private var floatingExpanded = false
     @State private var showPaywall = false
     @State private var showLoginPrompt = false
+    @State private var showAIAssistant = false
     @AppStorage("paywallShowCount") private var paywallCount = 0
     @FocusState private var searchFocused: Bool
     @FocusState private var floatingSearchFocused: Bool
@@ -43,6 +44,25 @@ struct HomeView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
+
+                    // MARK: - Header
+                    HStack(alignment: .center) {
+                        Text(greeting)
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Button(action: {
+                            impactLight.impactOccurred()
+                            searchFocused = false
+                            showAIAssistant = true
+                        }) {
+                            AIAssistantButtonIcon()
+                        }
+                        .accessibilityLabel(String(localized: "ai_assistant_title"))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 32)
+                    .padding(.bottom, 16)
 
                     // MARK: - Search Bar
                     HStack(spacing: 10) {
@@ -216,11 +236,8 @@ struct HomeView: View {
                 .zIndex(100)
             }
         }
-        .navigationTitle(greeting)
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .principal) { Text("") }
-        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
         .onChange(of: sortBy) { newSort in
             AnalyticsService.shared.track("sort_changed", properties: ["sort_option": newSort.rawValue])
         }
@@ -243,6 +260,14 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet()
+        }
+        .sheet(isPresented: $showAIAssistant) {
+            AIAssistantSheet(
+                exhibitions: exhibitions,
+                profile: profile,
+                favoriteIds: favoriteIds,
+                viewedIds: viewedIds
+            )
         }
         .navigationDestination(item: $selectedExhibition) { exhibition in
             ExhibitionDetailView(exhibition: exhibition)
@@ -594,6 +619,50 @@ struct HomeView: View {
         let dLon = (lon2 - lon1) * .pi / 180
         let a = sin(dLat/2)*sin(dLat/2) + cos(lat1 * .pi/180) * cos(lat2 * .pi/180) * sin(dLon/2)*sin(dLon/2)
         return (R * 2 * atan2(sqrt(a), sqrt(1-a)) * 10).rounded() / 10
+    }
+}
+
+// MARK: - AI Assistant Button Icon
+
+// Pulled out of HomeView's body — inlined, this modifier chain (foregroundColor
+// + background + clipShape + overlay + shadow) pushed the enclosing HStack past
+// the Swift type-checker's expression-complexity budget ("unable to type-check
+// this expression in reasonable time").
+struct AIAssistantButtonIcon: View {
+    private static let brandBlue = Color(red: 0.15, green: 0.39, blue: 0.92)
+    // Barely blends toward brandBlue at the top — stays short of it so the
+    // stars still read as white against the blue circle.
+    private static let starGradient = LinearGradient(
+        colors: [Color.white, Color(red: 0.82, green: 0.88, blue: 0.98)],
+        startPoint: .bottom,
+        endPoint: .top
+    )
+
+    // Masking the gradient with the union of the three stars — rather than
+    // giving each star its own foregroundStyle — makes the gradient span the
+    // full 44pt icon, so it reads as one bottom-to-top blend across the
+    // whole icon instead of restarting inside each star's own bounds.
+    private var starsMask: some View {
+        ZStack {
+            Image(systemName: "sparkle")
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .offset(x: -2, y: 3)
+            Image(systemName: "sparkle")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .offset(x: 9, y: -5)
+            Image(systemName: "sparkle")
+                .font(.system(size: 6.4, weight: .semibold, design: .rounded))
+                .offset(x: -10, y: -4)
+        }
+    }
+
+    var body: some View {
+        Self.starGradient
+            .frame(width: 44, height: 44)
+            .mask(starsMask)
+            .background(Self.brandBlue)
+            .clipShape(Circle())
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
