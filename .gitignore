@@ -24,5 +24,8 @@ supabase/.branches/
 # Cloudflare Wrangler local cache/auth state.
 .wrangler/
 
+# Local ad-hoc DB backups/exports (production data dumps) — not code.
+backups/
+
 # macOS
 .DS_Store

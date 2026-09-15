@@ -1,183 +1,139 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Edge Function: Sync exhibitions from Paris Open Data
-// Optimized version with batch upsert, improved logging, and error handling
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-
-const db = createClient(supabaseUrl, supabaseServiceKey);
-
-// Only Paris Open Data (removed Île-de-France as it returns 0 records)
-const PARIS_URL =
-  "https://opendata.paris.fr/api/records/1.0/search/?dataset=galeries-musees-salles-expositions&rows=500&fields=nom,geometry,adresse,code_postal,commune,telephone,url,horaires";
-
-// Geocoding fallback (Nominatim)
-const geocode = async (address: string): Promise<[number, number] | null> => {
+const geocode = async (address: string): Promise<{ lat: number, lng: number } | null> => {
   try {
-    const query = encodeURIComponent(address);
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${query}`
-    );
-
-    const data = await res.json();
-    if (data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lon = parseFloat(data[0].lon);
-      return [lat, lon];
+      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}&limit=1`
+    )
+    const data = await res.json()
+    if (data.features?.[0]) {
+      const [lng, lat] = data.features[0].geometry.coordinates
+      return { lat, lng }
     }
-  } catch (error) {
-    console.error(`[Geocoding Error] ${address}: ${error.message}`);
-  }
-  return null;
-};
-
-// Geocode multiple addresses in parallel
-const geocodeParallel = async (
-  addresses: string[]
-): Promise<Map<string, [number, number]>> => {
-  console.log(
-    `[Geocoding] Starting batch geocoding for ${addresses.length} addresses`
-  );
-
-  const results = await Promise.allSettled(
-    addresses.map(async (addr) => {
-      const coords = await geocode(addr);
-      return { address: addr, coords };
-    })
-  );
-
-  const coordMap = new Map<string, [number, number]>();
-  let successCount = 0;
-
-  results.forEach((result) => {
-    if (result.status === "fulfilled" && result.value.coords) {
-      coordMap.set(result.value.address, result.value.coords);
-      successCount++;
-    }
-  });
-
-  console.log(
-    `[Geocoding] Completed: ${successCount}/${addresses.length} successful`
-  );
-  return coordMap;
-};
-
-// Main sync function
-async function syncExhibitions() {
-  console.log(`[Sync Started] ${new Date().toISOString()}`);
-
-  try {
-    // STEP 1: Fetch from Paris Open Data
-    console.log(`[Paris API] Fetching exhibitions...`);
-
-    const parisRes = await fetch(PARIS_URL);
-    const parisData = await parisRes.json();
-
-    if (!parisData.records) {
-      throw new Error("Invalid response from Paris API");
-    }
-
-    console.log(`[Paris API] Retrieved ${parisData.records.length} records`);
-
-    // STEP 2: Transform and enrich exhibitions
-    const exhibitions = parisData.records.map((record: any) => {
-      const geo = record.geometry?.coordinates;
-      const [lng, lat] = geo ? [geo[0], geo[1]] : [null, null];
-
-      return {
-        id: record.recordid || `${Date.now()}_${Math.random()}`,
-        title: record.fields?.nom || "Unknown",
-        venue: record.fields?.commune || "Unknown",
-        address: record.fields?.adresse || null,
-        postal_code: record.fields?.code_postal || null,
-        phone: record.fields?.telephone || null,
-        website: record.fields?.url || null,
-        hours: record.fields?.horaires || null,
-        lat: lat,
-        lng: lng,
-        source: "paris_open_data",
-        synced_at: new Date().toISOString(),
-      };
-    });
-
-    // STEP 3: Check which exhibitions need geocoding
-    const needsGeocode = exhibitions.filter((e) => !e.lat || !e.lng);
-    console.log(
-      `[Geocoding Check] ${needsGeocode.length}/${exhibitions.length} need geocoding`
-    );
-
-    if (needsGeocode.length > 0) {
-      // Geocode in parallel
-      const addresses = needsGeocode.map(
-        (e) => e.address || `${e.title}, ${e.venue}`
-      );
-      const coordMap = await geocodeParallel(addresses);
-
-      // Apply coordinates to exhibitions
-      needsGeocode.forEach((exh) => {
-        const key = exh.address || `${exh.title}, ${exh.venue}`;
-        const coords = coordMap.get(key);
-        if (coords) {
-          exh.lat = coords[0];
-          exh.lng = coords[1];
-        }
-      });
-    }
-
-    // STEP 4: Batch upsert (OPTIMIZED - single query instead of 250)
-    console.log(
-      `[Upsert] Preparing to insert/update ${exhibitions.length} exhibitions...`
-    );
-
-    const { error: upsertError, data: upsertData } = await db
-      .from("exhibitions")
-      .upsert(exhibitions, { onConflict: "id" })
-      .select();
-
-    if (upsertError) {
-      throw new Error(`Upsert failed: ${upsertError.message}`);
-    }
-
-    console.log(
-      `[Success] Synced ${upsertData?.length || exhibitions.length} exhibitions`
-    );
-
-    // STEP 5: Return success response
-    return new Response(
-      JSON.stringify({
-        success: true,
-        synced_at: new Date().toISOString(),
-        count: exhibitions.length,
-        message: `Successfully synced ${exhibitions.length} exhibitions`,
-      }),
-      {
-        headers: { "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
-  } catch (error) {
-    console.error(`[Critical Error] Sync failed: ${error.message}`);
-
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        headers: { "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return null
+  } catch {
+    return null
   }
 }
 
-// Handle HTTP request
-Deno.serve(async (req) => {
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+// Collapses runs of whitespace (including non-breaking / narrow no-break
+// spaces that Paris Open Data intermittently inserts before punctuation)
+// into a single regular space, and trims. Without this, the same exhibition
+// synced on different days can carry a byte-different title/venue and slip
+// past the upsert(onConflict: 'title,venue') dedup, creating a duplicate row.
+const normalizeText = (s: string): string => s.replace(/\s+/gu, ' ').trim()
+
+const normalizeParisEvent = async (event: any) => {
+  let lat = event.lat_lon?.lat || null
+  let lng = event.lat_lon?.lon || null
+
+  if (!lat || !lng) {
+    const address = `${event.address_street || ''} ${event.address_zipcode || ''} ${event.address_city || 'Paris'}`.trim()
+    if (address.length > 5) {
+      const coords = await geocode(address)
+      if (coords) {
+        lat = coords.lat
+        lng = coords.lng
+      }
+    }
   }
 
-  return await syncExhibitions();
-});
+  return {
+    title: normalizeText(event.title_event || event.title || ''),
+    artist: '',
+    venue: normalizeText(event.address_name || ''),
+    venue_type: 'Museums',
+    type: 'Contemporary Art',
+    address: `${event.address_street || ''}, ${event.address_zipcode || ''} ${event.address_city || ''}`.trim(),
+    schedule: event.date_description?.replace(/<[^>]*>/g, '').trim() || '',
+    description: event.lead_text || '',
+    ticket_link: event.access_link || event.contact_url || '',
+    image: event.cover_url || '',
+    lat,
+    lng,
+    price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || (event.price_type === 'gratuit' ? 'Free' : ''),
+    is_free: event.price_type === 'gratuit',
+    duration: '1h30',
+    accessibility: event.pmr === 1 ? 'Wheelchair accessible' : 'See venue website',
+    phone: event.contact_phone || '',
+    end_date: event.date_end ? new Date(event.date_end).toISOString().split('T')[0] : null,
+    ending_soon: false,
+  }
+}
+
+const fetchParisOpenData = async (): Promise<any[]> => {
+  try {
+    const allResults: any[] = []
+    let offset = 0
+    const limit = 100
+
+    while (true) {
+      const res = await fetch(
+        `https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/que-faire-a-paris-/records?limit=${limit}&offset=${offset}&where=qfap_tags%20like%20%22%25Expo%25%22&order_by=date_start%20desc`
+      )
+      const data = await res.json()
+      const results = data.results || []
+      allResults.push(...results)
+      if (results.length < limit) break
+      offset += limit
+    }
+
+    const normalized = await Promise.all(allResults.map(normalizeParisEvent))
+    return normalized.filter((e: any) => e.lat && e.lng)
+  } catch (err) {
+    console.error('Paris Open Data error:', err)
+    return []
+  }
+}
+
+const fetchIleDeFrance = async (): Promise<any[]> => {
+  try {
+    const res = await fetch(
+      `https://data.iledefrance.fr/api/explore/v2.1/catalog/datasets/evenements-en-ile-de-france/records?limit=100&where=tags%20like%20%22%25Expo%25%22&order_by=date_start%20desc`
+    )
+    const data = await res.json()
+    const normalized = await Promise.all((data.results || []).map(normalizeParisEvent))
+    return normalized.filter((e: any) => e.lat && e.lng)
+  } catch (err) {
+    console.error('Ile-de-France error:', err)
+    return []
+  }
+}
+
+Deno.serve(async () => {
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+
+  try {
+    const [fromParis, fromIleDeFrance] = await Promise.all([
+      fetchParisOpenData(),
+      fetchIleDeFrance(),
+    ])
+
+    const all = [...fromParis, ...fromIleDeFrance]
+
+    if (all.length === 0) {
+      return new Response('No exhibitions found', { status: 200 })
+    }
+
+    const deduplicated = all.filter((e: any, index: number, self: any[]) =>
+      index === self.findIndex((t: any) => t.title === e.title && t.venue === e.venue)
+    )
+
+    const { error } = await supabase
+      .from('exhibitions')
+      .upsert(deduplicated, { onConflict: 'title,venue' })
+
+    if (error) throw error
+
+    return new Response(
+      `Synced ${deduplicated.length} exhibitions (Paris: ${fromParis.length}, Île-de-France: ${fromIleDeFrance.length})`,
+      { status: 200 }
+    )
+
+  } catch (err) {
+    return new Response(`Error: ${err.message}`, { status: 500 })
+  }
+})
