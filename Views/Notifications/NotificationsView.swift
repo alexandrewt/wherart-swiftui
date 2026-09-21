@@ -183,7 +183,7 @@ struct NotificationsView: View {
 
     private func handleTap(_ notification: AppNotification) async {
         if !notification.isRead {
-            await markRead(notification)
+            Task { await markRead(notification) }
         }
         if let exhibitionIds = notification.exhibitionIds, let firstId = exhibitionIds.first {
             selectedExhibition = try? await SupabaseService.shared.fetchExhibitionById(id: firstId)

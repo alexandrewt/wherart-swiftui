@@ -60,27 +60,17 @@ struct NotificationPreviewSheet: View {
 
     private func loadExhibitions() {
         Task {
-            do {
-                let ids = exhibitionIds
-                if !ids.isEmpty {
-                    var fetchedExhibitions: [Exhibition] = []
-
-                    for id in ids {
-                        do {
-                            let expo = try await supabaseService.fetchExhibitionById(id: id)
-                            fetchedExhibitions.append(expo)
-                        } catch {
-                            print("[NotificationPreviewSheet] Error fetching exhibition \(id): \(error)")
-                        }
-                    }
-
-                    exhibitions = fetchedExhibitions
+            var fetchedExhibitions: [Exhibition] = []
+            for id in exhibitionIds {
+                do {
+                    let expo = try await supabaseService.fetchExhibitionById(id: id)
+                    fetchedExhibitions.append(expo)
+                } catch {
+                    print("[NotificationPreviewSheet] Error fetching exhibition \(id): \(error)")
                 }
-                isLoading = false
-            } catch {
-                print("[NotificationPreviewSheet] Error loading exhibitions: \(error)")
-                isLoading = false
             }
+            exhibitions = fetchedExhibitions
+            isLoading = false
         }
     }
 }
