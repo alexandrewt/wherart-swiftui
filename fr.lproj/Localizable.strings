@@ -291,3 +291,10 @@
 "ai_assistant_error" = "Désolé, une erreur s'est produite. Réessaie.";
 "done" = "Terminé";
 
+
+"new_exhibitions_title_singular" = "✨ 1 nouvelle exposition";
+"new_exhibitions_title_plural" = "✨ %d nouvelles expositions";
+"new_exhibitions_body_more" = "%@ + %d de plus";
+"new_exhibitions_fallback_name" = "Nouvelles expositions";
+"notification_exhibitions_count" = "%d expositions";
+"notification_no_exhibitions" = "Aucune exposition à afficher";

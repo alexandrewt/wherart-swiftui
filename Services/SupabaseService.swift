@@ -523,16 +523,16 @@ class SupabaseService: ObservableObject {
     /// UNUserNotificationCenter. Best-effort by design at call sites (a
     /// failed insert here shouldn't block the local push itself), but the
     /// throw is still exposed so callers can log it.
-    func insertNotification(userId: String, exhibitionId: Int?, title: String, body: String) async throws {
+    func insertNotification(userId: String, exhibitionIds: [Int], title: String, body: String) async throws {
         struct NotificationInsert: Encodable {
             let user_id: String
-            let exhibition_id: Int?
+            let exhibition_ids: [Int]
             let title: String
             let body: String
         }
         try await client
             .from("notifications")
-            .insert(NotificationInsert(user_id: userId, exhibition_id: exhibitionId, title: title, body: body))
+            .insert(NotificationInsert(user_id: userId, exhibition_ids: exhibitionIds, title: title, body: body))
             .execute()
     }
 

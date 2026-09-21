@@ -2,19 +2,17 @@ import SwiftUI
 
 struct NotificationPreviewSheet: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject private var nav: AppNavigation
     @State private var exhibitions: [Exhibition] = []
     @State private var isLoading = true
-    @State private var selectedExhibition: Exhibition?
 
-    let notification: AppNotification
+    let exhibitionIds: [Int]
     @StateObject private var supabaseService = SupabaseService.shared
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 HStack {
-                    Text("\(exhibitions.count) \(exhibitions.count == 1 ? "Exhibition" : "Exhibitions")")
+                    Text(String(format: String(localized: "notification_exhibitions_count"), exhibitionIds.count))
                         .font(.system(size: 18, weight: .bold))
                     Spacer()
                     Button(action: { dismiss() }) {
@@ -36,7 +34,7 @@ struct NotificationPreviewSheet: View {
                 } else if exhibitions.isEmpty {
                     VStack {
                         Spacer()
-                        Text("No exhibitions to display")
+                        Text(String(localized: "notification_no_exhibitions"))
                             .foregroundColor(.secondary)
                         Spacer()
                     }
@@ -55,9 +53,6 @@ struct NotificationPreviewSheet: View {
             }
             .navigationBarHidden(true)
         }
-        .navigationDestination(item: $selectedExhibition) { exhibition in
-            ExhibitionDetailView(exhibition: exhibition)
-        }
         .onAppear {
             loadExhibitions()
         }
@@ -66,7 +61,8 @@ struct NotificationPreviewSheet: View {
     private func loadExhibitions() {
         Task {
             do {
-                if let ids = notification.exhibitionIds, !ids.isEmpty {
+                let ids = exhibitionIds
+                if !ids.isEmpty {
                     var fetchedExhibitions: [Exhibition] = []
 
                     for id in ids {
@@ -160,16 +156,5 @@ struct ExhibitionPreviewCard: View {
 }
 
 #Preview {
-    NotificationPreviewSheet(
-        notification: AppNotification(
-            id: UUID(),
-            userId: UUID(),
-            exhibitionIds: [123, 456, 789],
-            title: "3 New Exhibitions",
-            body: "Check out these new shows matching your taste",
-            createdAt: ISO8601DateFormatter().string(from: Date()),
-            isRead: false
-        )
-    )
-    .environmentObject(AppNavigation())
+    NotificationPreviewSheet(exhibitionIds: [123, 456, 789])
 }

@@ -117,8 +117,8 @@ struct NotificationsView: View {
             ExhibitionDetailView(exhibition: exhibition)
         }
         .sheet(isPresented: $showPreviewSheet) {
-            if let notification = selectedNotification {
-                NotificationPreviewSheet(notification: notification)
+            if let ids = selectedNotification?.exhibitionIds {
+                NotificationPreviewSheet(exhibitionIds: ids)
             }
         }
         .sheet(isPresented: $showSettings) {

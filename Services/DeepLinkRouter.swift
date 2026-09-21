@@ -12,6 +12,10 @@ final class DeepLinkRouter: ObservableObject {
 
     @Published var pendingExhibitionId: Int?
 
+    /// Set when a notification covering 2+ exhibitions is tapped — MainTabView
+    /// presents a chooser sheet instead of jumping to the first one.
+    @Published var pendingExhibitionChoiceIds: [Int]?
+
     /// Set from WherartApp's `application(_:open:)` when a
     /// "wherart://reset-password?..." link is opened (from the password
     /// reset email). ContentView observes this to present ResetPasswordView

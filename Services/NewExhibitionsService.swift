@@ -28,9 +28,13 @@ final class NewExhibitionsService {
             guard !newExhibitions.isEmpty else { return }
 
             let count = newExhibitions.count
-            let title = "✨ \(count) new exhibition\(count > 1 ? "s" : "")"
-            let firstExhibitionName = newExhibitions.first?.title ?? "New exhibitions"
-            let body = firstExhibitionName + (count > 1 ? " + \(count - 1) more" : "")
+            let title = count > 1
+                ? String(format: String(localized: "new_exhibitions_title_plural"), count)
+                : String(localized: "new_exhibitions_title_singular")
+            let firstExhibitionName = newExhibitions.first?.title ?? String(localized: "new_exhibitions_fallback_name")
+            let body = count > 1
+                ? String(format: String(localized: "new_exhibitions_body_more"), firstExhibitionName, count - 1)
+                : firstExhibitionName
 
             await scheduleNextMorningNotification(
                 title: title,
@@ -45,7 +49,7 @@ final class NewExhibitionsService {
             do {
                 try await SupabaseService.shared.insertNotification(
                     userId: userId,
-                    exhibitionId: newExhibitions.first?.id,
+                    exhibitionIds: newExhibitions.map { $0.id },
                     title: title,
                     body: body
                 )

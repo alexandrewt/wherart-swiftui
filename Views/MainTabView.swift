@@ -118,6 +118,14 @@ struct MainTabView: View {
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet()
         }
+        .sheet(isPresented: Binding(
+            get: { deepLinkRouter.pendingExhibitionChoiceIds != nil },
+            set: { if !$0 { deepLinkRouter.pendingExhibitionChoiceIds = nil } }
+        )) {
+            if let ids = deepLinkRouter.pendingExhibitionChoiceIds {
+                NotificationPreviewSheet(exhibitionIds: ids)
+            }
+        }
         // Tapping an Ending Soon notification sets this from anywhere in
         // the app (even the background) — jump to Home so HomeView's own
         // observation of the same router can fetch and push that

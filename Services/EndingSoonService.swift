@@ -203,7 +203,7 @@ class EndingSoonService: NSObject {
                 do {
                     try await SupabaseService.shared.insertNotification(
                         userId: userId,
-                        exhibitionId: exhibition.id,
+                        exhibitionIds: [exhibition.id],
                         title: title,
                         body: body
                     )
@@ -264,7 +264,15 @@ extension EndingSoonService: UNUserNotificationCenterDelegate {
     ) {
         let userInfo = response.notification.request.content.userInfo
 
-        if let exhibitionId = userInfo["exhibition_id"] as? Int {
+        if let ids = userInfo["exhibition_ids"] as? [Int], ids.count >= 2 {
+            DispatchQueue.main.async {
+                DeepLinkRouter.shared.pendingExhibitionChoiceIds = ids
+            }
+        } else if let ids = userInfo["exhibition_ids"] as? [Int], let only = ids.first {
+            DispatchQueue.main.async {
+                DeepLinkRouter.shared.pendingExhibitionId = only
+            }
+        } else if let exhibitionId = userInfo["exhibition_id"] as? Int {
             print("[EndingSoon] User tapped notification for exhibition \(exhibitionId)")
             DispatchQueue.main.async {
                 DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
