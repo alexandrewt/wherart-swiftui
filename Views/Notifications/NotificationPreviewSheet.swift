@@ -45,6 +45,11 @@ struct NotificationPreviewSheet: View {
                                 NavigationLink(destination: ExhibitionDetailView(exhibition: expo)) {
                                     ExhibitionPreviewCard(exhibition: expo)
                                 }
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    AnalyticsService.shared.track("notification_preview_exhibition_selected", properties: [
+                                        "exhibition_id": expo.id
+                                    ])
+                                })
                             }
                         }
                         .padding(16)

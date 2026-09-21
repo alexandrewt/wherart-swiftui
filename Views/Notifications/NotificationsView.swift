@@ -171,6 +171,10 @@ struct NotificationsView: View {
                     reminderThreshold: Int(editReminderThreshold),
                     endingSoonFrequency: editEndingSoonFrequency
                 )
+                AnalyticsService.shared.track("notification_settings_changed", properties: [
+                    "reminder_threshold": Int(editReminderThreshold),
+                    "ending_soon_frequency": editEndingSoonFrequency
+                ])
             } catch {
                 print("[NotificationsView] Error saving notification settings: \(error)")
             }
@@ -181,7 +185,15 @@ struct NotificationsView: View {
         }
     }
 
+    private func trackOpened(_ notification: AppNotification) {
+        AnalyticsService.shared.track("notification_opened", properties: [
+            "notification_id": notification.id.uuidString,
+            "exhibition_count": notification.exhibitionIds?.count ?? 0
+        ])
+    }
+
     private func handleTap(_ notification: AppNotification) async {
+        trackOpened(notification)
         if !notification.isRead {
             Task { await markRead(notification) }
         }
@@ -192,6 +204,7 @@ struct NotificationsView: View {
 
     private func handleTapMultiple(_ notification: AppNotification) async {
         print("[NotificationsView] multi-exhibition tap, ids: \(notification.exhibitionIds ?? [])")
+        trackOpened(notification)
         selectedNotification = notification
         if !notification.isRead {
             await markRead(notification)
