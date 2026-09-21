@@ -19,6 +19,19 @@ private struct AIResponse: Decodable {
     let exhibitions: [AIChatExhibitionRef]?
 }
 
+extension AIResponse {
+    // Claude sometimes wraps the JSON in a ```json fence despite being told
+    // not to — stripped here rather than tightening the prompt further.
+    static func parse(_ text: String) -> AIResponse? {
+        let cleaned = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "^```(?:json)?\\s*", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "\\s*```$", with: "", options: .regularExpression)
+        guard let data = cleaned.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(AIResponse.self, from: data)
+    }
+}
+
 private struct AIChatExhibitionRef: Decodable, Identifiable {
     let id: Int
     let title: String
@@ -32,16 +45,9 @@ struct AIChatBubble: View {
 
     private static let brandBlue = Color(red: 0.15, green: 0.39, blue: 0.92)
 
-    // Claude sometimes wraps the JSON in a ```json fence despite being told
-    // not to — stripped here rather than tightening the prompt further.
     private var parsedResponse: AIResponse? {
         guard !message.isUser else { return nil }
-        let cleaned = message.text
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: "^```(?:json)?\\s*", with: "", options: .regularExpression)
-            .replacingOccurrences(of: "\\s*```$", with: "", options: .regularExpression)
-        guard let data = cleaned.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode(AIResponse.self, from: data)
+        return AIResponse.parse(message.text)
     }
 
     var body: some View {
@@ -60,12 +66,18 @@ struct AIChatBubble: View {
                     .font(.system(size: 15))
                     .foregroundColor(.primary)
 
-                ForEach(response.exhibitions ?? []) { match in
+                ForEach(Array((response.exhibitions ?? []).enumerated()), id: \.element.id) { position, match in
                     if let exhibition = exhibitions.first(where: { $0.id == match.id }) {
                         NavigationLink(destination: ExhibitionDetailView(exhibition: exhibition)) {
                             AIExhibitionMatchCard(match: match)
                         }
                         .buttonStyle(.plain)
+                        .simultaneousGesture(TapGesture().onEnded {
+                            AnalyticsService.shared.track("ai_exhibition_selected", properties: [
+                                "exhibition_id": exhibition.id,
+                                "position_in_list": position
+                            ])
+                        })
                     }
                 }
             }
@@ -216,6 +228,8 @@ struct AIAssistantSheet: View {
         isLoading = true
         AnalyticsService.shared.track("ai_assistant_message_sent")
 
+        let responseStartTime = Date()
+
         Task {
             do {
                 let reply = try await SupabaseService.shared.askWherartAI(
@@ -225,6 +239,10 @@ struct AIAssistantSheet: View {
                     viewedIds: viewedIds,
                     exhibitions: exhibitionSummaries
                 )
+                AnalyticsService.shared.track("ai_response_received", properties: [
+                    "latency_ms": Int(Date().timeIntervalSince(responseStartTime) * 1000),
+                    "exhibitions_suggested": AIResponse.parse(reply)?.exhibitions?.count ?? 0
+                ])
                 await MainActor.run {
                     messages.append(AIChatMessage(text: reply, isUser: false))
                     isLoading = false
