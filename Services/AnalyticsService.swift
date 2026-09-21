@@ -6,6 +6,14 @@ final class AnalyticsService {
     static let shared = AnalyticsService()
     private var isConfigured = false
 
+    // Events fired before configure() (e.g. a cold-start deep link handled
+    // before WherartApp's .task runs) are held here and flushed once
+    // PostHog is set up. Guarded by a lock: track() can be called from any
+    // thread while configure() runs on the main one.
+    private let lock = NSLock()
+    private var pendingEvents: [(name: String, properties: [String: Any]?)] = []
+    private static let maxPendingEvents = 100
+
     private init() {}
 
     func configure() {
@@ -25,15 +33,35 @@ final class AnalyticsService {
             "app_locale": Locale.current.identifier
         ])
 
+        lock.lock()
         isConfigured = true
+        let queued = pendingEvents
+        pendingEvents.removeAll()
+        lock.unlock()
+
+        for event in queued {
+            capture(event.name, properties: event.properties)
+        }
     }
 
     func track(
         _ event: String,
         properties: [String: Any]? = nil
     ) {
-        guard isConfigured else { return }
+        lock.lock()
+        if !isConfigured {
+            if pendingEvents.count < Self.maxPendingEvents {
+                pendingEvents.append((event, properties))
+            }
+            lock.unlock()
+            return
+        }
+        lock.unlock()
 
+        capture(event, properties: properties)
+    }
+
+    private func capture(_ event: String, properties: [String: Any]?) {
         if let properties = properties {
             PostHogSDK.shared.capture(event, properties: properties)
         } else {
