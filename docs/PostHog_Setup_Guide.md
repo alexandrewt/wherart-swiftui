@@ -1,27 +1,57 @@
-# PostHog Setup Guide
+# WHERART — PostHog Analytics Guide
 
-Analytics for Wherart iOS. All events go through `AnalyticsService.shared.track(...)` (`Services/AnalyticsService.swift`).
+**Last updated:** Sept 21, 2026
+**PostHog workspace:** https://eu.i.posthog.com
+**Status:** 69 events tracked | 8 to add | 5 dashboards + 4 funnels to build
+
+Event names below are the ones actually sent by the code (`AnalyticsService.shared.track(...)`, `Services/AnalyticsService.swift`). To re-verify:
+
+```bash
+grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models | sort -u
+```
 
 ## Configuration
 
-- SDK: PostHog iOS, configured in `AnalyticsService.configure()` with `Config.postHogAPIKey` / `Config.postHogHost`.
+- SDK: PostHog iOS, set up in `AnalyticsService.configure()` (`Config.postHogAPIKey` / `Config.postHogHost`).
 - `captureScreenViews = true` (automatic screen events).
 - Super properties on every event: `app_version`, `build_number`, `device_type`, `os_version`, `app_locale`.
-- `identify(userId:)` is called on sign-in (`SupabaseService`); `reset()` on sign-out.
-- Errors: `trackError(domain:code:message:context:)` emits `api_error`.
+- `identify(userId:)` on sign-in, `reset()` on sign-out.
+- Errors: `trackError(...)` emits `api_error`.
 
-## Events currently implemented (67)
+## Existing events (69)
 
-65 literal event names found in the code, plus 2 dynamic ones (`signup_failed` / `login_failed`, chosen in `LoginView`).
+65 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
 
 ### Auth and onboarding
-`onboarding_started`, `onboarding_step_completed`, `onboarding_preferences_changed`, `onboarding_completed`, `onboarding_error`, `signup_completed`, `signup_failed`, `login_completed`, `login_failed`, `signin_apple_started`, `signin_apple_completed`, `signin_apple_failed`, `signin_google_started`, `signin_google_completed`, `signin_google_failed`, `guest_mode_selected`, `guest_converted_to_user`, `password_reset_completed`, `password_reset_failed`, `logout_confirmed`, `logout_error`, `delete_account_requested`, `delete_account_error`
+| Event | Notes / properties |
+|---|---|
+| `onboarding_started`, `onboarding_step_completed`, `onboarding_preferences_changed`, `onboarding_completed`, `onboarding_error` | Onboarding flow |
+| `signup_started`, `signup_completed`, `signup_failed` | email/password sign-up (`signup_*` / `login_*` names are computed in `LoginView`) |
+| `login_started`, `login_completed`, `login_failed` | email/password sign-in |
+| `signin_apple_started` / `_completed` / `_failed` | Sign in with Apple |
+| `signin_google_started` / `_completed` / `_failed` | Google Sign-In |
+| `guest_mode_selected`, `guest_converted_to_user` | Guest -> account conversion |
+| `password_reset_completed`, `password_reset_failed` | Reset flow |
+| `logout_confirmed`, `logout_error`, `delete_account_requested`, `delete_account_error` | Account lifecycle |
 
-### Discovery
-`tab_clicked`, `exhibition_card_clicked`, `search_performed`, `filter_applied`, `sort_changed`, `exhibition_favorited`, `exhibition_unfavorited`, `exhibition_viewed_toggled`, `exhibition_shared`, `map_opened`, `map_view_duration`, `map_location_filtered`, `location_permission_granted`
+### Discovery and engagement
+| Event | Notes / properties |
+|---|---|
+| `tab_clicked` | `tab` |
+| `search_performed` | `search_term` |
+| `filter_applied` | `art_types`, `venue_types`, `distances`, `prices` (counts) |
+| `sort_changed` | `sort_option` |
+| `exhibition_card_clicked` | `exhibition_id`, `exhibition_title`, `source_screen` ("home" / "map") |
+| `exhibition_favorited`, `exhibition_unfavorited` | favorites |
+| `exhibition_viewed_toggled` | "seen" toggle |
+| `exhibition_shared` | share |
+| `map_opened`, `map_view_duration`, `map_location_filtered` | Map (`center_lat`, `center_lng`, `exhibition_count`) |
+| `location_permission_granted` | |
 
 ### Visits and chat
 `create_visit_opened`, `create_visit_info_filled`, `create_visit_error`, `visit_created`, `visit_joined`, `visit_left`, `visit_detail_viewed`, `visit_details_viewed`, `visits_tab_switched`, `visits_loaded`, `visits_load_error`, `chat_message_sent`
+
+> `visit_detail_viewed` and `visit_details_viewed` look like duplicates: consolidate.
 
 ### Profile and settings
 `profile_viewed`, `profile_load_error`, `settings_opened`, `preferences_updated`, `preferences_update_error`
@@ -30,42 +60,75 @@ Analytics for Wherart iOS. All events go through `AnalyticsService.shared.track(
 `notification_read`, `notification_deleted`, `ending_soon_notification_sent`, `new_exhibitions_notification_sent`
 
 ### Monetization
-`paywall_shown`, `paywall_dismissed`, `paywall_tier_selected`, `purchase_initiated`, `purchase_completed`, `purchase_failed`
+| Event | Notes / properties |
+|---|---|
+| `paywall_shown`, `paywall_dismissed`, `paywall_tier_selected` | `billing_cycle`, `context` |
+| `purchase_initiated`, `purchase_completed`, `purchase_failed` | |
 
-### AI assistant
+### Wherart AI
 `ai_assistant_opened`, `ai_assistant_message_sent`, `ai_assistant_error`
 
 ### Errors
 `api_error`
 
-> Note: `visit_detail_viewed` and `visit_details_viewed` look like duplicates; consider consolidating.
+## Events to add (8)
 
-## Events to implement (suggested)
+Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, `chat_message_sent`), sharing (`exhibition_shared`), AI open/message/error.
 
-| Event | Where | Why |
+| Event | Where | Suggested properties |
 |---|---|---|
-| `notification_preview_opened` | `NotificationsView.handleTapMultiple` | Measure multi-exhibition sheet usage |
-| `notification_preview_exhibition_selected` | `NotificationPreviewSheet` | Which card users pick from the sheet |
-| `notification_opened` (with `exhibition_count`) | `NotificationsView.handleTap*` | Notification tap-through by type |
-| `kids_friendly_filter_applied` | `FilterSheet` | Adoption of the community filter |
-| `exhibition_tag_edited` | Exhibition detail edit flow | Community contribution rate |
-| `share_to_chat_tapped` | Exhibition detail | Share funnel |
-| `deep_link_opened` (with `type`) | `DeepLinkRouter` | Reset-password / share link conversion |
-| `ai_assistant_response_received` | `AIAssistantSheet` | AI latency / completion |
-| `map_marker_tapped` | `MapView` | Map engagement |
-| `session_visit_reminder_scheduled` | `NotificationService` | Reminder adoption |
+| `ai_response_received` | `AIAssistantSheet` | `latency_ms`, `exhibitions_suggested` (needed for latency dashboard) |
+| `ai_exhibition_selected` | `AIAssistantSheet` (tap on a suggested exhibition) | `exhibition_id`, `position_in_list` |
+| `notification_opened` | `NotificationsView.handleTap` / `handleTapMultiple` | `exhibition_count` |
+| `notification_preview_exhibition_selected` | `NotificationPreviewSheet` (multi-exhibition sheet) | `exhibition_id` |
+| `notification_settings_changed` | `NotificationSettingsSheet` save | `reminder_threshold`, `ending_soon_frequency` |
+| `visit_feedback_submitted` | `VisitDetailView` (if a feedback flow is built) | `visit_id`, `rating` |
+| `deep_link_opened` | `DeepLinkRouter` | `type` (reset_password / exhibition / visit) |
+| `map_marker_tapped` | `MapView` | `exhibition_id` |
 
-## Dashboards to create (5)
+## Dashboards (5)
 
-1. **Acquisition and onboarding funnel** — `onboarding_started` -> `onboarding_completed` -> `signup_completed` / `login_completed`; break down by `app_version`; include guest -> user (`guest_converted_to_user`).
-2. **Discovery engagement** — `exhibition_card_clicked`, `exhibition_favorited`, `search_performed`, `filter_applied`, `map_opened`; trends + top filters.
-3. **Visits and social** — `visit_created`, `visit_joined`, `visit_left`, `chat_message_sent`; funnel `create_visit_opened` -> `create_visit_info_filled` -> `visit_created`.
-4. **Notifications and retention** — `notification_read` / `notification_deleted`, sent vs opened, D1/D7/D30 retention.
-5. **Monetization and AI / errors** — paywall funnel (`paywall_shown` -> `paywall_tier_selected` -> `purchase_initiated` -> `purchase_completed`), `ai_assistant_*`, and an error board on `api_error` and every `*_error` / `*_failed` event.
+1. **Acquisition and onboarding**
+   - Daily signups: `signup_completed`
+   - Funnel: `onboarding_started` -> `onboarding_completed` -> `signup_completed`
+   - Auth methods: `signup_completed` / `signin_apple_completed` / `signin_google_completed` / `login_completed`
+   - Guest conversion: `guest_mode_selected` -> `guest_converted_to_user`
+2. **Discovery**
+   - `search_performed` volume + top `search_term`
+   - `filter_applied` volume; `sort_changed` by `sort_option`
+   - `exhibition_card_clicked` by `source_screen`; top `exhibition_title`
+   - `map_opened` and `map_view_duration`
+3. **Engagement**
+   - `exhibition_favorited` vs `exhibition_unfavorited`
+   - `exhibition_viewed_toggled`, `exhibition_shared`
+   - `tab_clicked` by `tab`
+4. **Wherart AI**
+   - Sessions: `ai_assistant_opened`; questions: `ai_assistant_message_sent`
+   - Error rate: `ai_assistant_error` / `ai_assistant_opened`
+   - Latency and click-through: need `ai_response_received` and `ai_exhibition_selected` (see "to add")
+5. **Health and errors**
+   - `api_error`, `*_failed`, `*_error` (all listed above), by `error_message`
+   - `purchase_failed`, `signin_*_failed`
 
-## Setup checklist
+Visits and monetization can be added as extra tiles: visit funnel `create_visit_opened` -> `create_visit_info_filled` -> `visit_created`; paywall funnel `paywall_shown` -> `paywall_tier_selected` -> `purchase_initiated` -> `purchase_completed`.
 
-- [ ] Verify `Config.postHogAPIKey` and host (EU: `https://eu.i.posthog.com`) in the release build.
-- [ ] Create the 5 dashboards above in PostHog.
-- [ ] Add alerts on `api_error` spikes and `purchase_failed`.
-- [ ] Implement the suggested events, then update this document.
+## Funnels (4)
+
+| Funnel | Steps | Target | Alert |
+|---|---|---|---|
+| Signup -> discovery | `signup_completed` -> `exhibition_card_clicked` -> `exhibition_favorited` | > 40% | < 25% |
+| Search -> engage | `search_performed` -> `exhibition_card_clicked` -> `exhibition_favorited` | > 15% | |
+| Filter -> engage | `filter_applied` -> `exhibition_card_clicked` -> `exhibition_favorited` | > 20% | |
+| AI -> action | `ai_assistant_message_sent` -> `ai_response_received` -> `ai_exhibition_selected` | > 30% | < 10% |
+
+Targets are starting guesses, to be adjusted once real data exists.
+
+## Roadmap
+
+1. **Verify (2h):** open the Events tab and confirm the events above appear; build dashboards 1-2 and the first two funnels.
+2. **AI events (3h):** add `ai_response_received` and `ai_exhibition_selected`; build dashboard 4 and the AI funnel; alerts on AI error rate and latency > 5000 ms.
+3. **Notifications (2h):** add `notification_opened`, `notification_preview_exhibition_selected`, `notification_settings_changed`.
+4. **Remaining events (2h):** `deep_link_opened`, `map_marker_tapped`, `visit_feedback_submitted`.
+5. **Advanced:** dashboard 5, D7/D30 retention, cohort AI users vs non-AI users.
+
+**Owner:** Alexandre | **Next review:** Sept 28, 2026
