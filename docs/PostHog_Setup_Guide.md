@@ -2,7 +2,7 @@
 
 **Last updated:** Sept 21, 2026
 **PostHog workspace:** https://eu.i.posthog.com
-**Status:** 71 events tracked | 6 to add | 5 dashboards + 4 funnels to build
+**Status:** 74 events tracked | 3 to add | 5 dashboards + 4 funnels to build
 
 Event names below are the ones actually sent by the code (`AnalyticsService.shared.track(...)`, `Services/AnalyticsService.swift`). To re-verify:
 
@@ -18,9 +18,9 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 - `identify(userId:)` on sign-in, `reset()` on sign-out.
 - Errors: `trackError(...)` emits `api_error`.
 
-## Existing events (71)
+## Existing events (74)
 
-67 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
+70 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
 
 ### Auth and onboarding
 | Event | Notes / properties |
@@ -57,7 +57,7 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 `profile_viewed`, `profile_load_error`, `settings_opened`, `preferences_updated`, `preferences_update_error`
 
 ### Notifications
-`notification_read`, `notification_deleted`, `ending_soon_notification_sent`, `new_exhibitions_notification_sent`
+`notification_read`, `notification_deleted`, `notification_opened` (`notification_id`, `exhibition_count`), `notification_preview_exhibition_selected` (`exhibition_id`), `notification_settings_changed` (`reminder_threshold`, `ending_soon_frequency`), `ending_soon_notification_sent`, `new_exhibitions_notification_sent`
 
 ### Monetization
 | Event | Notes / properties |
@@ -71,15 +71,12 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 ### Errors
 `api_error`
 
-## Events to add (6)
+## Events to add (3)
 
 Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, `chat_message_sent`), sharing (`exhibition_shared`), AI open/message/error.
 
 | Event | Where | Suggested properties |
 |---|---|---|
-| `notification_opened` | `NotificationsView.handleTap` / `handleTapMultiple` | `exhibition_count` |
-| `notification_preview_exhibition_selected` | `NotificationPreviewSheet` (multi-exhibition sheet) | `exhibition_id` |
-| `notification_settings_changed` | `NotificationSettingsSheet` save | `reminder_threshold`, `ending_soon_frequency` |
 | `visit_feedback_submitted` | `VisitDetailView` (if a feedback flow is built) | `visit_id`, `rating` |
 | `deep_link_opened` | `DeepLinkRouter` | `type` (reset_password / exhibition / visit) |
 | `map_marker_tapped` | `MapView` | `exhibition_id` |
@@ -125,7 +122,7 @@ Targets are starting guesses, to be adjusted once real data exists.
 
 1. **Verify (2h):** open the Events tab and confirm the events above appear; build dashboards 1-2 and the first two funnels.
 2. **AI events (3h): ✅ DONE** (events added); build dashboard 4 and the AI funnel; alerts on AI error rate and latency > 5000 ms.
-3. **Notifications (2h):** add `notification_opened`, `notification_preview_exhibition_selected`, `notification_settings_changed`.
+3. **Notifications (2h): ✅ DONE** — added `notification_opened`, `notification_preview_exhibition_selected`, `notification_settings_changed`.
 4. **Remaining events (2h):** `deep_link_opened`, `map_marker_tapped`, `visit_feedback_submitted`.
 5. **Advanced:** dashboard 5, D7/D30 retention, cohort AI users vs non-AI users.
 
