@@ -31,6 +31,12 @@
 2. ✅ DONE — Notification overlay for 2+ exhibitions
 3. Post v1.6.2: set up PostHog dashboards
 
+### KNOWN ANALYTICS DATA-QUALITY ISSUES (fix after PostHog dashboards)
+- `location_permission_granted` (MapView `onChange` of location) fires on every location update, not when permission is granted: misnamed and inflated.
+- `visit_left` is only sent when a member leaves; the creator deleting a visit (`VisitDetailView.leaveOrDelete`) sends nothing.
+- `visit_detail_viewed` and `visit_details_viewed` are near-duplicates.
+- Events fired before `AnalyticsService.configure()` (which runs in WherartApp's `.task`) are silently dropped: a cold-start deep link or notification tap can lose its `deep_link_opened`.
+
 ### RECENT WORK SESSION (Sept 15, 2026)
 - Fixed 22 exhibition duplicates in DB
 - Normalized spaces in exhibition titles/venues

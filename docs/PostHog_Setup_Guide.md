@@ -2,7 +2,7 @@
 
 **Last updated:** Sept 21, 2026
 **PostHog workspace:** https://eu.i.posthog.com
-**Status:** 74 events tracked | 3 to add | 5 dashboards + 4 funnels to build
+**Status:** 75 events tracked | 1 to add (blocked) | 5 dashboards + 4 funnels to build
 
 Event names below are the ones actually sent by the code (`AnalyticsService.shared.track(...)`, `Services/AnalyticsService.swift`). To re-verify:
 
@@ -18,9 +18,9 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 - `identify(userId:)` on sign-in, `reset()` on sign-out.
 - Errors: `trackError(...)` emits `api_error`.
 
-## Existing events (74)
+## Existing events (75)
 
-70 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
+71 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
 
 ### Auth and onboarding
 | Event | Notes / properties |
@@ -68,18 +68,19 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 ### Wherart AI
 `ai_assistant_opened`, `ai_assistant_message_sent`, `ai_response_received` (`latency_ms`, `exhibitions_suggested`), `ai_exhibition_selected` (`exhibition_id`, `position_in_list`), `ai_assistant_error`
 
+### Deep links
+`deep_link_opened` (`type`: `reset_password` / `exhibition` / `notification`; `source`: `url_scheme` / `universal_link`, or the notification kind; `exhibition_id` or `exhibition_count`)
+
 ### Errors
 `api_error`
 
-## Events to add (3)
+## Events to add (1)
 
 Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, `chat_message_sent`), sharing (`exhibition_shared`), AI open/message/error.
 
 | Event | Where | Suggested properties |
 |---|---|---|
-| `visit_feedback_submitted` | `VisitDetailView` (if a feedback flow is built) | `visit_id`, `rating` |
-| `deep_link_opened` | `DeepLinkRouter` | `type` (reset_password / exhibition / visit) |
-| `map_marker_tapped` | `MapView` | `exhibition_id` |
+| `visit_feedback_submitted` | `VisitDetailView` | `visit_id`, `rating` — **blocked: requires feedback UI** (no rating/feedback screen exists yet) |
 
 ## Dashboards (5)
 
@@ -123,7 +124,7 @@ Targets are starting guesses, to be adjusted once real data exists.
 1. **Verify (2h):** open the Events tab and confirm the events above appear; build dashboards 1-2 and the first two funnels.
 2. **AI events (3h): ✅ DONE** (events added); build dashboard 4 and the AI funnel; alerts on AI error rate and latency > 5000 ms.
 3. **Notifications (2h): ✅ DONE** — added `notification_opened`, `notification_preview_exhibition_selected`, `notification_settings_changed`.
-4. **Remaining events (2h):** `deep_link_opened`, `map_marker_tapped`, `visit_feedback_submitted`.
+4. **Remaining events: ✅ DONE** — `deep_link_opened` added. `map_marker_tapped` dropped (duplicate of `exhibition_card_clicked` with `source_screen: "map"`). `visit_feedback_submitted` is blocked until a feedback UI exists.
 5. **Advanced:** dashboard 5, D7/D30 retention, cohort AI users vs non-AI users.
 
 **Owner:** Alexandre | **Next review:** Sept 28, 2026
