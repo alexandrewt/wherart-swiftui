@@ -6,7 +6,7 @@
 - **App**: Wherart iOS (SwiftUI native)
 - **Supabase Project**: etfarydonmbkuxdharjl
 - **Bundle ID**: com.alexandrewt.wherart
-- **Current Version**: v1.6.1 (in dev)
+- **Current Version**: v1.6.2 (build 62)
 - **TestFlight**: https://testflight.apple.com/join/A128eb3V
 - **Repo**: https://github.com/alexandrewt/wherart-swiftui
 
@@ -16,7 +16,7 @@
 - PostHog analytics
 - Anthropic Claude API (ask-wherart-ai)
 
-### KEY FEATURES (v1.6.1)
+### KEY FEATURES (v1.6.2)
 ✅ Personalized exhibition discovery
 ✅ Group visits organization
 ✅ Reset password via email (deep links)
@@ -29,10 +29,10 @@
 ### CURRENT ISSUES TO FIX
 1. HomeView greeting "Hello, [name]!" disappeared
 2. ✅ DONE — Notification overlay for 2+ exhibitions
-3. Post v1.6.1: set up PostHog dashboards
+3. Post v1.6.2: set up PostHog dashboards
 
 ### RECENT WORK SESSION (Sept 15, 2026)
-- Fixed 22 exhibition duplicates in DB (924 total now)
+- Fixed 22 exhibition duplicates in DB
 - Normalized spaces in exhibition titles/venues
 - sync-exhibitions v9 deployed with normalizeText()
 - Wherart AI fully functional (crédits chargés)
@@ -40,7 +40,7 @@
 - Password reset working (deep links + AASA)
 
 ### SUPABASE TABLES
-- exhibitions (924 rows, indexed)
+- exhibitions (961 rows, 321 active as of Sept 21, 2026)
 - profiles (user data)
 - user_exhibition_edits (community tags: kids_friendly, wheelchair)
 - visits (group visits organization)
@@ -89,7 +89,7 @@ Wherart/
 2. ✅ DONE — **Notification overlay for 2+ expos**
 3. **Test Wherart AI on device** (5 min, live now)
 4. **PostHog dashboards setup** (30 min, backlog)
-5. **Submit v1.6.1 to App Store** (after all tests pass)
+5. **Submit v1.6.2 to App Store** (after all tests pass)
 
 ### IMPORTANT NOTES
 - Never modify Supabase schema without migration file
@@ -118,5 +118,5 @@ All sessions: /mnt/transcripts/journal.txt
 
 ---
 
-**Last updated**: Sept 15, 2026, 14:37 UTC
+**Last updated**: Sept 21, 2026
 **By**: Alexandre de Witt
