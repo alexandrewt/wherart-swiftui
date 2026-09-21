@@ -14,7 +14,6 @@ struct NotificationsView: View {
     @State private var isLoading = false
     @State private var showSettings = false
     @State private var selectedExhibition: Exhibition? = nil
-    @State private var showPreviewSheet = false
     @State private var selectedNotification: AppNotification?
 
     // Bindings for the reused NotificationSettingsSheet.
@@ -116,10 +115,8 @@ struct NotificationsView: View {
         .navigationDestination(item: $selectedExhibition) { exhibition in
             ExhibitionDetailView(exhibition: exhibition)
         }
-        .sheet(isPresented: $showPreviewSheet) {
-            if let ids = selectedNotification?.exhibitionIds {
-                NotificationPreviewSheet(exhibitionIds: ids)
-            }
+        .sheet(item: $selectedNotification) { notification in
+            NotificationPreviewSheet(exhibitionIds: notification.exhibitionIds ?? [])
         }
         .sheet(isPresented: $showSettings) {
             NotificationSettingsSheet(
@@ -194,11 +191,11 @@ struct NotificationsView: View {
     }
 
     private func handleTapMultiple(_ notification: AppNotification) async {
+        print("[NotificationsView] multi-exhibition tap, ids: \(notification.exhibitionIds ?? [])")
+        selectedNotification = notification
         if !notification.isRead {
             await markRead(notification)
         }
-        selectedNotification = notification
-        showPreviewSheet = true
     }
 
     private func markRead(_ notification: AppNotification) async {
