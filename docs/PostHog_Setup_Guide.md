@@ -2,7 +2,7 @@
 
 **Last updated:** Sept 21, 2026
 **PostHog workspace:** https://eu.i.posthog.com
-**Status:** 69 events tracked | 8 to add | 5 dashboards + 4 funnels to build
+**Status:** 71 events tracked | 6 to add | 5 dashboards + 4 funnels to build
 
 Event names below are the ones actually sent by the code (`AnalyticsService.shared.track(...)`, `Services/AnalyticsService.swift`). To re-verify:
 
@@ -18,9 +18,9 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 - `identify(userId:)` on sign-in, `reset()` on sign-out.
 - Errors: `trackError(...)` emits `api_error`.
 
-## Existing events (69)
+## Existing events (71)
 
-65 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
+67 literal names + 4 computed in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
 
 ### Auth and onboarding
 | Event | Notes / properties |
@@ -66,19 +66,17 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 | `purchase_initiated`, `purchase_completed`, `purchase_failed` | |
 
 ### Wherart AI
-`ai_assistant_opened`, `ai_assistant_message_sent`, `ai_assistant_error`
+`ai_assistant_opened`, `ai_assistant_message_sent`, `ai_response_received` (`latency_ms`, `exhibitions_suggested`), `ai_exhibition_selected` (`exhibition_id`, `position_in_list`), `ai_assistant_error`
 
 ### Errors
 `api_error`
 
-## Events to add (8)
+## Events to add (6)
 
 Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, `chat_message_sent`), sharing (`exhibition_shared`), AI open/message/error.
 
 | Event | Where | Suggested properties |
 |---|---|---|
-| `ai_response_received` | `AIAssistantSheet` | `latency_ms`, `exhibitions_suggested` (needed for latency dashboard) |
-| `ai_exhibition_selected` | `AIAssistantSheet` (tap on a suggested exhibition) | `exhibition_id`, `position_in_list` |
 | `notification_opened` | `NotificationsView.handleTap` / `handleTapMultiple` | `exhibition_count` |
 | `notification_preview_exhibition_selected` | `NotificationPreviewSheet` (multi-exhibition sheet) | `exhibition_id` |
 | `notification_settings_changed` | `NotificationSettingsSheet` save | `reminder_threshold`, `ending_soon_frequency` |
@@ -105,7 +103,7 @@ Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, 
 4. **Wherart AI**
    - Sessions: `ai_assistant_opened`; questions: `ai_assistant_message_sent`
    - Error rate: `ai_assistant_error` / `ai_assistant_opened`
-   - Latency and click-through: need `ai_response_received` and `ai_exhibition_selected` (see "to add")
+   - Latency: `ai_response_received` (`latency_ms`); click-through: `ai_exhibition_selected`
 5. **Health and errors**
    - `api_error`, `*_failed`, `*_error` (all listed above), by `error_message`
    - `purchase_failed`, `signin_*_failed`
@@ -126,7 +124,7 @@ Targets are starting guesses, to be adjusted once real data exists.
 ## Roadmap
 
 1. **Verify (2h):** open the Events tab and confirm the events above appear; build dashboards 1-2 and the first two funnels.
-2. **AI events (3h):** add `ai_response_received` and `ai_exhibition_selected`; build dashboard 4 and the AI funnel; alerts on AI error rate and latency > 5000 ms.
+2. **AI events (3h): ✅ DONE** (events added); build dashboard 4 and the AI funnel; alerts on AI error rate and latency > 5000 ms.
 3. **Notifications (2h):** add `notification_opened`, `notification_preview_exhibition_selected`, `notification_settings_changed`.
 4. **Remaining events (2h):** `deep_link_opened`, `map_marker_tapped`, `visit_feedback_submitted`.
 5. **Advanced:** dashboard 5, D7/D30 retention, cohort AI users vs non-AI users.
