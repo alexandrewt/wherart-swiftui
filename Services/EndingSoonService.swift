@@ -264,6 +264,15 @@ extension EndingSoonService: UNUserNotificationCenterDelegate {
     ) {
         let userInfo = response.notification.request.content.userInfo
 
+        if userInfo["exhibition_ids"] != nil || userInfo["exhibition_id"] != nil {
+            let count = (userInfo["exhibition_ids"] as? [Int])?.count ?? 1
+            AnalyticsService.shared.track("deep_link_opened", properties: [
+                "type": "notification",
+                "source": userInfo["type"] as? String ?? "ending_soon",
+                "exhibition_count": count
+            ])
+        }
+
         if let ids = userInfo["exhibition_ids"] as? [Int], ids.count >= 2 {
             DispatchQueue.main.async {
                 DeepLinkRouter.shared.pendingExhibitionChoiceIds = ids

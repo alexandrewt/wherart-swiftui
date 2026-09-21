@@ -91,7 +91,20 @@ struct WherartApp: App {
 /// same way whether they arrive as a URL path (https) or a host (custom
 /// scheme, e.g. wherart://reset-password), which is why both are checked.
 func handleIncomingURL(_ url: URL) {
+    // Several entry points can deliver the same URL — see above.
+    let dedupKey = url.absoluteString
+    if dedupKey == lastHandledURL, Date().timeIntervalSince(lastHandledURLDate) < 2 { return }
+    lastHandledURL = dedupKey
+    lastHandledURLDate = Date()
+
+    // Never include the URL itself: the reset-password link carries a token.
+    let source = url.scheme == "wherart" ? "url_scheme" : "universal_link"
+
     if url.path == "/reset-password" || url.host == "reset-password" {
+        AnalyticsService.shared.track("deep_link_opened", properties: [
+            "type": "reset_password",
+            "source": source
+        ])
         DispatchQueue.main.async {
             DeepLinkRouter.shared.pendingPasswordRecoveryURL = url
         }
@@ -104,10 +117,18 @@ func handleIncomingURL(_ url: URL) {
           let exhibitionId = Int(pathComponents[eIndex + 1]) else {
         return
     }
+    AnalyticsService.shared.track("deep_link_opened", properties: [
+        "type": "exhibition",
+        "source": source,
+        "exhibition_id": exhibitionId
+    ])
     DispatchQueue.main.async {
         DeepLinkRouter.shared.pendingExhibitionId = exhibitionId
     }
 }
+
+private var lastHandledURL: String?
+private var lastHandledURLDate = Date.distantPast
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
