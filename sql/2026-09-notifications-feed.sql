@@ -1,3 +1,7 @@
+-- ⚠️ OBSOLÈTE — remplacé par supabase/migrations/20260915000001_update_notifications_to_multiple_exhibitions.sql
+-- Ne pas rejouer sur une base existante. Gardé pour historique.
+-- Créait une colonne `exhibition_id` (unique) remplacée par `exhibition_ids` (array).
+
 -- In-app notifications feed + unread badge system.
 --
 -- Run once in the Supabase SQL Editor. Idempotent (IF NOT EXISTS / CREATE

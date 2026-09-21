@@ -28,7 +28,7 @@
 
 ### CURRENT ISSUES TO FIX
 1. HomeView greeting "Hello, [name]!" disappeared
-2. Notification overlay for 2+ exhibitions (PROMPT READY)
+2. ✅ DONE — Notification overlay for 2+ exhibitions
 3. Post v1.6.1: set up PostHog dashboards
 
 ### RECENT WORK SESSION (Sept 15, 2026)
@@ -55,18 +55,18 @@
 
 ```
 Wherart/
-├── Wherart/WherartApp.swift (main)
+├── App/WherartApp.swift (main)
 ├── Views/
 │   ├── Home/HomeView.swift (main feed)
-│   ├── Exhibition/ExhibitionDetailView.swift
+│   ├── Home/ExhibitionDetailView.swift
 │   ├── Map/MapView.swift
-│   ├── Visit/VisitDetailView.swift
+│   ├── Visits/VisitDetailView.swift
 │   ├── Profile/ProfileView.swift
-│   ├── Notifications/NotificationsView.swift (needs overlay)
-│   └── AI/AIAssistantSheet.swift (working, needs testing)
+│   ├── Notifications/NotificationsView.swift + NotificationPreviewSheet.swift (multi-expo chooser, done)
+│   └── Home/AIAssistantSheet.swift (working, needs testing)
 ├── Models/
 │   ├── Models.swift (Exhibition, Profile, Visit, etc.)
-│   └── Models.swift (append AppNotification for multi-expo)
+│   └── (AppNotification lives in Models.swift, with exhibitionIds array)
 ├── Services/
 │   ├── SupabaseService.swift (all DB/API calls)
 │   └── AnalyticsService.swift (PostHog)
@@ -74,8 +74,10 @@ Wherart/
 │   ├── functions/sync-exhibitions/index.ts (v9)
 │   ├── functions/ask-wherart-ai/index.ts (v3)
 │   ├── functions/share-exhibition/index.ts
-│   └── migrations/
-│       └── 2026-09-prevent-exhibition-duplicates.sql
+│   └── migrations/ (applied by `supabase db push`)
+│       └── 20260915000001_update_notifications_to_multiple_exhibitions.sql
+├── sql/ (manual scripts, run in the Supabase SQL Editor)
+│   └── 2026-09-prevent-exhibition-duplicates.sql (+ 3 others)
 └── Xcode/
     ├── Wherart.xcodeproj
     ├── Podfile (if CocoaPods used)
@@ -84,7 +86,7 @@ Wherart/
 
 ### NEXT TASKS (Prioritized)
 1. **Fix HomeView greeting** (5 min, prompt ready)
-2. **Notification overlay for 2+ expos** (1h, full prompt ready)
+2. ✅ DONE — **Notification overlay for 2+ expos**
 3. **Test Wherart AI on device** (5 min, live now)
 4. **PostHog dashboards setup** (30 min, backlog)
 5. **Submit v1.6.1 to App Store** (after all tests pass)
