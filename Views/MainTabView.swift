@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Auth
 
 final class AppNavigation: ObservableObject {
     @Published var selectedTab: Int = 0
@@ -88,6 +89,13 @@ struct MainTabView: View {
             let tabNames = ["home", "map", "visits", "profile"]
             if newTab < tabNames.count {
                 AnalyticsService.shared.track("tab_clicked", properties: ["tab": tabNames[newTab]])
+
+                // A guest tapping Visits/Profile only gets the login prompt,
+                // which isn't a feature actually touched.
+                let blockedByGuestGate = service.isGuestMode && (newTab == 2 || newTab == 3)
+                if !blockedByGuestGate {
+                    trackFirstFeatureTouched(tabNames[newTab])
+                }
             }
 
             if service.isGuestMode && (newTab == 2 || newTab == 3) {
@@ -144,6 +152,18 @@ struct MainTabView: View {
                 nav.selectedTab = 0
             }
         }
+    }
+}
+
+extension MainTabView {
+    /// Fires once per user (per "guest" on this device), the first time they
+    /// switch tabs. Persisted so it doesn't repeat on every app launch.
+    fileprivate func trackFirstFeatureTouched(_ feature: String) {
+        let userKey = SupabaseService.shared.currentUser?.id.uuidString.lowercased() ?? "guest"
+        let defaultsKey = "first_feature_touched_\(userKey)"
+        guard !UserDefaults.standard.bool(forKey: defaultsKey) else { return }
+        UserDefaults.standard.set(true, forKey: defaultsKey)
+        AnalyticsService.shared.track("first_feature_touched", properties: ["feature": feature])
     }
 }
 
