@@ -82,27 +82,27 @@ Already covered, so not repeated here: visits (`visit_created`, `visit_joined`, 
 |---|---|---|
 | `visit_feedback_submitted` | `VisitDetailView` | `visit_id`, `rating` — **blocked: requires feedback UI** (no rating/feedback screen exists yet) |
 
-## Dashboards (5)
+## Dashboards (5) ✅ DONE
 
-1. **Acquisition and onboarding**
+1. **Acquisition and onboarding ✅ DONE**
    - Daily signups: `signup_completed`
    - Funnel: `onboarding_started` -> `onboarding_completed` -> `signup_completed`
    - Auth methods: `signup_completed` / `signin_apple_completed` / `signin_google_completed` / `login_completed`
    - Guest conversion: `guest_mode_selected` -> `guest_converted_to_user`
-2. **Discovery**
+2. **Discovery ✅ DONE**
    - `search_performed` volume + top `search_term`
    - `filter_applied` volume; `sort_changed` by `sort_option`
    - `exhibition_card_clicked` by `source_screen`; top `exhibition_title`
    - `map_opened` and `map_view_duration`
-3. **Engagement**
+3. **Engagement ✅ DONE**
    - `exhibition_favorited` vs `exhibition_unfavorited`
    - `exhibition_viewed_toggled`, `exhibition_shared`
    - `tab_clicked` by `tab`
-4. **Wherart AI**
+4. **Wherart AI ✅ DONE**
    - Sessions: `ai_assistant_opened`; questions: `ai_assistant_message_sent`
    - Error rate: `ai_assistant_error` / `ai_assistant_opened`
    - Latency: `ai_response_received` (`latency_ms`); click-through: `ai_exhibition_selected`
-5. **Health and errors**
+5. **Health and errors ✅ DONE**
    - `api_error`, `*_failed`, `*_error` (all listed above), by `error_message`
    - `purchase_failed`, `signin_*_failed`
 
