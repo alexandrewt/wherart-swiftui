@@ -298,3 +298,6 @@
 "new_exhibitions_fallback_name" = "Nouvelles expositions";
 "notification_exhibitions_count" = "%d expositions";
 "notification_no_exhibitions" = "Aucune exposition à afficher";
+"ai_history_title" = "Historique";
+"ai_history_empty" = "Aucune conversation pour l'instant";
+"ai_new_conversation" = "Nouvelle conversation";

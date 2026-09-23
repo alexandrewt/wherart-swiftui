@@ -1,4 +1,6 @@
 import SwiftUI
+import Auth
+import Combine
 
 // MARK: - Chat Message
 
@@ -9,6 +11,75 @@ struct AIChatMessage: Identifiable {
     let id = UUID()
     let text: String
     let isUser: Bool
+}
+
+// MARK: - Conversation History (on-device)
+
+struct AIStoredMessage: Codable {
+    let text: String
+    let isUser: Bool
+}
+
+struct AIConversation: Codable, Identifiable {
+    let id: UUID
+    var title: String
+    var updatedAt: Date
+    var messages: [AIStoredMessage]
+}
+
+/// Persists AI conversations as JSON in Application Support, one file per
+/// signed-in user (or "guest") so accounts on the same device never see each
+/// other's history. The greeting is never stored — it's re-added on load.
+@MainActor
+final class AIConversationStore: ObservableObject {
+    @Published private(set) var conversations: [AIConversation] = []
+
+    private let fileURL: URL
+    private static let maxConversations = 50
+
+    init() {
+        let userId = SupabaseService.shared.currentUser?.id.uuidString.lowercased() ?? "guest"
+        let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        fileURL = directory.appendingPathComponent("ai_conversations_\(userId).json")
+
+        if let data = try? Data(contentsOf: fileURL),
+           let decoded = try? JSONDecoder().decode([AIConversation].self, from: data) {
+            conversations = decoded.sorted { $0.updatedAt > $1.updatedAt }
+        }
+    }
+
+    var latest: AIConversation? { conversations.first }
+
+    /// Creates the conversation on first call (id == nil) or updates it, and
+    /// moves it to the top. Returns its id.
+    @discardableResult
+    func upsert(id: UUID?, messages: [AIStoredMessage]) -> UUID? {
+        guard let firstUserText = messages.first(where: { $0.isUser })?.text else { return id }
+        let title = String(firstUserText.trimmingCharacters(in: .whitespacesAndNewlines).prefix(60))
+        let conversationId = id ?? UUID()
+
+        conversations.removeAll { $0.id == conversationId }
+        conversations.insert(
+            AIConversation(id: conversationId, title: title, updatedAt: Date(), messages: messages),
+            at: 0
+        )
+        if conversations.count > Self.maxConversations {
+            conversations = Array(conversations.prefix(Self.maxConversations))
+        }
+        save()
+        return conversationId
+    }
+
+    func delete(id: UUID) {
+        conversations.removeAll { $0.id == id }
+        save()
+    }
+
+    private func save() {
+        guard let data = try? JSONEncoder().encode(conversations) else { return }
+        try? data.write(to: fileURL, options: .atomic)
+    }
 }
 
 // The AI backend replies with a JSON envelope (see ask-wherart-ai/index.ts's
@@ -136,6 +207,9 @@ struct AIAssistantSheet: View {
     @State private var messages: [AIChatMessage] = []
     @State private var inputText = ""
     @State private var isLoading = false
+    @StateObject private var store = AIConversationStore()
+    @State private var conversationId: UUID?
+    @State private var showHistory = false
     @FocusState private var inputFocused: Bool
 
     private static let brandBlue = Color(red: 0.15, green: 0.39, blue: 0.92)
@@ -201,17 +275,70 @@ struct AIAssistantSheet: View {
             .navigationTitle(String(localized: "ai_assistant_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    Button(action: { showHistory = true }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                    .disabled(isLoading)
+                    .accessibilityLabel(String(localized: "ai_history_title"))
+
+                    Button(action: startNewConversation) {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    .disabled(isLoading || conversationId == nil)
+                    .accessibilityLabel(String(localized: "ai_new_conversation"))
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(String(localized: "done")) { dismiss() }
                 }
             }
+            .navigationDestination(isPresented: $showHistory) {
+                AIHistoryView(
+                    store: store,
+                    onSelect: { conversation in
+                        load(conversation)
+                        showHistory = false
+                    },
+                    onDelete: { id in
+                        store.delete(id: id)
+                        if id == conversationId { startNewConversation() }
+                    }
+                )
+            }
         }
         .onAppear {
             if messages.isEmpty {
-                messages.append(AIChatMessage(text: String(localized: "ai_assistant_greeting"), isUser: false))
+                // Resume where the user left off (also what brings them back
+                // to the chat after the sheet was closed on an exhibition).
+                if let latest = store.latest {
+                    load(latest)
+                } else {
+                    startNewConversation()
+                }
             }
             AnalyticsService.shared.track("ai_assistant_opened")
         }
+    }
+
+    private var greetingMessage: AIChatMessage {
+        AIChatMessage(text: String(localized: "ai_assistant_greeting"), isUser: false)
+    }
+
+    private func startNewConversation() {
+        conversationId = nil
+        messages = [greetingMessage]
+    }
+
+    private func load(_ conversation: AIConversation) {
+        conversationId = conversation.id
+        messages = [greetingMessage] + conversation.messages.map {
+            AIChatMessage(text: $0.text, isUser: $0.isUser)
+        }
+    }
+
+    private func persist() {
+        let stored = messages.dropFirst().map { AIStoredMessage(text: $0.text, isUser: $0.isUser) }
+        conversationId = store.upsert(id: conversationId, messages: Array(stored))
     }
 
     private var canSend: Bool {
@@ -225,6 +352,7 @@ struct AIAssistantSheet: View {
         inputText = ""
         inputFocused = false
         messages.append(AIChatMessage(text: text, isUser: true))
+        persist()
         isLoading = true
         AnalyticsService.shared.track("ai_assistant_message_sent")
 
@@ -245,16 +373,75 @@ struct AIAssistantSheet: View {
                 ])
                 await MainActor.run {
                     messages.append(AIChatMessage(text: reply, isUser: false))
+                    persist()
                     isLoading = false
                 }
             } catch {
                 AnalyticsService.shared.track("ai_assistant_error", properties: ["error": error.localizedDescription])
                 await MainActor.run {
                     messages.append(AIChatMessage(text: String(localized: "ai_assistant_error"), isUser: false))
+                    persist()
                     isLoading = false
                 }
             }
         }
+    }
+}
+
+// MARK: - History
+
+private struct AIHistoryView: View {
+    @ObservedObject var store: AIConversationStore
+    let onSelect: (AIConversation) -> Void
+    let onDelete: (UUID) -> Void
+
+    private static let formatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter
+    }()
+
+    var body: some View {
+        Group {
+            if store.conversations.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 36))
+                        .foregroundColor(.gray)
+                    Text(String(localized: "ai_history_empty"))
+                        .font(.system(size: 15))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(store.conversations) { conversation in
+                        Button(action: { onSelect(conversation) }) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(conversation.title)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(2)
+                                Text(Self.formatter.localizedString(for: conversation.updatedAt, relativeTo: Date()))
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                onDelete(conversation.id)
+                            } label: {
+                                Label(String(localized: "delete"), systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+                .listStyle(.plain)
+            }
+        }
+        .navigationTitle(String(localized: "ai_history_title"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
