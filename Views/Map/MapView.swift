@@ -475,48 +475,59 @@ struct MapClusterGroup {
     }
 }
 
-/// Groups exhibitions into clusters based on proximity, with the threshold
-/// scaling to how zoomed-out the map currently is:
+/// Target on-screen size (points) of one clustering cell. Clusters are
+/// computed in screen space rather than in meters so that two cluster pins
+/// can never overlap on screen, at any zoom: a fixed-size pin (~40-56pt) needs
+/// a cell wider than itself, and a meter threshold can't guarantee that.
+private let clusterCellPoints: CGFloat = 80
+
+/// Groups exhibitions by grid cell, where each cell is `clusterCellPoints`
+/// wide on screen at the map's current span:
 /// - below 0.005° span (street level): no clustering, every pin individual
-/// - 0.005°–0.05° span (neighborhood level): group within ~100m
-/// - above 0.05° span (city level): group within ~500m
-func computeMapClusters(exhibitions: [Exhibition], span: MKCoordinateSpan) -> [MapClusterGroup] {
+///   (same-venue exhibitions are then fanned out by `spreadOverlappingPins`)
+/// - otherwise: one cluster per occupied cell, so zooming out merges pins
+///   into fewer, larger numbered clusters, and zooming in splits them.
+/// The grid is anchored to lat/lng (not the screen), so clusters stay stable
+/// while panning and only re-group when the zoom level changes.
+func computeMapClusters(exhibitions: [Exhibition], span: MKCoordinateSpan, viewSize: CGSize) -> [MapClusterGroup] {
     let maxSpan = max(span.latitudeDelta, span.longitudeDelta)
 
     guard maxSpan >= 0.005 else {
         return exhibitions.map { MapClusterGroup(exhibitions: [$0]) }
     }
 
-    let thresholdMeters: Double = maxSpan > 0.05 ? 500 : 100
+    // Before the map has been laid out its bounds are zero — fall back to a
+    // typical phone size rather than dividing by zero.
+    let width = viewSize.width > 0 ? viewSize.width : 390
+    let height = viewSize.height > 0 ? viewSize.height : 800
 
-    var groups: [[Exhibition]] = []
-    var assigned = Set<Int>()
+    let latCell = span.latitudeDelta * Double(clusterCellPoints / height)
+    let lngCell = span.longitudeDelta * Double(clusterCellPoints / width)
+
+    struct CellKey: Hashable { let row: Int; let column: Int }
+    var cells: [CellKey: [Exhibition]] = [:]
+    var order: [CellKey] = []
 
     for exhibition in exhibitions {
-        guard !assigned.contains(exhibition.id) else { continue }
-        var group = [exhibition]
-        assigned.insert(exhibition.id)
-        for candidate in exhibitions {
-            guard !assigned.contains(candidate.id) else { continue }
-            if metersBetween(exhibition, candidate) <= thresholdMeters {
-                group.append(candidate)
-                assigned.insert(candidate.id)
-            }
-        }
-        groups.append(group)
+        let key = CellKey(
+            row: Int((exhibition.lat / latCell).rounded(.down)),
+            column: Int((exhibition.lng / lngCell).rounded(.down))
+        )
+        if cells[key] == nil { order.append(key) }
+        cells[key, default: []].append(exhibition)
     }
 
-    return groups.map { MapClusterGroup(exhibitions: $0) }
+    return order.compactMap { cells[$0].map { MapClusterGroup(exhibitions: $0) } }
 }
 
-private func metersBetween(_ a: Exhibition, _ b: Exhibition) -> Double {
-    let R = 6_371_000.0
-    let dLat = (b.lat - a.lat) * .pi / 180
-    let dLon = (b.lng - a.lng) * .pi / 180
-    let sinLat = sin(dLat / 2)
-    let sinLon = sin(dLon / 2)
-    let h = sinLat * sinLat + cos(a.lat * .pi / 180) * cos(b.lat * .pi / 180) * sinLon * sinLon
-    return R * 2 * atan2(sqrt(h), sqrt(1 - h))
+/// Diameter of a numbered cluster pin, growing with its size so bigger
+/// clusters read as bigger — kept below the cell size so pins never touch.
+func clusterPinDiameter(forCount count: Int) -> CGFloat {
+    switch count {
+    case ..<10: return 40
+    case ..<50: return 48
+    default:    return 56
+    }
 }
 
 // MARK: - Overlapping Pin Spread
@@ -669,7 +680,7 @@ struct ClusteredMapView: UIViewRepresentable {
             mapView.removeAnnotations(mapView.annotations.filter { !($0 is MKUserLocation) })
 
             let span = mapView.region.span
-            let groups = computeMapClusters(exhibitions: exhibitions, span: span)
+            let groups = computeMapClusters(exhibitions: exhibitions, span: span, viewSize: mapView.bounds.size)
             var newAnnotations: [MKAnnotation] = []
             var individualPins: [ExhibitionAnnotation] = []
             for group in groups {
@@ -704,7 +715,8 @@ struct ClusteredMapView: UIViewRepresentable {
                 let view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
                     ?? MKAnnotationView(annotation: cluster, reuseIdentifier: identifier)
                 view.annotation = cluster
-                let image = Self.renderClusterImage(count: cluster.group.exhibitions.count, diameter: 40)
+                let count = cluster.group.exhibitions.count
+                let image = Self.renderClusterImage(count: count, diameter: clusterPinDiameter(forCount: count))
                 view.image = image
                 view.centerOffset = .zero
                 view.displayPriority = .required
