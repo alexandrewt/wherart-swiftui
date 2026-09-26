@@ -859,7 +859,7 @@ struct SponsoredTopBanner: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 14, weight: .bold))
-                        Text("\(daysRemaining) days left")
+                        Text(String(format: String(localized: daysRemaining == 1 ? "days_left_one" : "days_left_other"), daysRemaining))
                             .font(.system(size: 12, weight: .semibold))
                     }
                     .foregroundColor(.white)

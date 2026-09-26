@@ -76,7 +76,7 @@ struct ExhibitionCard: View {
                         VStack(alignment: .trailing, spacing: 2) {
                             Image(systemName: "clock.fill")
                                 .font(.system(size: 12, weight: .bold))
-                            Text("\(daysRemaining)d")
+                            Text(String(format: String(localized: "days_short"), daysRemaining))
                                 .font(.system(size: 13, weight: .bold))
                         }
                         .foregroundColor(.white)

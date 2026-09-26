@@ -301,3 +301,6 @@
 "ai_history_title" = "Historique";
 "ai_history_empty" = "Aucune conversation pour l'instant";
 "ai_new_conversation" = "Nouvelle conversation";
+"days_short" = "%dj";
+"days_left_one" = "%d jour restant";
+"days_left_other" = "%d jours restants";

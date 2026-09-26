@@ -300,3 +300,6 @@
 "ai_history_title" = "History";
 "ai_history_empty" = "No past conversations yet";
 "ai_new_conversation" = "New conversation";
+"days_short" = "%dd";
+"days_left_one" = "%d day left";
+"days_left_other" = "%d days left";
