@@ -315,3 +315,6 @@
 "force_update_message" = "Une nouvelle version de Wherart est disponible. Merci de mettre à jour l'application pour continuer à l'utiliser.";
 "force_update_button" = "Mettre à jour";
 "preferences_summary" = "%d types d'art, %d types de lieux sélectionnés";
+"account_section" = "Compte";
+"subscription_section" = "Abonnement";
+"share_section" = "Partager";

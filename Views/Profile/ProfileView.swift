@@ -184,7 +184,10 @@ struct ProfileView: View {
                 .padding(.horizontal, 16)
 
                 // MARK: - Menu
-                VStack(spacing: 0) {
+                // Grouped into labeled sections (Account / Subscription /
+                // Share) instead of one flat list — each its own card, with
+                // a small secondary-colored header above it.
+                menuSection(title: String(localized: "account_section")) {
                     MenuRow(icon: "person.crop.circle", label: String(localized: "edit_profile"), action: { showEditProfile = true })
                     Divider().padding(.leading, 52)
                     MenuRow(icon: "gearshape", label: String(localized: "settings"), action: { showSettings = true })
@@ -195,9 +198,13 @@ struct ProfileView: View {
                         badge: nav.unreadNotificationsCount,
                         action: { showNotificationsScreen = true }
                     )
-                    Divider().padding(.leading, 52)
+                }
+
+                menuSection(title: String(localized: "subscription_section")) {
                     MenuRow(icon: "star.fill", label: String(localized: "subscribe"), action: { showPaywall = true })
-                    Divider().padding(.leading, 52)
+                }
+
+                menuSection(title: String(localized: "share_section")) {
                     ShareLink(
                         item: URL(string: "https://apps.apple.com/app/wherart")!,
                         subject: Text(String(localized: "share_subject")),
@@ -213,10 +220,6 @@ struct ProfileView: View {
                         .contentShape(Rectangle())
                     }
                 }
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-                .padding(.horizontal, 16)
                 .padding(.bottom, 32)
             }
         }
@@ -257,6 +260,26 @@ struct ProfileView: View {
             showPaywall = true
             nav.showSubscribe = false
         }
+    }
+
+    // MARK: - Menu Section
+
+    @ViewBuilder
+    private func menuSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 13))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 20)
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        }
+        .padding(.horizontal, 16)
     }
 
     // MARK: - Actions
