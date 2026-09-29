@@ -88,7 +88,7 @@
 "not_available" = "N/A";
 "get_directions" = "Get directions";
 "pricing" = "Pricing";
-"see_all_prices" = "See all prices";
+"see_all_prices" = "See pricing details";
 "details_available" = "Details available";
 "available_visits" = "Available visits";
 "loading_ellipsis" = "Loading...";
@@ -317,3 +317,5 @@
 "account_section" = "Account";
 "subscription_section" = "Subscription";
 "share_section" = "Share";
+"free_with_conditions" = "Free (conditions apply)";
+"see_pricing_details" = "See pricing details";

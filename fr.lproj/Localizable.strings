@@ -88,7 +88,7 @@
 "not_available" = "N/A";
 "get_directions" = "Itinéraire";
 "pricing" = "Tarifs";
-"see_all_prices" = "Voir tous les tarifs";
+"see_all_prices" = "Voir le détail des tarifs";
 "details_available" = "Détails disponibles";
 "available_visits" = "Visites disponibles";
 "loading_ellipsis" = "Chargement...";
@@ -318,3 +318,5 @@
 "account_section" = "Compte";
 "subscription_section" = "Abonnement";
 "share_section" = "Partager";
+"free_with_conditions" = "Gratuit sous conditions";
+"see_pricing_details" = "Voir les détails des tarifs";

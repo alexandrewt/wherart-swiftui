@@ -211,11 +211,16 @@ private func cleanedPriceString(_ raw: String) -> String {
     return result
 }
 
+// Requires the digits to be immediately adjacent to a currency marker
+// (€ or euro/euros) — a bare number alone is ambiguous with a percentage
+// ("100% gratuites") or an unrelated number in the text (a phone number,
+// e.g. "50€ les 3h, le matériel est compris. Inscription au 0623781910").
 private func extractedPriceNumbers(_ text: String) -> [String] {
-    guard let regex = try? NSRegularExpression(pattern: #"\d+[,.]?\d*"#) else { return [] }
+    guard let regex = try? NSRegularExpression(pattern: #"(\d+[,.]?\d*)\s*(?:€|euros?)"#, options: [.caseInsensitive]) else { return [] }
     let range = NSRange(text.startIndex..., in: text)
-    return regex.matches(in: text, range: range).compactMap {
-        Range($0.range, in: text).map { String(text[$0]) }
+    return regex.matches(in: text, range: range).compactMap { match in
+        guard match.numberOfRanges > 1, let numberRange = Range(match.range(at: 1), in: text) else { return nil }
+        return String(text[numberRange])
     }
 }
 
@@ -229,28 +234,51 @@ func parsedPriceDisplay(_ price: String?, isFree: Bool) -> (summary: String, has
 
     let cleaned = cleanedPriceString(rawPrice)
     let lowercased = cleaned.lowercased()
-    let containsGratuit = lowercased.contains("gratuit")
     let numbers = extractedPriceNumbers(cleaned)
     let hasConditionKeyword = priceConditionKeywords.contains { lowercased.contains($0) }
     let isLong = cleaned.count > 30
 
-    // Whenever "free" applies, the summary is always just "Free" — any
-    // extra prices/conditions only surface via hasDetails, which routes the
-    // user to the PricingSheet for the full breakdown.
-    if isFree || containsGratuit {
-        let withoutGratuit = lowercased
-            .replacingOccurrences(of: "gratuit", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let hasDetails = !numbers.isEmpty || !withoutGratuit.isEmpty || isLong
-        return (String(localized: "free"), hasDetails)
+    // A real price number (adjacent to €/euro) always wins, even if the
+    // text also mentions "gratuit" as a partial exception — e.g. "À partir
+    // de 16.5€. Gratuit pour les enfants de moins de 3 ans." is fundamentally
+    // a paid exhibition, not a free one, despite containing "gratuit". Only
+    // the first number is shown (not a "X€ to Y€" range): free text can
+    // mention several € amounts that aren't a second price tier at all —
+    // e.g. "16.5€... Tarif préférentiel en ligne : -1€ par rapport au tarif
+    // sur place" is one price and a discount, not a "16.5€ to 1€" range.
+    // Any remaining numbers still surface via hasDetails, in the full raw
+    // text behind "Voir le détail des tarifs".
+    if let firstNumber = numbers.first {
+        return ("\(firstNumber)€", hasConditionKeyword || isLong || numbers.count > 1)
     }
 
-    if numbers.count == 1 {
-        return ("\(numbers[0])€", hasConditionKeyword || isLong)
-    } else if numbers.count >= 2 {
-        return (String(format: String(localized: "price_range_format"), numbers[0], numbers[1]), hasConditionKeyword || isLong)
+    // No price number found — now check for free-entry wording. "Accès
+    // libre"/"entrée libre" are treated the same (interchangeable in the
+    // source data; "accès libre" is by far the more common phrasing).
+    // Alone (nothing else in the string) -> a plain "Free". Attached to an
+    // actual explanatory sentence ("Gratuit le premier dimanche du mois",
+    // "Accès libre sans réservation") -> "Free (conditions apply)" with a
+    // details link to the raw sentence. isFree (the API's own flag) is
+    // folded into the same check, but only once no explicit price number
+    // was found above — a numeric price in the text always takes priority
+    // over a possibly-stale isFree flag.
+    let freeWordings = ["entrée libre", "entree libre", "accès libre", "acces libre", "gratuit"]
+    let containsFreeWording = freeWordings.contains { lowercased.contains($0) }
+    if isFree || containsFreeWording {
+        var stripped = lowercased
+        for wording in freeWordings {
+            stripped = stripped.replacingOccurrences(of: wording, with: "")
+        }
+        let hasCondition = !stripped.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return hasCondition
+            ? (String(localized: "free_with_conditions"), true)
+            : (String(localized: "free"), false)
     }
 
-    return (cleaned, hasConditionKeyword || isLong)
+    // No number, no free wording — just explanatory text (e.g. "Tarif
+    // variable, se renseigner à l'accueil"). Never show the raw sentence
+    // directly on a card — point to the pricing sheet instead, which shows
+    // the untouched API text.
+    return (String(localized: "see_pricing_details"), true)
 }
 
