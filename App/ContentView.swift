@@ -10,11 +10,18 @@ struct ContentView: View {
     @State private var isCheckingProfile = false
     @State private var isInitializing = true  // ← nouveau
     @State private var showSplash = true
+    @State private var isCheckingForceUpdate = true
+    @State private var forceUpdateRequired = false
 
     var body: some View {
         ZStack(alignment: .top) {
             Group {
-                if isInitializing || isCheckingProfile {
+                if forceUpdateRequired {
+                    // Blocks everything below, including guest mode — no
+                    // way to dismiss/bypass. Checked once at launch, before
+                    // isInitializing's own splash even resolves.
+                    ForceUpdateView()
+                } else if isCheckingForceUpdate || isInitializing || isCheckingProfile {
                     // Écran de splash pendant la restauration de session et la
                     // vérification du profil — même fond que les deux états pour
                     // éviter le flash blanc→noir au lancement.
@@ -81,6 +88,9 @@ struct ContentView: View {
                 // never has to show a loading state on first open.
                 await StoreService.shared.loadProducts()
             }
+            .task {
+                await checkForceUpdate()
+            }
         }
         // Shown over whatever's currently on screen — signed in, signed
         // out, mid-onboarding, doesn't matter. Tapping the reset-password
@@ -105,6 +115,36 @@ struct ContentView: View {
         // .ignoresSafeArea() to exclude .top (see MapView), or otherwise
         // provide its own opaque covering, rather than relying on a
         // catch-all here.
+    }
+
+    /// Fails open (never blocks) on any error — a missing config row, no
+    /// network, or an RLS/table hiccup must never lock every user out of
+    /// the app. Same safety-net-timeout pattern as isInitializing below:
+    /// whichever finishes first (the fetch or the 5s fallback) wins, via
+    /// the isCheckingForceUpdate guard in each branch.
+    private func checkForceUpdate() async {
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            if isCheckingForceUpdate { isCheckingForceUpdate = false }
+        }
+
+        do {
+            let minimumVersion = try await SupabaseService.shared.fetchAppConfigValue(key: "minimum_required_version")
+            await MainActor.run {
+                guard isCheckingForceUpdate else { return }
+                if let minimumVersion, isAppVersion(currentVersion, olderThan: minimumVersion) {
+                    forceUpdateRequired = true
+                }
+                isCheckingForceUpdate = false
+            }
+        } catch {
+            print("[ForceUpdate] Check failed, failing open: \(error)")
+            await MainActor.run {
+                guard isCheckingForceUpdate else { return }
+                isCheckingForceUpdate = false
+            }
+        }
     }
 
     private func checkOnboardingStatus() {

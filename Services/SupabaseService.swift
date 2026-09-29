@@ -552,6 +552,23 @@ class SupabaseService: ObservableObject {
         return response
     }
 
+    // MARK: - Remote Config
+
+    /// Reads one `app_config` value — currently only `minimum_required_version`,
+    /// see ForceUpdateView. Returns nil if the key isn't set, so the caller
+    /// can fail open rather than block everyone on a missing row.
+    func fetchAppConfigValue(key: String) async throws -> String? {
+        struct ConfigRow: Decodable { let value: String }
+        let response: [ConfigRow] = try await client
+            .from("app_config")
+            .select("value")
+            .eq("key", value: key)
+            .limit(1)
+            .execute()
+            .value
+        return response.first?.value
+    }
+
     func fetchExhibitionById(id: Int) async throws -> Exhibition {
         let response: Exhibition = try await client
             .from("exhibitions")
