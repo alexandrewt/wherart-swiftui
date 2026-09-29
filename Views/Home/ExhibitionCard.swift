@@ -46,8 +46,8 @@ struct ExhibitionCard: View {
 
                     // Tags
                     HStack(spacing: 6) {
-                        TagBadge(label: exhibition.type, color: typeColor(exhibition.type).opacity(0.9))
-                        TagBadge(label: exhibition.venueType, color: Color.white.opacity(0.92))
+                        TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: typeColor(exhibition.type).opacity(0.9))
+                        TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.venueType), color: Color.white.opacity(0.92))
                     }
                     .padding(12)
 

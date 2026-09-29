@@ -937,7 +937,7 @@ struct BottomSheetCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    TagBadge(label: exhibition.type, color: typeColor(exhibition.type).opacity(0.85))
+                    TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: typeColor(exhibition.type).opacity(0.85))
                     Text(exhibition.title)
                         .font(.system(size: 15, weight: .semibold))
                         .lineLimit(2)

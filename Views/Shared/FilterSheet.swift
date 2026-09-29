@@ -17,7 +17,7 @@ struct FilterSheet: View {
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
 
     let artTypes = ["Painting", "Sculpture", "Photography", "Contemporary Art", "Street Art", "Abstract Art", "Installation", "Modern Art", "Asian Art", "Design", "Drawing", "Video Art", "Architecture", "Digital Art", "Illustration", "Printmaking", "Mixed Media", "Textile Art", "Ceramics", "Performance"]
-    let venueTypes = ["Museums", "Galleries", "Art Centers", "Foundations", "Cultural Centers", "Art Fairs", "Auction Houses", "Libraries", "Public Spaces", "Churches & Heritage", "Cultural Institutes", "Artist Studios"]
+    let venueTypes = ["Museum", "Gallery", "Art Center", "Foundation", "Cultural Center", "Art Fair", "Auction House", "Library", "Public Space", "Church & Heritage", "Cultural Institute", "Artist Studio"]
     let priceOptions = ["Free", "Paid"]
     let distanceOptions = ["Under 1 km", "1 - 3 km", "3 - 5 km", "Over 5 km"]
     let durationOptions = ["30min", "1h", "1h30", "2h", "2h+"]

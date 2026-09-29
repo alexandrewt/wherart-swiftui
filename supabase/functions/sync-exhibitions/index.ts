@@ -30,7 +30,8 @@ const normalizeText = (s: string): string => s.replace(/\s+/gu, ' ').trim()
 //
 // Paris Open Data never provides an art-medium or venue-category field, so
 // every event used to be synced with hardcoded generic defaults
-// ('Contemporary Art' / 'Museums'). This keyword-matches title+description
+// ('Contemporary Art' / 'Museums' — the latter later renamed singular,
+// see the note below). This keyword-matches title+description
 // (primary) then venue+address (secondary, "si besoin") against ordered
 // tables — first matching entry wins (priority = table order) — and falls
 // back to '' (not SQL null: the Swift client's `Exhibition.type`/
@@ -39,13 +40,17 @@ const normalizeText = (s: string): string => s.replace(/\s+/gu, ' ').trim()
 // feed for every user; '' is treated client-side as "no tag" and always
 // passes type/venue filters instead).
 //
-// Neither 'Contemporary Art' nor 'Museums' has a keyword entry (matches
-// the spec: no match => unclassified) so this classifier can never
-// re-produce those generic values going forward.
+// 'Contemporary Art' (type) still has no keyword entry (matches the spec:
+// no match => unclassified) so it can never be produced going forward.
+// 'Museum'/'Gallery' (venue_type) DO have entries now — added after venues
+// like "Musée de la Chasse" kept showing up unclassified — and are renamed
+// singular to match every other type/venue_type value, which were already
+// singular English nouns ('Painting', 'Library', ...); the old 'Museums'/
+// 'Galleries' plurals were the odd ones out.
 //
-// "Public Spaces"' keyword list dropped "rue" (present in the original
+// "Public Space"'s keyword list dropped "rue" (present in the original
 // spec): ~62% of all synced addresses contain "rue" as part of the street
-// name, which would have made "Public Spaces" a false-positive dump for
+// name, which would have made "Public Space" a false-positive dump for
 // most venue-only-matched exhibitions.
 
 const TYPE_KEYWORDS: [string, string[]][] = [
@@ -71,18 +76,19 @@ const TYPE_KEYWORDS: [string, string[]][] = [
 ]
 
 const VENUE_KEYWORDS: [string, string[]][] = [
-  ["Galleries", ["galerie", "galerie marchande", "galerie privee"]],
-  ["Art Centers", ["centre d'art", "centre", "pole"]],
-  ["Foundations", ["fondation", "mecene"]],
-  ["Cultural Centers", ["centre culturel", "espace culturel", "maison"]],
-  ["Auction Houses", ["hotel des ventes", "encheres", "drouot"]],
-  ["Art Fairs", ["foire", "salon", "fiac", "art expo"]],
-  ["Public Spaces", ["espace public", "place", "parc", "metro", "jardin"]],
-  ["Historic Sites", ["site historique", "chateau", "palais", "patrimoine", "monument"]],
-  ["Libraries", ["bibliotheque", "mediatheque", "bpi"]],
-  ["Churches & Heritage", ["eglise", "chapelle", "cathedrale", "abbaye", "temple"]],
-  ["Cultural Institutes", ["institut", "academie", "athenee", "consulat"]],
-  ["Artist Studios", ["atelier", "studio artiste", "maison d'artiste"]],
+  ["Museum", ["musee", "museum"]],
+  ["Gallery", ["galerie", "galerie marchande", "galerie privee"]],
+  ["Art Center", ["centre d'art", "centre", "pole"]],
+  ["Foundation", ["fondation", "mecene"]],
+  ["Cultural Center", ["centre culturel", "espace culturel", "maison"]],
+  ["Auction House", ["hotel des ventes", "encheres", "drouot"]],
+  ["Art Fair", ["foire", "salon", "fiac", "art expo"]],
+  ["Public Space", ["espace public", "place", "parc", "metro", "jardin"]],
+  ["Historic Site", ["site historique", "chateau", "palais", "patrimoine", "monument"]],
+  ["Library", ["bibliotheque", "mediatheque", "bpi"]],
+  ["Church & Heritage", ["eglise", "chapelle", "cathedrale", "abbaye", "temple"]],
+  ["Cultural Institute", ["institut", "academie", "athenee", "consulat"]],
+  ["Artist Studio", ["atelier", "studio artiste", "maison d'artiste"]],
 ]
 
 // Lowercases and strips accents (NFD decompose + drop combining marks) so

@@ -158,7 +158,7 @@ struct ExhibitionDetailView: View {
 
                     // Titre en bas de l'image
                     VStack(alignment: .leading, spacing: 6) {
-                        TagBadge(label: exhibition.type, color: Color(red: 0.58, green: 0.77, blue: 0.99))
+                        TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: Color(red: 0.58, green: 0.77, blue: 0.99))
                         Text(exhibition.title)
                             .font(.system(size: 26, weight: .bold))
                             .foregroundColor(.white)
@@ -1311,7 +1311,7 @@ struct AccessibilitySheet: View {
     NavigationStack {
         ExhibitionDetailView(exhibition: Exhibition(
             id: 1, title: "Gerhard Richter", artist: "Gerhard Richter",
-            venue: "Fondation Louis Vuitton", venueType: "Foundations",
+            venue: "Fondation Louis Vuitton", venueType: "Foundation",
             type: "Contemporary Art", address: "8 Avenue du Mahatma Gandhi, 75116 Paris",
             schedule: "Mon-Fri: 12pm-7pm", description: "A major retrospective.",
             ticketLink: "https://fondationlouisvuitton.fr", image: nil,

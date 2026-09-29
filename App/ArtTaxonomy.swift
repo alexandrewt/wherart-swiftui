@@ -34,19 +34,19 @@ enum ArtTaxonomy {
     ]
 
     static let venueTypeLabels: [String: String] = [
-        "Museums": "Musées",
-        "Galleries": "Galeries",
-        "Art Centers": "Centres d'art",
-        "Foundations": "Fondations",
-        "Cultural Centers": "Centres culturels",
-        "Auction Houses": "Maisons de vente",
-        "Art Fairs": "Foires d'art",
-        "Public Spaces": "Espaces publics",
-        "Historic Sites": "Sites historiques",
-        "Libraries": "Bibliothèques",
-        "Churches & Heritage": "Églises et patrimoine",
-        "Cultural Institutes": "Instituts culturels",
-        "Artist Studios": "Ateliers d'artistes",
+        "Museum": "Musées",
+        "Gallery": "Galeries",
+        "Art Center": "Centres d'art",
+        "Foundation": "Fondations",
+        "Cultural Center": "Centres culturels",
+        "Auction House": "Maisons de vente",
+        "Art Fair": "Foires d'art",
+        "Public Space": "Espaces publics",
+        "Historic Site": "Sites historiques",
+        "Library": "Bibliothèques",
+        "Church & Heritage": "Églises et patrimoine",
+        "Cultural Institute": "Instituts culturels",
+        "Artist Studio": "Ateliers d'artistes",
     ]
 
     /// Localized display label for a stored art-type or venue-type value.

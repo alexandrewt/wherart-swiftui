@@ -32,9 +32,9 @@ struct ProfileView: View {
     ]
 
     let venueTypes = [
-        "Museums", "Galleries", "Art Centers", "Foundations",
-        "Cultural Centers", "Art Fairs", "Auction Houses", "Libraries",
-        "Public Spaces", "Churches & Heritage", "Cultural Institutes", "Artist Studios"
+        "Museum", "Gallery", "Art Center", "Foundation",
+        "Cultural Center", "Art Fair", "Auction House", "Library",
+        "Public Space", "Church & Heritage", "Cultural Institute", "Artist Studio"
     ]
 
     var body: some View {

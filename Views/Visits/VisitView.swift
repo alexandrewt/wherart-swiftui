@@ -280,7 +280,7 @@ struct VisitCard: View {
 
                     HStack(spacing: 6) {
                         if let exhibition {
-                            TagBadge(label: exhibition.type, color: typeColor(exhibition.type).opacity(0.9))
+                            TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: typeColor(exhibition.type).opacity(0.9))
                         }
                         TagBadge(
                             label: "\(memberCount)/\(group.maxMembers)",
