@@ -27,6 +27,7 @@ struct HomeView: View {
     @State private var showPaywall = false
     @State private var showLoginPrompt = false
     @State private var showAIAssistant = false
+    @State private var aiSearchQuery = ""
     @AppStorage("paywallShowCount") private var paywallCount = 0
     @FocusState private var searchFocused: Bool
     @State private var scrolledMilestones: Set<Int> = []
@@ -168,6 +169,17 @@ struct HomeView: View {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.secondary)
                                 .font(.system(size: 15))
+                            Button(action: {
+                                impactLight.impactOccurred()
+                                floatingSearchFocused = false
+                                aiSearchQuery = floatingSearch
+                                showAIAssistant = true
+                            }) {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .accessibilityLabel(String(localized: "search_with_ai"))
                             TextField(String(localized: "search_exhibition_singular"), text: $floatingSearch)
                                 .font(.system(size: 15))
                                 .foregroundColor(.primary)
@@ -264,12 +276,13 @@ struct HomeView: View {
         .sheet(isPresented: $showLoginPrompt) {
             LoginPromptSheet()
         }
-        .sheet(isPresented: $showAIAssistant) {
+        .sheet(isPresented: $showAIAssistant, onDismiss: { aiSearchQuery = "" }) {
             AIAssistantSheet(
                 exhibitions: exhibitions,
                 profile: profile,
                 favoriteIds: favoriteIds,
-                viewedIds: viewedIds
+                viewedIds: viewedIds,
+                initialQuery: aiSearchQuery
             )
         }
         .navigationDestination(item: $selectedExhibition) { exhibition in

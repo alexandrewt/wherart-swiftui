@@ -66,6 +66,8 @@ struct MapView: View {
     @State private var hasOpenedFilters = false
     @State private var filters = AppFilters()
     @State private var profile: Profile? = nil
+    @State private var showAIAssistant = false
+    @State private var aiSearchQuery = ""
     @State private var isSearchingAddress = false
     @State private var mapOpenedTime: Date?
     @State private var region = MKCoordinateRegion(
@@ -161,6 +163,16 @@ struct MapView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.secondary)
                             .font(.system(size: 14))
+                        Button(action: {
+                            searchFocused = false
+                            aiSearchQuery = search
+                            showAIAssistant = true
+                        }) {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .accessibilityLabel(String(localized: "search_with_ai"))
                         TextField(String(localized: "search_exhibitions_address"), text: $search)
                             .focused($searchFocused)
                             .font(.system(size: 15))
@@ -306,6 +318,15 @@ struct MapView: View {
             FilterSheet(filters: $filters)
                 .presentationDetents([.large])
                 .presentationCornerRadius(24)
+        }
+        .sheet(isPresented: $showAIAssistant, onDismiss: { aiSearchQuery = "" }) {
+            AIAssistantSheet(
+                exhibitions: exhibitions,
+                profile: profile,
+                favoriteIds: [],
+                viewedIds: [],
+                initialQuery: aiSearchQuery
+            )
         }
         .task {
             mapOpenedTime = Date()

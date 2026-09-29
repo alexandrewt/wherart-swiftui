@@ -307,3 +307,5 @@
 "no_exhibitions_found_subtitle_filtered" = "No exhibitions match your search and filters. Try adjusting them.";
 "no_exhibitions_found_subtitle_empty" = "No exhibitions are available right now. Check back later.";
 "show_all_exhibitions" = "Show all exhibitions";
+
+"search_with_ai" = "Search with AI";

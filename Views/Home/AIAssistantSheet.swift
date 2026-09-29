@@ -203,6 +203,11 @@ struct AIAssistantSheet: View {
     let profile: Profile?
     let favoriteIds: [Int]
     let viewedIds: [Int]
+    /// Set when opened from a search field's AI shortcut — sent as the
+    /// first message automatically instead of resuming the last
+    /// conversation, since tapping that button is an explicit "search this
+    /// with AI now" action.
+    var initialQuery: String = ""
 
     @State private var messages: [AIChatMessage] = []
     @State private var inputText = ""
@@ -308,9 +313,14 @@ struct AIAssistantSheet: View {
         }
         .onAppear {
             if messages.isEmpty {
-                // Resume where the user left off (also what brings them back
-                // to the chat after the sheet was closed on an exhibition).
-                if let latest = store.latest {
+                if !initialQuery.isEmpty {
+                    startNewConversation()
+                    inputText = initialQuery
+                    sendMessage()
+                } else if let latest = store.latest {
+                    // Resume where the user left off (also what brings them
+                    // back to the chat after the sheet was closed on an
+                    // exhibition).
                     load(latest)
                 } else {
                     startNewConversation()
