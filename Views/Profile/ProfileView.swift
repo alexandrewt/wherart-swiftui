@@ -209,8 +209,8 @@ struct ProfileView: View {
         .navigationDestination(isPresented: $showNotificationsScreen) {
             NotificationsView()
         }
-        .sheet(isPresented: $showEditPrefs) {
-            EditPreferencesSheet(
+        .navigationDestination(isPresented: $showEditPrefs) {
+            EditPreferencesView(
                 selectedTypes: $editTypes,
                 selectedVenues: $editVenues,
                 reminderThreshold: $editReminderThreshold,
@@ -219,8 +219,6 @@ struct ProfileView: View {
                 isSaving: $isSaving,
                 onSave: savePreferences
             )
-            .presentationDetents([.large])
-            .presentationCornerRadius(24)
         }
         .task {
             AnalyticsService.shared.screen("Profile")
@@ -661,7 +659,7 @@ struct StatCard: View {
 
 // MARK: - Notification Settings Sheet
 /// Standalone entry point to the "Ending Soon" reminder threshold —
-/// same slider/save logic as EditPreferencesSheet, but reachable directly
+/// same slider/save logic as EditPreferencesView, but reachable directly
 /// from a "Notifications" row in the profile menu instead of being buried
 /// inside the preferences editor.
 struct NotificationSettingsSheet: View {
@@ -737,7 +735,7 @@ struct NotificationSettingsSheet: View {
 }
 
 // MARK: - Edit Preferences Sheet
-struct EditPreferencesSheet: View {
+struct EditPreferencesView: View {
     @Binding var selectedTypes: [String]
     @Binding var selectedVenues: [String]
     @Binding var reminderThreshold: Double
@@ -745,23 +743,12 @@ struct EditPreferencesSheet: View {
     let venueTypes: [String]
     @Binding var isSaving: Bool
     let onSave: () -> Void
-    @Environment(\.dismiss) private var dismiss
 
     private let selectionFeedback = UISelectionFeedbackGenerator()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text(String(localized: "edit_preferences")).font(.system(size: 20, weight: .bold))
-                Spacer()
-                Button(action: { dismiss() }) {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundColor(.secondary)
-                }
-            }
-            .padding(24)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(String(localized: "art_types")).font(.system(size: 16, weight: .semibold))
                         WrapLayout(spacing: 8) {
@@ -810,17 +797,22 @@ struct EditPreferencesSheet: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24).padding(.bottom, 24)
-            }
-
-            Button(action: onSave) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24).fill(Color(red: 0.15, green: 0.39, blue: 0.92)).frame(height: 52)
-                    if isSaving { ProgressView().tint(.white) }
-                    else { Text(String(localized: "save")).font(.system(size: 16, weight: .semibold)).foregroundColor(.white) }
+            .padding(.horizontal, 24).padding(.top, 24).padding(.bottom, 32)
+        }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .navigationTitle(String(localized: "edit_preferences"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: onSave) {
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Text(String(localized: "save")).font(.system(size: 16, weight: .semibold))
+                    }
                 }
+                .disabled(isSaving)
             }
-            .disabled(isSaving).padding(24)
         }
     }
 }
