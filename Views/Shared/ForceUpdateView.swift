@@ -63,7 +63,7 @@ struct ForceUpdateView: View {
     }
 
     private func openAppStore() {
-        guard let url = URL(string: "https://apps.apple.com/app/wherart") else { return }
+        guard let url = URL(string: "https://apps.apple.com/fr/app/wherart/id6768729154") else { return }
         UIApplication.shared.open(url)
     }
 }

@@ -206,7 +206,7 @@ struct ProfileView: View {
 
                 menuSection(title: String(localized: "share_section")) {
                     ShareLink(
-                        item: URL(string: "https://apps.apple.com/app/wherart")!,
+                        item: URL(string: "https://apps.apple.com/fr/app/wherart/id6768729154")!,
                         subject: Text(String(localized: "share_subject")),
                         message: Text(String(localized: "share_message"))
                     ) {
