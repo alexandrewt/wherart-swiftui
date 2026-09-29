@@ -175,7 +175,10 @@ const normalizeParisEvent = async (event: any) => {
     price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || (event.price_type === 'gratuit' ? 'Free' : ''),
     is_free: event.price_type === 'gratuit',
     duration: '1h', // placeholder — overwritten below once venue_type is finalized (see venueTypeByLocation)
-    accessibility: event.pmr === 1 ? 'Wheelchair accessible' : 'See venue website',
+    // pmr (Paris Open Data's own wheelchair flag) is unreliable — never
+    // claim accessibility the app hasn't verified. Always points to the
+    // venue's own site instead.
+    accessibility: 'See venue website',
     phone: event.contact_phone || '',
     end_date: event.date_end ? new Date(event.date_end).toISOString().split('T')[0] : null,
     ending_soon: false,

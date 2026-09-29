@@ -876,7 +876,7 @@ struct MapPinView: View {
     // to — otherwise they'd look exactly like a deliberately-tagged
     // exhibition instead of "no info available".
     var color: Color { exhibition.type.isEmpty ? Color(.systemGray3) : typeColor(exhibition.type) }
-    private var icon: String { exhibition.type.isEmpty ? "questionmark" : typeIcon(exhibition.type) }
+    private var icon: String { exhibition.type.isEmpty ? "photo.artframe" : typeIcon(exhibition.type) }
 
     private var circleDiameter: CGFloat { isSelected ? 52 : 36 }
     private var triangleWidth: CGFloat { isSelected ? 14 : 10 }

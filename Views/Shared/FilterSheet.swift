@@ -21,7 +21,10 @@ struct FilterSheet: View {
     let priceOptions = ["Free", "Paid"]
     let distanceOptions = ["Under 1 km", "1 - 3 km", "3 - 5 km", "Over 5 km"]
     let durationOptions = ["30min", "1h", "1h30", "2h", "2h+"]
-    let accessibilityOptions = ["Wheelchair access", "Lift available", "Adapted toilets", "Audioguide available", "Guide dogs not allowed", "Kid friendly"]
+    // "Wheelchair access" removed: accessibility.default is now always
+    // "See venue website" (Paris Open Data's own pmr flag was unverifiable),
+    // so this option could never match anything.
+    let accessibilityOptions = ["Lift available", "Adapted toilets", "Audioguide available", "Guide dogs not allowed", "Kid friendly"]
     let waitTimeOptions = ["Unknown", "< 15 min", "15 - 30 min", "30 - 45 min", "45 min - 1h", "+ 1h"]
 
     var body: some View {
