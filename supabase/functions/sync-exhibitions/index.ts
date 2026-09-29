@@ -112,11 +112,18 @@ const classifyExhibition = (
   venueName: string | null | undefined,
   address: string | null | undefined
 ): { type: string; venueType: string } => {
-  const primary = fold(`${title || ''} ${description || ''}`)
-  const secondary = fold(`${venueName || ''} ${address || ''}`)
+  const titleDesc = fold(`${title || ''} ${description || ''}`)
+  const venueAddr = fold(`${venueName || ''} ${address || ''}`)
   return {
-    type: classifyField(primary, secondary, TYPE_KEYWORDS),
-    venueType: classifyField(primary, secondary, VENUE_KEYWORDS),
+    // type describes the exhibition's own content — title/description is
+    // the right primary signal, venue/address a weak fallback.
+    type: classifyField(titleDesc, venueAddr, TYPE_KEYWORDS),
+    // venueType describes the VENUE, not this one exhibition — venue/address
+    // must be checked first. Getting this backwards (title/description
+    // first) let an exhibition's own blurb ("balades urbaines...") outrank
+    // an unambiguous venue name ("Musée d'art contemporain..."), producing
+    // a different venueType for exhibitions at the exact same address.
+    venueType: classifyField(venueAddr, titleDesc, VENUE_KEYWORDS),
   }
 }
 
@@ -221,6 +228,37 @@ Deno.serve(async () => {
     const deduplicated = all.filter((e: any, index: number, self: any[]) =>
       index === self.findIndex((t: any) => t.title === e.title && t.venue === e.venue)
     )
+
+    // Same physical venue must always carry the same venue_type. Grouped
+    // by rounded coordinates (~11m), not by venue name string: Paris Open
+    // Data spells the same place differently across records (e.g. "Mac Val"
+    // vs. "MAC VAL - Musée d'art contemporain du Val-de-Marne"), which a
+    // name-based grouping would treat as two different venues even though
+    // they share the same address. Force every exhibition in this batch to
+    // the most common non-empty venue_type among its own coordinate group.
+    const coordKey = (e: any): string | null =>
+      e.lat != null && e.lng != null
+        ? `${Math.round(e.lat * 10000)}_${Math.round(e.lng * 10000)}`
+        : null
+
+    const votesByLocation = new Map<string, Map<string, number>>()
+    for (const e of deduplicated) {
+      const key = coordKey(e)
+      if (!key || !e.venue_type) continue
+      const votes = votesByLocation.get(key) ?? new Map<string, number>()
+      votes.set(e.venue_type, (votes.get(e.venue_type) ?? 0) + 1)
+      votesByLocation.set(key, votes)
+    }
+    const venueTypeByLocation = new Map<string, string>()
+    for (const [key, votes] of votesByLocation) {
+      const [winner] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0]
+      venueTypeByLocation.set(key, winner)
+    }
+    for (const e of deduplicated) {
+      const key = coordKey(e)
+      const consistent = key ? venueTypeByLocation.get(key) : undefined
+      if (consistent) e.venue_type = consistent
+    }
 
     const { error } = await supabase
       .from('exhibitions')
