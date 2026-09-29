@@ -6,13 +6,17 @@ final class AnalyticsService {
     static let shared = AnalyticsService()
     private var isConfigured = false
 
-    // Events fired before configure() (e.g. a cold-start deep link handled
-    // before WherartApp's .task runs) are held here and flushed once
-    // PostHog is set up. Guarded by a lock: track() can be called from any
-    // thread while configure() runs on the main one.
+    // Calls made before configure() (e.g. a cold-start deep link handled
+    // before WherartApp's .task runs, or restoreSession's identify()) are
+    // held here as closures and replayed, in order, once PostHog is set up.
+    // Every public method funnels through perform(_:) so none of them can
+    // silently no-op before setup — track() used to be the only one
+    // protected this way; identify/screen/reset/updateUserProperties had
+    // their own early `guard isConfigured else { return }` that just
+    // dropped the call.
     private let lock = NSLock()
-    private var pendingEvents: [(name: String, properties: [String: Any]?)] = []
-    private static let maxPendingEvents = 100
+    private var pendingActions: [() -> Void] = []
+    private static let maxPendingActions = 100
 
     private init() {}
 
@@ -35,37 +39,41 @@ final class AnalyticsService {
 
         lock.lock()
         isConfigured = true
-        let queued = pendingEvents
-        pendingEvents.removeAll()
+        let queued = pendingActions
+        pendingActions.removeAll()
         lock.unlock()
 
-        for event in queued {
-            capture(event.name, properties: event.properties)
+        for action in queued {
+            action()
         }
     }
 
-    func track(
-        _ event: String,
-        properties: [String: Any]? = nil
-    ) {
+    /// Runs `action` immediately once configured, otherwise queues it (up
+    /// to maxPendingActions, to bound memory if configure() never runs).
+    private func perform(_ action: @escaping () -> Void) {
         lock.lock()
         if !isConfigured {
-            if pendingEvents.count < Self.maxPendingEvents {
-                pendingEvents.append((event, properties))
+            if pendingActions.count < Self.maxPendingActions {
+                pendingActions.append(action)
             }
             lock.unlock()
             return
         }
         lock.unlock()
 
-        capture(event, properties: properties)
+        action()
     }
 
-    private func capture(_ event: String, properties: [String: Any]?) {
-        if let properties = properties {
-            PostHogSDK.shared.capture(event, properties: properties)
-        } else {
-            PostHogSDK.shared.capture(event)
+    func track(
+        _ event: String,
+        properties: [String: Any]? = nil
+    ) {
+        perform {
+            if let properties = properties {
+                PostHogSDK.shared.capture(event, properties: properties)
+            } else {
+                PostHogSDK.shared.capture(event)
+            }
         }
     }
 
@@ -73,29 +81,29 @@ final class AnalyticsService {
         userId: String,
         properties: [String: Any]? = nil
     ) {
-        guard isConfigured else { return }
-
-        PostHogSDK.shared.identify(userId, userProperties: properties)
+        perform {
+            PostHogSDK.shared.identify(userId, userProperties: properties)
+        }
     }
 
     func screen(_ name: String) {
-        guard isConfigured else { return }
-
-        PostHogSDK.shared.screen(name)
+        perform {
+            PostHogSDK.shared.screen(name)
+        }
     }
 
     func reset() {
-        guard isConfigured else { return }
-
-        PostHogSDK.shared.reset()
+        perform {
+            PostHogSDK.shared.reset()
+        }
     }
 
     func updateUserProperties(
         _ properties: [String: Any]
     ) {
-        guard isConfigured else { return }
-
-        PostHogSDK.shared.register(properties)
+        perform {
+            PostHogSDK.shared.register(properties)
+        }
     }
 
     func trackError(
@@ -104,8 +112,6 @@ final class AnalyticsService {
         message: String,
         context: [String: Any]? = nil
     ) {
-        guard isConfigured else { return }
-
         var properties: [String: Any] = [
             "error_domain": domain,
             "error_code": code,
@@ -124,8 +130,6 @@ final class AnalyticsService {
         distinctId: String,
         userId: String
     ) {
-        guard isConfigured else { return }
-
         // Note: PostHog iOS SDK gère automatiquement les alias via identify()
         // L'alias guest → userId est implicite quand on appelle identify() avec un nouvel ID
         track("guest_converted_to_user", properties: [

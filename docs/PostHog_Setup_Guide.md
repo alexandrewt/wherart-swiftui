@@ -50,12 +50,11 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 | `exhibition_viewed_toggled` | "seen" toggle |
 | `exhibition_shared` | share |
 | `map_opened`, `map_view_duration`, `map_location_filtered` | Map (`center_lat`, `center_lng`, `exhibition_count`) |
-| `location_permission_granted` | |
+| `location_permission_granted` | fired once, on the real permission transition | `status` ("when_in_use"/"always") |
+| `map_location_updated` | fired on every location fix (renamed from the old, misleadingly-named `location_permission_granted`) | `latitude`, `longitude` |
 
 ### Visits and chat
-`create_visit_opened`, `create_visit_info_filled`, `create_visit_error`, `visit_created`, `visit_joined`, `visit_left`, `visit_detail_viewed`, `visit_details_viewed`, `visits_tab_switched`, `visits_loaded`, `visits_load_error`, `chat_message_sent`
-
-> `visit_detail_viewed` and `visit_details_viewed` look like duplicates: consolidate.
+`create_visit_opened`, `create_visit_info_filled`, `create_visit_error`, `visit_created`, `visit_joined`, `visit_left`, `visit_deleted`, `visit_details_viewed` (`source`: "discover"/"my_visits"), `visits_tab_switched`, `visits_loaded`, `visits_load_error`, `chat_message_sent`
 
 ### Profile and settings
 `profile_viewed`, `profile_load_error`, `settings_opened`, `preferences_updated`, `preferences_update_error`

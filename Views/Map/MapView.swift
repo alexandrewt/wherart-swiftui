@@ -26,6 +26,7 @@ final class MapLocationManager: NSObject, ObservableObject, CLLocationManagerDel
     private let manager = CLLocationManager()
     @Published var location: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    private var hasTrackedPermissionGranted = false
 
     override init() {
         super.init()
@@ -49,6 +50,17 @@ final class MapLocationManager: NSObject, ObservableObject, CLLocationManagerDel
         if manager.authorizationStatus == .authorizedWhenInUse ||
            manager.authorizationStatus == .authorizedAlways {
             manager.requestLocation()
+
+            // Fired exactly once, the moment the OS actually reports the
+            // transition into an authorized status — not on every
+            // subsequent location fix (see map_location_updated below,
+            // which is what this event used to be named, incorrectly).
+            if !hasTrackedPermissionGranted {
+                hasTrackedPermissionGranted = true
+                AnalyticsService.shared.track("location_permission_granted", properties: [
+                    "status": manager.authorizationStatus == .authorizedAlways ? "always" : "when_in_use"
+                ])
+            }
         }
     }
 }
@@ -343,7 +355,7 @@ struct MapView: View {
             ])
         }
         .onChange(of: locationManager.location) { _, location in
-            AnalyticsService.shared.track("location_permission_granted", properties: [
+            AnalyticsService.shared.track("map_location_updated", properties: [
                 "latitude": location?.coordinate.latitude ?? 0,
                 "longitude": location?.coordinate.longitude ?? 0
             ])

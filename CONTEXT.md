@@ -32,9 +32,11 @@
 3. Post v1.6.2: set up PostHog dashboards
 
 ### KNOWN ANALYTICS DATA-QUALITY ISSUES (fix after PostHog dashboards)
-- `location_permission_granted` (MapView `onChange` of location) fires on every location update, not when permission is granted: misnamed and inflated.
-- `visit_left` is only sent when a member leaves; the creator deleting a visit (`VisitDetailView.leaveOrDelete`) sends nothing.
-- `visit_detail_viewed` and `visit_details_viewed` are near-duplicates.
+- FIXED: `location_permission_granted` now fires once, on the real authorization transition; the per-fix event it used to be was renamed `map_location_updated`.
+- FIXED: `visit_deleted` added for the creator-delete branch (visit_left still only covers a member leaving, by design — different actions).
+- FIXED: `visit_detail_viewed`/`visit_details_viewed` consolidated into one (`visit_details_viewed`, fired when VisitDetailView actually loads).
+- FIXED: Google/Apple sign-in never saved first_name/last_name (profiles has no email column; sending it made the whole upsert throw) — removed, and backfilled the 4 (of 6) recoverable blank profiles.
+- Analytics queue (see track() fix above) now covers identify/screen/reset/updateUserProperties too, not just track().
 - FIXED: `track` events fired before `AnalyticsService.configure()` are now queued (max 100) and flushed after setup. Still dropped before configure: `identify`, `screen`, `reset`, `updateUserProperties`, `trackError`.
 
 ### RECENT WORK SESSION (Sept 15, 2026)
