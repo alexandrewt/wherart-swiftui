@@ -21,6 +21,7 @@ struct HomeView: View {
     @State private var hasOpenedFilters = false
     @State private var filters = AppFilters()
     @State private var selectedExhibition: Exhibition? = nil
+    @State private var openPricingOnDetailOpen = false
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @State private var showFloatingSearch = false
     @State private var floatingExpanded = false
@@ -305,7 +306,7 @@ struct HomeView: View {
             )
         }
         .navigationDestination(item: $selectedExhibition) { exhibition in
-            ExhibitionDetailView(exhibition: exhibition)
+            ExhibitionDetailView(exhibition: exhibition, openPricingOnAppear: openPricingOnDetailOpen)
         }
         .task {
             impactLight.prepare()
@@ -335,6 +336,7 @@ struct HomeView: View {
             do {
                 let exhibition = try await SupabaseService.shared.fetchExhibitionById(id: exhibitionId)
                 await MainActor.run {
+                    openPricingOnDetailOpen = false
                     selectedExhibition = exhibition
                     deepLinkRouter.pendingExhibitionId = nil
                 }
@@ -443,6 +445,7 @@ struct HomeView: View {
                             exhibition: sponsoredExhibitions[sponsoredIndex],
                             onTap: {
                                 impactLight.impactOccurred()
+                                openPricingOnDetailOpen = false
                                 selectedExhibition = sponsoredExhibitions[sponsoredIndex]
                             }
                         )
@@ -455,13 +458,14 @@ struct HomeView: View {
                     exhibition: exhibition,
                     isFavorite: favoriteIds.contains(exhibition.id),
                     isViewed: viewedIds.contains(exhibition.id),
-                    onTap: {
+                    onTap: { openPricing in
                         impactLight.impactOccurred()
                         AnalyticsService.shared.track("exhibition_card_clicked", properties: [
                             "exhibition_id": exhibition.id,
                             "exhibition_title": exhibition.title,
                             "source_screen": "home"
                         ])
+                        openPricingOnDetailOpen = openPricing
                         selectedExhibition = exhibition
                     },
                     onToggleFavorite: {

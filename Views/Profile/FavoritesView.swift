@@ -8,6 +8,7 @@ struct FavoritesView: View {
     @State private var favoriteIds: [Int] = []
     @State private var viewedIds: [Int] = []
     @State private var selectedExhibition: Exhibition? = nil
+    @State private var openPricingOnDetailOpen = false
 
     var body: some View {
         Group {
@@ -36,7 +37,10 @@ struct FavoritesView: View {
                                 exhibition: exhibition,
                                 isFavorite: favoriteIds.contains(exhibition.id),
                                 isViewed: viewedIds.contains(exhibition.id),
-                                onTap: { selectedExhibition = exhibition },
+                                onTap: { openPricing in
+                                    openPricingOnDetailOpen = openPricing
+                                    selectedExhibition = exhibition
+                                },
                                 onToggleFavorite: { Task { await toggleFavorite(exhibition) } },
                                 onToggleViewed: { Task { await toggleViewed(exhibition) } }
                             )
@@ -50,7 +54,7 @@ struct FavoritesView: View {
         .navigationTitle(String(localized: "favorites_title"))
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(item: $selectedExhibition) { exhibition in
-            ExhibitionDetailView(exhibition: exhibition)
+            ExhibitionDetailView(exhibition: exhibition, openPricingOnAppear: openPricingOnDetailOpen)
         }
         .task {
             await loadFavorites()

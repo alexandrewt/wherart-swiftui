@@ -37,6 +37,14 @@ struct ExhibitionDetailView: View {
     @State private var showShareSheet = false
     @FocusState private var commentFieldFocused: Bool
 
+    /// Lets a caller land here with the Pricing sheet already open — used
+    /// when the price area of an ExhibitionCard is tapped directly (see
+    /// ExhibitionCard's price HStack) instead of the rest of the card.
+    init(exhibition: Exhibition, openPricingOnAppear: Bool = false) {
+        self.exhibition = exhibition
+        self._showPricing = State(initialValue: openPricingOnAppear)
+    }
+
     private var daysRemaining: Int {
         EndingSoonService.shared.daysRemaining(for: exhibition)
     }
@@ -70,6 +78,11 @@ struct ExhibitionDetailView: View {
 
     private var pricingSubtitle: String? {
         guard parsedPrice.hasDetails else { return nil }
+        // The tile's main value already says "Voir le détail des tarifs"
+        // (parsedPriceDisplay's no-number/no-free-wording fallback) —
+        // repeating the same phrase as the blue subtitle below it would be
+        // redundant.
+        guard parsedPrice.summary != String(localized: "see_pricing_details") else { return nil }
         if let ticketLink = exhibition.ticketLink, !ticketLink.isEmpty {
             return String(localized: "see_all_prices")
         }

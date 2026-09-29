@@ -5,7 +5,11 @@ struct ExhibitionCard: View {
     let exhibition: Exhibition
     let isFavorite: Bool
     let isViewed: Bool
-    let onTap: () -> Void
+    /// true when the tap landed specifically on the price area (and it has
+    /// details worth showing) — the destination opens with Pricing already
+    /// expanded instead of the plain detail view. See the price HStack's
+    /// .highPriorityGesture below.
+    let onTap: (_ openPricing: Bool) -> Void
     let onToggleFavorite: () -> Void
     let onToggleViewed: () -> Void
 
@@ -18,7 +22,7 @@ struct ExhibitionCard: View {
     }
 
     var body: some View {
-        Button(action: onTap) {
+        Button(action: { onTap(false) }) {
             VStack(alignment: .leading, spacing: 0) {
 
                 // MARK: - Image
@@ -122,6 +126,10 @@ struct ExhibitionCard: View {
                                     .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
                             }
                         }
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            TapGesture().onEnded { onTap(parsed.hasDetails) }
+                        )
                     }
                 }
                 .padding(16)
