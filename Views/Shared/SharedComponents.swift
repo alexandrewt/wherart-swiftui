@@ -6,13 +6,18 @@ struct TagBadge: View {
     let color: Color
 
     var body: some View {
-        Text(label)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(Color(red: 0.12, green: 0.23, blue: 0.37))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(color)
-            .clipShape(Capsule())
+        // Unclassified exhibitions carry an empty type/venueType (see
+        // sync-exhibitions' classifyExhibition) — no badge rather than an
+        // empty pill.
+        if !label.isEmpty {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color(red: 0.12, green: 0.23, blue: 0.37))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(color)
+                .clipShape(Capsule())
+        }
     }
 }
 

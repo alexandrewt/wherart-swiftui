@@ -79,8 +79,8 @@ struct MapView: View {
             let matchSearch = search.isEmpty ||
                 e.title.localizedCaseInsensitiveContains(search) ||
                 e.venue.localizedCaseInsensitiveContains(search)
-            let matchType = filters.types.isEmpty || filters.types.contains(e.type)
-            let matchVenue = filters.venues.isEmpty || filters.venues.contains(e.venueType)
+            let matchType = filters.types.isEmpty || e.type.isEmpty || filters.types.contains(e.type)
+            let matchVenue = filters.venues.isEmpty || e.venueType.isEmpty || filters.venues.contains(e.venueType)
             let matchPrice = filters.prices.isEmpty ||
                 (filters.prices.contains("Free") && e.isFree) ||
                 (filters.prices.contains("Paid") && !e.isFree)

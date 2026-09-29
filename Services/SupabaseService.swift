@@ -438,7 +438,7 @@ class SupabaseService: ObservableObject {
             .execute()
             .value
 
-        return exhibitions.map { $0.reclassified() }
+        return exhibitions
     }
 
     /// Parses the ISO8601-with-fractional-seconds timestamps Postgres
@@ -547,7 +547,7 @@ class SupabaseService: ObservableObject {
             .order("created_at", ascending: false)
             .execute()
             .value
-        return response.map { $0.reclassified() }
+        return response
     }
 
     func fetchExhibitionById(id: Int) async throws -> Exhibition {
@@ -558,7 +558,7 @@ class SupabaseService: ObservableObject {
             .single()
             .execute()
             .value
-        return response.reclassified()
+        return response
     }
 
     // MARK: - Exhibition Edits (crowdsourced duration/accessibility)

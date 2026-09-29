@@ -74,63 +74,6 @@ struct Exhibition: Codable, Identifiable, Hashable {
     }
 }
 
-// MARK: - Exhibition Reclassification
-//
-// The Paris Open Data sync (Edge Function) sometimes leaves `type` / `venue_type`
-// empty or defaulted ("Contemporary Art" / "Museums"). This client-side fallback
-// infers a better value from the title/description/venue/address when that happens.
-extension Exhibition {
-    private static let genericTypes: Set<String> = ["", "Contemporary Art"]
-    private static let genericVenueTypes: Set<String> = ["", "Museums"]
-
-    private static let typeKeywords: [(type: String, keywords: [String])] = [
-        ("Painting", ["peinture", "tableau", "huile"]),
-        ("Photography", ["photo", "photographie"]),
-        ("Sculpture", ["sculpture", "bronze", "marbre"]),
-        ("Street Art", ["street art", "graffiti", "urban"]),
-        ("Modern Art", ["moderne", "modern"]),
-        ("Asian Art", ["asie", "japon", "chine", "corée"]),
-        ("Design", ["design", "architecture"]),
-        ("Installation", ["installation", "dispositif"]),
-        ("Video Art", ["vidéo", "video", "film", "cinéma"]),
-        ("Contemporary Art", ["contemporain", "contemporary"])
-    ]
-
-    private static let venueTypeKeywords: [(venueType: String, keywords: [String])] = [
-        ("Museums", ["musée", "museum"]),
-        ("Galleries", ["galerie", "gallery"]),
-        ("Foundations", ["fondation", "foundation"]),
-        ("Art Centers", ["centre d'art", "art center"]),
-        ("Cultural Centers", ["centre culturel", "maison de la culture"])
-    ]
-
-    /// Returns a copy with `type`/`venueType` inferred from keywords when the
-    /// existing value is missing or a generic default. Leaves real values untouched.
-    func reclassified() -> Exhibition {
-        var copy = self
-
-        if Self.genericTypes.contains(copy.type) {
-            let haystack = [title, description ?? ""].joined(separator: " ").lowercased()
-            if let match = Self.typeKeywords.first(where: { entry in
-                entry.keywords.contains(where: { haystack.contains($0) })
-            }) {
-                copy.type = match.type
-            }
-        }
-
-        if Self.genericVenueTypes.contains(copy.venueType) {
-            let haystack = [venue, address].joined(separator: " ").lowercased()
-            if let match = Self.venueTypeKeywords.first(where: { entry in
-                entry.keywords.contains(where: { haystack.contains($0) })
-            }) {
-                copy.venueType = match.venueType
-            }
-        }
-
-        return copy
-    }
-}
-
 // MARK: - AIExhibitionSummary
 // Trimmed-down view of `Exhibition` sent to the `ask-wherart-ai` Edge
 // Function — only the fields the AI needs to reason about and cite, so the
