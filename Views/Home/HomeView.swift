@@ -558,6 +558,17 @@ struct HomeView: View {
                     "genres": fetchedProfile?.preferences ?? [],
                     "load_time_ms": Int(Date().timeIntervalSince(loadStartedAt) * 1000)
                 ])
+
+                // Fired only when the fetched catalog itself is empty (a
+                // matching/sync bug), not when the user's own active
+                // filters happen to eliminate every card — that's expected
+                // and not a signal anything is broken.
+                if withDistance.isEmpty {
+                    AnalyticsService.shared.track("homepage_no_exhibitions", properties: [
+                        "genres": fetchedProfile?.preferences ?? [],
+                        "venue_types": fetchedProfile?.venueTypes ?? []
+                    ])
+                }
             }
         } catch {
             await MainActor.run {

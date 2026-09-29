@@ -2,7 +2,7 @@
 
 **Last updated:** Sept 21, 2026
 **PostHog workspace:** https://eu.i.posthog.com
-**Status:** 78 events tracked | 1 to add (blocked) | 5 dashboards + 4 funnels to build
+**Status:** 79 events tracked | 1 to add (blocked) | 5 dashboards + 4 funnels to build
 
 Event names below are the ones actually sent by the code (`AnalyticsService.shared.track(...)`, `Services/AnalyticsService.swift`). To re-verify:
 
@@ -18,7 +18,7 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 - `identify(userId:)` on sign-in, `reset()` on sign-out.
 - Errors: `trackError(...)` emits `api_error`.
 
-## Existing events (78)
+## Existing events (79)
 
 73 literal names + 4 computed, plus 1 dynamic (`homepage_viewed`/`_load_failed`/`_scrolled`) in `LoginView` (`signup_started`, `login_started`, `signup_failed`, `login_failed`).
 
@@ -40,6 +40,7 @@ grep -rhoE 'track\(\s*"[a-z_]+"' --include='*.swift' Views Services App Models |
 | `homepage_viewed` | `exhibition_count`, `genres` (profile.preferences), `load_time_ms` — fired once per Home load, after data arrives |
 | `homepage_load_failed` | `error`, `timestamp` — fired if the feed fetch throws |
 | `homepage_scrolled` | `scroll_depth_percent` (25/50/75/100, once each per load) |
+| `homepage_no_exhibitions` | `genres`, `venue_types` — fired when the fetched catalog is empty at load, not when the user's own filters zero it out |
 | `tab_clicked` | `tab` |
 | `search_performed` | `search_term` |
 | `filter_applied` | `art_types`, `venue_types`, `distances`, `prices` (counts) |
