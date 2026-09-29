@@ -236,9 +236,24 @@ Deno.serve(async () => {
       return new Response('No exhibitions found', { status: 200 })
     }
 
-    const deduplicated = all.filter((e: any, index: number, self: any[]) =>
-      index === self.findIndex((t: any) => t.title === e.title && t.venue === e.venue)
-    )
+    // Same-batch duplicates: matched by title + rounded coordinates, not
+    // title + venue string. Paris Open Data sometimes spells the same venue
+    // slightly differently across records for the exact same event (e.g.
+    // "Centre Paris Anim' Wangari Maathai" vs. "... Wangari Muta Maathai"),
+    // which a venue-string match would let through as two separate rows.
+    // When a group has duplicates, keeps the one with the longest venue
+    // name (the more complete/accurate spelling in every case checked so
+    // far) rather than just the first one encountered.
+    const dupKey = (e: any) => `${e.title}__${Math.round(e.lat * 10000)}_${Math.round(e.lng * 10000)}`
+    const bestByKey = new Map<string, any>()
+    for (const e of all) {
+      const key = dupKey(e)
+      const existing = bestByKey.get(key)
+      if (!existing || (e.venue?.length ?? 0) > (existing.venue?.length ?? 0)) {
+        bestByKey.set(key, e)
+      }
+    }
+    const deduplicated = [...bestByKey.values()]
 
     // Same physical venue must always carry the same venue_type. Grouped
     // by rounded coordinates (~11m), not by venue name string: Paris Open
