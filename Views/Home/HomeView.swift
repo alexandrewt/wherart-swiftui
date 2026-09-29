@@ -18,6 +18,7 @@ struct HomeView: View {
     @State private var sortBy: SortOption = .closest
     @State private var showSortMenu = false
     @State private var showFilters = false
+    @State private var hasOpenedFilters = false
     @State private var filters = AppFilters()
     @State private var selectedExhibition: Exhibition? = nil
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
@@ -104,7 +105,7 @@ struct HomeView: View {
                         Button(action: {
                             impactLight.impactOccurred()
                             searchFocused = false
-                            showFilters = true
+                            openFilters()
                         }) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "slider.horizontal.3")
@@ -562,6 +563,19 @@ struct HomeView: View {
     }
 
     // MARK: - Data
+
+    /// Pre-checks the filter sheet with the user's onboarding preferences
+    /// the first time they open it (never after — once they've touched
+    /// filters this session, their own selection takes over, including an
+    /// intentional "none selected").
+    private func openFilters() {
+        if !hasOpenedFilters, let profile {
+            filters.types = profile.preferences
+            filters.venues = profile.venueTypes
+        }
+        hasOpenedFilters = true
+        showFilters = true
+    }
 
     private func loadData() async {
         let loadStartedAt = Date()

@@ -2,6 +2,7 @@ import SwiftUI
 import MapKit
 import CoreLocation
 import Combine
+import Auth
 
 // MARK: - Type Colors
 func typeColor(_ type: String) -> Color {
@@ -62,7 +63,9 @@ struct MapView: View {
     @State private var showDetail = false
     @State private var search = ""
     @State private var showFilters = false
+    @State private var hasOpenedFilters = false
     @State private var filters = AppFilters()
+    @State private var profile: Profile? = nil
     @State private var isSearchingAddress = false
     @State private var mapOpenedTime: Date?
     @State private var region = MKCoordinateRegion(
@@ -240,7 +243,7 @@ struct MapView: View {
                     VStack(spacing: 12) {
                         Button(action: {
                             searchFocused = false
-                            showFilters = true
+                            openFilters()
                         }) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "slider.horizontal.3")
@@ -405,6 +408,19 @@ struct MapView: View {
         }
     }
 
+    /// Pre-checks the filter sheet with the user's onboarding preferences
+    /// the first time they open it (never after — once they've touched
+    /// filters this session, their own selection takes over, including an
+    /// intentional "none selected"). Mirrors HomeView's openFilters().
+    private func openFilters() {
+        if !hasOpenedFilters, let profile {
+            filters.types = profile.preferences
+            filters.venues = profile.venueTypes
+        }
+        hasOpenedFilters = true
+        showFilters = true
+    }
+
     private func loadExhibitions() async {
         if let data = try? await SupabaseService.shared.fetchExhibitions() {
             let userLat = locationManager.location?.coordinate.latitude ?? 48.8566
@@ -415,6 +431,10 @@ struct MapView: View {
                 return e
             }
             await MainActor.run { self.exhibitions = withDistance }
+        }
+        if let userId = SupabaseService.shared.currentUser?.id.uuidString,
+           let fetchedProfile = try? await SupabaseService.shared.fetchProfile(userId: userId) {
+            await MainActor.run { self.profile = fetchedProfile }
         }
     }
 
