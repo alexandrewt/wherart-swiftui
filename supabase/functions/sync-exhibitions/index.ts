@@ -221,6 +221,113 @@ const fetchIleDeFrance = async (): Promise<any[]> => {
   }
 }
 
+// MARK: - Cross-Run Duplicate Cleanup
+//
+// Same-batch duplicates (two records within ONE sync run) are already
+// prevented by the bestByKey dedup above. This closes the remaining gap:
+// a future sync spelling an already-existing venue differently again would
+// still insert a new row, since the upsert's onConflict key is (title,
+// venue) — an exact string match. Runs after every sync, over the WHOLE
+// table (not just this run's batch), using the same signal validated
+// manually for the one-off cleanup in 20260929000008_remove_exhibition_duplicates.sql:
+// same title, same rounded coordinates (~11m), same end_date.
+const REFERENCE_TABLES = [
+  'user_interactions', 'groups', 'user_exhibition_edits',
+  'exhibition_likes', 'exhibition_comments', 'exhibition_reminders',
+  'ending_soon_notifications_sent',
+]
+
+const dedupeExhibitions = async (supabase: any) => {
+  const { data: rows, error: fetchError } = await supabase
+    .from('exhibitions')
+    .select('id, title, venue, lat, lng, end_date')
+  if (fetchError || !rows) {
+    console.error('[Dedupe] Failed to fetch exhibitions:', fetchError)
+    return
+  }
+
+  const groups = new Map<string, any[]>()
+  for (const r of rows) {
+    if (r.lat == null || r.lng == null) continue
+    const key = `${r.title}__${Math.round(r.lat * 10000)}_${Math.round(r.lng * 10000)}__${r.end_date}`
+    const group = groups.get(key) ?? []
+    group.push(r)
+    groups.set(key, group)
+  }
+
+  const duplicateGroups = [...groups.values()].filter((g) => g.length > 1)
+  if (duplicateGroups.length === 0) return
+
+  const allCandidateIds = duplicateGroups.flatMap((g) => g.map((r) => r.id))
+
+  // A candidate is "referenced" if any real user data points at it — never
+  // auto-delete a row someone favorited, visited, commented on, etc.
+  const referencedIds = new Set<number>()
+  for (const table of REFERENCE_TABLES) {
+    const { data } = await supabase.from(table).select('exhibition_id').in('exhibition_id', allCandidateIds)
+    for (const row of data ?? []) referencedIds.add(row.exhibition_id)
+  }
+
+  // notifications.exhibition_ids is an array column, checked separately —
+  // also builds the id->notification-ids map needed to remap survivors.
+  const { data: notifRows } = await supabase.from('notifications').select('id, exhibition_ids')
+  const notificationsByExhibitionId = new Map<number, string[]>()
+  for (const n of notifRows ?? []) {
+    for (const eid of n.exhibition_ids ?? []) {
+      if (allCandidateIds.includes(eid)) {
+        referencedIds.add(eid)
+        const list = notificationsByExhibitionId.get(eid) ?? []
+        list.push(n.id)
+        notificationsByExhibitionId.set(eid, list)
+      }
+    }
+  }
+
+  const idsToDelete: number[] = []
+  const remaps: { from: number; to: number }[] = []
+
+  for (const group of duplicateGroups) {
+    const withRefs = group.filter((r) => referencedIds.has(r.id))
+    let winner: any
+    if (withRefs.length === 1) {
+      winner = withRefs[0]
+    } else if (withRefs.length === 0) {
+      // No real data on either side — keep the more complete venue name.
+      winner = [...group].sort((a, b) => (b.venue?.length ?? 0) - (a.venue?.length ?? 0) || a.id - b.id)[0]
+    } else {
+      // 2+ candidates each have real references (e.g. two different users
+      // favorited two different copies) — ambiguous, don't auto-resolve.
+      console.log('[Dedupe] Skipped ambiguous group (multiple referenced rows):', group.map((r: any) => r.id))
+      continue
+    }
+    for (const r of group) {
+      if (r.id === winner.id) continue
+      idsToDelete.push(r.id)
+      remaps.push({ from: r.id, to: winner.id })
+    }
+  }
+
+  if (idsToDelete.length === 0) return
+
+  for (const { from, to } of remaps) {
+    const notifIds = notificationsByExhibitionId.get(from)
+    if (!notifIds) continue
+    for (const notifId of notifIds) {
+      const notif = (notifRows ?? []).find((n: any) => n.id === notifId)
+      if (!notif) continue
+      const updated = (notif.exhibition_ids ?? []).map((eid: number) => (eid === from ? to : eid))
+      await supabase.from('notifications').update({ exhibition_ids: updated }).eq('id', notifId)
+    }
+  }
+
+  const { error: deleteError } = await supabase.from('exhibitions').delete().in('id', idsToDelete)
+  if (deleteError) {
+    console.error('[Dedupe] Failed to delete duplicates:', deleteError)
+  } else {
+    console.log(`[Dedupe] Removed ${idsToDelete.length} cross-run duplicate(s):`, idsToDelete)
+  }
+}
+
 Deno.serve(async () => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
@@ -253,7 +360,19 @@ Deno.serve(async () => {
         bestByKey.set(key, e)
       }
     }
-    const deduplicated = [...bestByKey.values()]
+    // Second pass: the upsert's onConflict target is (title, venue) — if
+    // two entries share that exact pair but ended up in different
+    // title+coordinate buckets above (e.g. two independent geocoding calls
+    // for the same address returning marginally different lat/lng),
+    // Postgres refuses the whole upsert ("ON CONFLICT DO UPDATE command
+    // cannot affect row a second time"). Collapse those too.
+    const seenTitleVenue = new Set<string>()
+    const deduplicated = [...bestByKey.values()].filter((e) => {
+      const key = `${e.title}__${e.venue}`
+      if (seenTitleVenue.has(key)) return false
+      seenTitleVenue.add(key)
+      return true
+    })
 
     // Same physical venue must always carry the same venue_type. Grouped
     // by rounded coordinates (~11m), not by venue name string: Paris Open
@@ -292,6 +411,8 @@ Deno.serve(async () => {
       .upsert(deduplicated, { onConflict: 'title,venue' })
 
     if (error) throw error
+
+    await dedupeExhibitions(supabase)
 
     return new Response(
       `Synced ${deduplicated.length} exhibitions (Paris: ${fromParis.length}, Île-de-France: ${fromIleDeFrance.length})`,
