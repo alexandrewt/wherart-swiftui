@@ -24,6 +24,8 @@ struct HomeView: View {
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @State private var showFloatingSearch = false
     @State private var floatingExpanded = false
+    @State private var lastScrollOffset: CGFloat = 0
+    @State private var floatingExpandedAtOffset: CGFloat = 0
     @State private var showPaywall = false
     @State private var showLoginPrompt = false
     @State private var showAIAssistant = false
@@ -155,6 +157,22 @@ struct HomeView: View {
                                     showFloatingSearch = value < -80
                                 }
                                 trackScrollDepth(contentHeight: geo.size.height, offsetY: value)
+
+                                // Collapse the expanded search field back to
+                                // the floating "Rechercher" CTA once the user
+                                // resumes scrolling by a meaningful amount —
+                                // compared against the offset captured when
+                                // it was opened, not the previous frame's
+                                // value, so the keyboard appearing (which can
+                                // shift this same frame once) doesn't
+                                // immediately re-collapse it.
+                                if floatingExpanded && abs(value - floatingExpandedAtOffset) > 40 {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        floatingExpanded = false
+                                    }
+                                    floatingSearchFocused = false
+                                }
+                                lastScrollOffset = value
                             }
                     }
                 )
@@ -209,6 +227,7 @@ struct HomeView: View {
                     } else {
                         Button(action: {
                             impactLight.impactOccurred()
+                            floatingExpandedAtOffset = lastScrollOffset
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) {
                                 floatingExpanded = true
                             }
