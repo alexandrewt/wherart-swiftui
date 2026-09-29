@@ -123,6 +123,16 @@ struct ContentView: View {
     /// whichever finishes first (the fetch or the 5s fallback) wins, via
     /// the isCheckingForceUpdate guard in each branch.
     private func checkForceUpdate() async {
+        // Never gate Debug builds (the simulator, or a device run from
+        // Xcode) — MARKETING_VERSION in the project only gets bumped as
+        // part of shipping an actual TestFlight/App Store release, so a
+        // Debug build almost always trails whatever minimum_required_version
+        // is set for the release currently in progress. Only Release
+        // builds (TestFlight/App Store) are meant to be gated.
+        #if DEBUG
+        isCheckingForceUpdate = false
+        return
+        #else
         let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -145,6 +155,7 @@ struct ContentView: View {
                 isCheckingForceUpdate = false
             }
         }
+        #endif
     }
 
     private func checkOnboardingStatus() {
