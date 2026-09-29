@@ -304,3 +304,7 @@
 "days_short" = "%dj";
 "days_left_one" = "%d jour restant";
 "days_left_other" = "%d jours restants";
+"no_exhibitions_found_title" = "Aucune exposition trouvée";
+"no_exhibitions_found_subtitle_filtered" = "Aucune exposition ne correspond à ta recherche et tes filtres. Essaie de les modifier.";
+"no_exhibitions_found_subtitle_empty" = "Aucune exposition disponible pour le moment. Reviens plus tard.";
+"show_all_exhibitions" = "Voir toutes les expositions";

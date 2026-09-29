@@ -333,7 +333,9 @@ struct HomeView: View {
         let hasPrefs = (profile?.preferences.isEmpty == false) || (profile?.venueTypes.isEmpty == false)
 
         return Group {
-            if hasPrefs {
+            if filtered.isEmpty {
+                emptyFeedState
+            } else if hasPrefs {
                 if !forYou.isEmpty {
                     sectionHeader(title: String(localized: "exhibitions_for_you"))
                     feedRows(forYou)
@@ -347,6 +349,54 @@ struct HomeView: View {
                 feedRows(sorted(filtered))
             }
         }
+    }
+
+    /// True when the empty result is something the user's own search/filter
+    /// choices caused — as opposed to the fetched catalog itself being
+    /// empty (tracked separately by `homepage_no_exhibitions`), where a
+    /// "reset filters" button wouldn't help since there'd be nothing to
+    /// reset to.
+    private var hasActiveSearchOrFilters: Bool {
+        activeFiltersCount > 0 || !activeSearch.isEmpty
+    }
+
+    private var emptyFeedState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 36))
+                .foregroundColor(.gray)
+            Text(String(localized: "no_exhibitions_found_title"))
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.primary)
+            Text(hasActiveSearchOrFilters
+                 ? String(localized: "no_exhibitions_found_subtitle_filtered")
+                 : String(localized: "no_exhibitions_found_subtitle_empty"))
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            if hasActiveSearchOrFilters {
+                Button(action: resetSearchAndFilters) {
+                    Text(String(localized: "show_all_exhibitions"))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color(red: 0.15, green: 0.39, blue: 0.92))
+                        .clipShape(Capsule())
+                }
+                .padding(.top, 4)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 48)
+    }
+
+    private func resetSearchAndFilters() {
+        filters = AppFilters()
+        search = ""
+        floatingSearch = ""
     }
 
     private func feedRows(_ list: [Exhibition]) -> some View {
