@@ -875,7 +875,10 @@ struct MapPinView: View {
     // instead of the brand-blue default typeColor()/typeIcon() fall back
     // to — otherwise they'd look exactly like a deliberately-tagged
     // exhibition instead of "no info available".
-    var color: Color { exhibition.type.isEmpty ? Color(.systemGray3) : typeColor(exhibition.type) }
+    // A neutral slate — not one of the vivid category colors, but not
+    // systemGray either: gray read as "disabled/can't tap this" on a map
+    // pin, which it isn't.
+    var color: Color { exhibition.type.isEmpty ? Color(red: 0.42, green: 0.45, blue: 0.58) : typeColor(exhibition.type) }
     private var icon: String { exhibition.type.isEmpty ? "photo.artframe" : typeIcon(exhibition.type) }
 
     private var circleDiameter: CGFloat { isSelected ? 52 : 36 }
