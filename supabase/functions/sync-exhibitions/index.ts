@@ -91,6 +91,17 @@ const VENUE_KEYWORDS: [string, string[]][] = [
   ["Artist Studio", ["atelier", "studio artiste", "maison d'artiste"]],
 ]
 
+// Duration is never provided by Paris Open Data — derived from the final
+// venue_type instead of a flat constant. Values reflect a typical visit
+// length for that kind of place, not this specific exhibition.
+const DURATION_SHORT_VENUES = new Set(['Gallery', '', 'Public Space', 'Artist Studio', 'Church & Heritage'])
+const DURATION_LONG_VENUES = new Set(['Museum', 'Art Center', 'Foundation', 'Cultural Center', 'Art Fair'])
+const durationForVenueType = (venueType: string): string => {
+  if (DURATION_SHORT_VENUES.has(venueType)) return '30min'
+  if (DURATION_LONG_VENUES.has(venueType)) return '1h30'
+  return '1h'
+}
+
 // Lowercases and strips accents (NFD decompose + drop combining marks) so
 // matching is case- and accent-insensitive without a per-keyword regex.
 const fold = (s: string): string =>
@@ -163,7 +174,7 @@ const normalizeParisEvent = async (event: any) => {
     lng,
     price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || (event.price_type === 'gratuit' ? 'Free' : ''),
     is_free: event.price_type === 'gratuit',
-    duration: '1h',
+    duration: '1h', // placeholder — overwritten below once venue_type is finalized (see venueTypeByLocation)
     accessibility: event.pmr === 1 ? 'Wheelchair accessible' : 'See venue website',
     phone: event.contact_phone || '',
     end_date: event.date_end ? new Date(event.date_end).toISOString().split('T')[0] : null,
@@ -258,6 +269,7 @@ Deno.serve(async () => {
       const key = coordKey(e)
       const consistent = key ? venueTypeByLocation.get(key) : undefined
       if (consistent) e.venue_type = consistent
+      e.duration = durationForVenueType(e.venue_type)
     }
 
     const { error } = await supabase
