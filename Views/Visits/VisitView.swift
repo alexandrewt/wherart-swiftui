@@ -9,6 +9,7 @@ struct VisitView: View {
     @State private var myGroups: [WherartGroup] = []
     @State private var isLoading = true
     @State private var selectedGroup: WherartGroup? = nil
+    @State private var selectedGroupSource: String = "unknown"
     @State private var showCreateVisit = false
     @State private var exhibitionsMap: [Int: Exhibition] = [:]
     @State private var visitsLoadedTime: Date?
@@ -82,7 +83,7 @@ struct VisitView: View {
             .navigationDestination(item: $selectedGroup) { group in
                 VisitDetailView(group: group, onLeft: {
                     myGroups.removeAll { $0.id == group.id }
-                })
+                }, source: selectedGroupSource)
             }
         }
         .task {
@@ -115,12 +116,7 @@ struct VisitView: View {
                 } else {
                     ForEach(Array(discoverGroups.enumerated()), id: \.element.id) { index, group in
                         VisitCard(group: group, isMyVisit: false, onTap: {
-                            AnalyticsService.shared.track("visit_details_viewed", properties: [
-                                "visit_id": group.id,
-                                "exhibition_title": exhibitionsMap[group.exhibitionId]?.title ?? "Unknown",
-                                "member_count": group.members?.count ?? 0,
-                                "tab_source": "discover"
-                            ])
+                            selectedGroupSource = "discover"
                             selectedGroup = group
                         }, exhibitionsMap: exhibitionsMap)
                             .padding(.horizontal, 16)
@@ -148,12 +144,7 @@ struct VisitView: View {
             } else {
                 ForEach(Array(myGroups.enumerated()), id: \.element.id) { index, group in
                     VisitCard(group: group, isMyVisit: true, onTap: {
-                        AnalyticsService.shared.track("visit_details_viewed", properties: [
-                            "visit_id": group.id,
-                            "exhibition_title": exhibitionsMap[group.exhibitionId]?.title ?? "Unknown",
-                            "member_count": group.members?.count ?? 0,
-                            "tab_source": "my_visits"
-                        ])
+                        selectedGroupSource = "my_visits"
                         selectedGroup = group
                     }, exhibitionsMap: exhibitionsMap)
                         .listRowSeparator(.hidden)

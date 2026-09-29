@@ -6,6 +6,10 @@ struct VisitDetailView: View {
 
     let group: WherartGroup
     let onLeft: () -> Void
+    /// Which tab the visit was opened from ("discover" / "my_visits"), when
+    /// known — nil for other entry points (e.g. a deep link, or the
+    /// #Preview).
+    var source: String? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var localGroup: WherartGroup
@@ -27,9 +31,10 @@ struct VisitDetailView: View {
     private let successFeedback = UINotificationFeedbackGenerator()
     private let warningFeedback = UINotificationFeedbackGenerator()
 
-    init(group: WherartGroup, onLeft: @escaping () -> Void) {
+    init(group: WherartGroup, onLeft: @escaping () -> Void, source: String? = nil) {
         self.group = group
         self.onLeft = onLeft
+        self.source = source
         self._localGroup = State(initialValue: group)
     }
 
@@ -116,11 +121,17 @@ struct VisitDetailView: View {
         .task {
             await loadData()
 
-            AnalyticsService.shared.track("visit_detail_viewed", properties: [
+            // Consolidated from two near-duplicate events (this one plus
+            // VisitView's own "visit_details_viewed", fired the moment a
+            // card was tapped) into a single one, fired here once the
+            // detail screen has actually loaded rather than merely tapped.
+            AnalyticsService.shared.track("visit_details_viewed", properties: [
                 "visit_id": group.id,
                 "creator_id": group.createdBy ?? "Unknown",
                 "member_count": group.members?.count ?? 0,
-                "is_creator": isCreator
+                "is_creator": isCreator,
+                "exhibition_title": exhibition?.title ?? "Unknown",
+                "source": source ?? "unknown"
             ])
         }
         .onAppear {
@@ -231,6 +242,12 @@ struct VisitDetailView: View {
         guard let userId = SupabaseService.shared.currentUser?.id.uuidString else { return }
         if isCreator {
             try? await SupabaseService.shared.deleteGroup(groupId: group.id)
+
+            AnalyticsService.shared.track("visit_deleted", properties: [
+                "visit_id": group.id,
+                "exhibition_id": group.exhibitionId,
+                "member_count_at_deletion": localGroup.members?.count ?? 1
+            ])
         } else {
             try? await SupabaseService.shared.leaveGroup(groupId: group.id, userId: userId)
 

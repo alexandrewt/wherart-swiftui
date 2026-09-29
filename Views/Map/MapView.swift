@@ -858,7 +858,13 @@ struct ClusterPinView: View {
 struct MapPinView: View {
     let exhibition: Exhibition
     let isSelected: Bool
-    var color: Color { typeColor(exhibition.type) }
+    // Unclassified exhibitions (empty type — see sync-exhibitions'
+    // classifyExhibition) get a neutral gray pin with a question mark
+    // instead of the brand-blue default typeColor()/typeIcon() fall back
+    // to — otherwise they'd look exactly like a deliberately-tagged
+    // exhibition instead of "no info available".
+    var color: Color { exhibition.type.isEmpty ? Color(.systemGray3) : typeColor(exhibition.type) }
+    private var icon: String { exhibition.type.isEmpty ? "questionmark" : typeIcon(exhibition.type) }
 
     private var circleDiameter: CGFloat { isSelected ? 52 : 36 }
     private var triangleWidth: CGFloat { isSelected ? 14 : 10 }
@@ -879,7 +885,7 @@ struct MapPinView: View {
                     .fill(color)
                 Circle()
                     .stroke(Color.white, lineWidth: isSelected ? 3 : 2)
-                Image(systemName: typeIcon(exhibition.type))
+                Image(systemName: icon)
                     .font(.system(size: isSelected ? 22 : 15, weight: .bold))
                     .foregroundColor(.white)
             }

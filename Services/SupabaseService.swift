@@ -183,10 +183,10 @@ class SupabaseService: ObservableObject {
             profileData["last_name"] = .string(lastName)
         }
 
-        if let email = email, !email.isEmpty {
-            profileData["email"] = .string(email)
-        }
-        
+        // `profiles` has no `email` column (email lives in Supabase's own
+        // auth.users only) — sending it here made PostgREST reject the
+        // whole upsert, so first_name/last_name silently never got saved
+        // either, even though sign-in itself had already succeeded.
         try await client
             .from("profiles")
             .upsert(profileData)
@@ -230,10 +230,12 @@ class SupabaseService: ObservableObject {
             profileData["last_name"] = .string(lastName)
         }
 
-        if let email = email, !email.isEmpty {
-            profileData["email"] = .string(email)
-        }
-
+        // Same fix as signInWithApple: `profiles` has no `email` column,
+        // so including it here made the whole upsert fail — first_name/
+        // last_name never got saved, and this whole function's error
+        // silently didn't affect the user's session (already established
+        // by signInWithIdToken above), so they'd land in the app signed in
+        // successfully but with a blank name and no visible error.
         try await client
             .from("profiles")
             .upsert(profileData)
