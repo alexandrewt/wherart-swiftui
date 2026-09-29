@@ -163,7 +163,7 @@ const normalizeParisEvent = async (event: any) => {
     lng,
     price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || (event.price_type === 'gratuit' ? 'Free' : ''),
     is_free: event.price_type === 'gratuit',
-    duration: '1h30',
+    duration: '1h',
     accessibility: event.pmr === 1 ? 'Wheelchair accessible' : 'See venue website',
     phone: event.contact_phone || '',
     end_date: event.date_end ? new Date(event.date_end).toISOString().split('T')[0] : null,
