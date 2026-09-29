@@ -28,6 +28,7 @@ struct HomeView: View {
     @State private var showAIAssistant = false
     @AppStorage("paywallShowCount") private var paywallCount = 0
     @FocusState private var searchFocused: Bool
+    @State private var scrolledMilestones: Set<Int> = []
     @FocusState private var floatingSearchFocused: Bool
 
     private let maxPaywallShows = 1
@@ -151,6 +152,7 @@ struct HomeView: View {
                                 withAnimation(.spring(response: 0.3)) {
                                     showFloatingSearch = value < -80
                                 }
+                                trackScrollDepth(contentHeight: geo.size.height, offsetY: value)
                             }
                     }
                 )
@@ -512,6 +514,8 @@ struct HomeView: View {
     // MARK: - Data
 
     private func loadData() async {
+        let loadStartedAt = Date()
+        scrolledMilestones = []
         // The exhibition feed itself is public — only the profile and
         // favorite/viewed state are tied to a signed-in user, so a guest
         // (nil userId) still gets the full feed, just without personalization.
@@ -548,13 +552,41 @@ struct HomeView: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.isLoading = false
                 }
+
+                AnalyticsService.shared.track("homepage_viewed", properties: [
+                    "exhibition_count": withDistance.count,
+                    "genres": fetchedProfile?.preferences ?? [],
+                    "load_time_ms": Int(Date().timeIntervalSince(loadStartedAt) * 1000)
+                ])
             }
         } catch {
             await MainActor.run {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isLoading = false
                 }
+                AnalyticsService.shared.track("homepage_load_failed", properties: [
+                    "error": error.localizedDescription,
+                    "timestamp": ISO8601DateFormatter().string(from: Date())
+                ])
             }
+        }
+    }
+
+    /// Fires once per milestone (25/50/75/100%) per load, so a slow scroll
+    /// doesn't flood PostHog with an event per frame. `offsetY` is the
+    /// scrollable VStack's global minY (0 at the top, negative as the user
+    /// scrolls down) and `contentHeight` is that same VStack's height —
+    /// both already available from the GeometryReader driving the floating
+    /// search button above, so no extra view plumbing is needed here.
+    private func trackScrollDepth(contentHeight: CGFloat, offsetY: CGFloat) {
+        let viewportHeight = UIScreen.main.bounds.height
+        let scrollableDistance = contentHeight - viewportHeight
+        guard scrollableDistance > 0 else { return }
+
+        let depthPercent = Int((-offsetY / scrollableDistance * 100).rounded())
+        for milestone in [25, 50, 75, 100] where depthPercent >= milestone && !scrolledMilestones.contains(milestone) {
+            scrolledMilestones.insert(milestone)
+            AnalyticsService.shared.track("homepage_scrolled", properties: ["scroll_depth_percent": milestone])
         }
     }
 
