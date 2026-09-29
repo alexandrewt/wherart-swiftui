@@ -138,50 +138,22 @@ struct ProfileView: View {
                 .padding(.horizontal, 16)
 
                 // MARK: - Preferences
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        Text(String(localized: "my_preferences")).font(.system(size: 16, weight: .semibold))
-                        Spacer()
-                        Button(action: {
-                            AnalyticsService.shared.track("settings_opened", properties: [
-                                "user_id": service.currentUser?.id.uuidString ?? "unknown"
-                            ])
-                            editTypes = profile?.preferences ?? []
-                            editVenues = profile?.venueTypes ?? []
-                            editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
-                            editEndingSoonFrequency = profile?.endingSoonFrequency ?? "once"
-                            showEditPrefs = true
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "pencil").font(.system(size: 12))
-                                Text(String(localized: "edit")).font(.system(size: 14))
-                            }
-                            .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
-                            .padding(.horizontal, 12).padding(.vertical, 6)
-                            .background(Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.1))
-                            .clipShape(Capsule())
-                        }
-                    }
-
-                    // Preference/venue-type chips used to be listed inline here —
-                    // hidden now that the same info is one tap away via "Edit" and
-                    // also surfaces directly in the filter sheet (pre-checked from
-                    // these same values). A compact summary replaces the full list.
-                    let prefsCount = profile?.preferences.count ?? 0
-                    let venuesCount = profile?.venueTypes.count ?? 0
-                    if prefsCount == 0 && venuesCount == 0 {
-                        Text(String(localized: "no_preferences")).font(.system(size: 14)).foregroundColor(.secondary)
-                    } else {
-                        Text(String(format: String(localized: "preferences_summary"), prefsCount, venuesCount))
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                    }
+                // Was its own title+button card with a chip list (then a
+                // summary line) below — folded into the same labeled-
+                // section/MenuRow pattern as the rest of the menu below,
+                // for one consistent visual language across the screen.
+                menuSection(title: String(localized: "preferences_section")) {
+                    MenuRow(icon: "paintpalette", label: String(localized: "my_preferences"), action: {
+                        AnalyticsService.shared.track("settings_opened", properties: [
+                            "user_id": service.currentUser?.id.uuidString ?? "unknown"
+                        ])
+                        editTypes = profile?.preferences ?? []
+                        editVenues = profile?.venueTypes ?? []
+                        editReminderThreshold = Double(profile?.exhibitionReminderThreshold ?? 25)
+                        editEndingSoonFrequency = profile?.endingSoonFrequency ?? "once"
+                        showEditPrefs = true
+                    })
                 }
-                .padding(.horizontal, 16).padding(.vertical, 16)
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-                .padding(.horizontal, 16)
 
                 // MARK: - Menu
                 // Grouped into labeled sections (Account / Subscription /

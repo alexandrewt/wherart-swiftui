@@ -171,7 +171,10 @@ struct ExhibitionDetailView: View {
 
                     // Titre en bas de l'image
                     VStack(alignment: .leading, spacing: 6) {
-                        TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: Color(red: 0.58, green: 0.77, blue: 0.99))
+                        HStack(spacing: 6) {
+                            TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.type), color: Color(red: 0.58, green: 0.77, blue: 0.99))
+                            TagBadge(label: ArtTaxonomy.displayLabel(for: exhibition.venueType), color: Color.white.opacity(0.92))
+                        }
                         Text(exhibition.title)
                             .font(.system(size: 26, weight: .bold))
                             .foregroundColor(.white)
