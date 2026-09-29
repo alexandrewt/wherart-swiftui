@@ -10,7 +10,6 @@
 		2C8DF6BBE2AE6113FCEBA98D /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11370ECD09D5102FDD08672 /* NotificationsView.swift */; };
 		55C169B8C4B2FB6D824DD7D0 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1BB362A6EC71B1E34943BC /* EditProfileView.swift */; };
 		85851FF686DC665D6EA8EF77 /* NewExhibitionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2043BCB9BA0B22C4A87AD837 /* NewExhibitionsService.swift */; };
-		B674FA00D1E2C5F2 /* NotificationPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C74961C8A64B9E /* NotificationPreviewSheet.swift */; };
 		A13297680C2779020DFD689C /* ChatFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273E965AC408E7811F5F616 /* ChatFullView.swift */; };
 		A1B2C3D4E5F607182930A1B5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182930A1B2 /* Localizable.strings */; };
 		A4B294DB30AE05FBAEF43116 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313DEE9B8C7FC5309BD59DEE /* DeepLinkRouter.swift */; };
@@ -48,6 +47,7 @@
 		B5D979792FF950000000000A /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D979782FF9500000000009 /* SplashView.swift */; };
 		B5F5A5463048B8F2004E2CD9 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5453048B8F2004E2CD9 /* SupabaseService.swift */; };
 		B5F5A5483048B92B004E2CD9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F5A5473048B92B004E2CD9 /* AnalyticsService.swift */; };
+		B674FA00D1E2C5F2 /* NotificationPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C74961C8A64B9E /* NotificationPreviewSheet.swift */; };
 		C7D8E9F0A1B2C3D4E5F60718 /* ArtTaxonomy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D8E9F0A1B2C3D4E5F60717 /* ArtTaxonomy.swift */; };
 		D572E2D1464FCFE2D3F11CEE /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B889A030F9FC1043BF47F4 /* ResetPasswordView.swift */; };
 		D9061E71FA07934A2E8017E1 /* libPods-Wherart.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 816D914DA91B95EAC1B570CE /* libPods-Wherart.a */; };
@@ -57,6 +57,7 @@
 
 /* Begin PBXFileReference section */
 		026603311174F12C8E3B0622 /* Pods-Wherart.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wherart.release.xcconfig"; path = "Target Support Files/Pods-Wherart/Pods-Wherart.release.xcconfig"; sourceTree = "<group>"; };
+		13C74961C8A64B9E /* NotificationPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreviewSheet.swift; sourceTree = "<group>"; };
 		2043BCB9BA0B22C4A87AD837 /* NewExhibitionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewExhibitionsService.swift; sourceTree = "<group>"; };
 		313DEE9B8C7FC5309BD59DEE /* DeepLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouter.swift; sourceTree = "<group>"; };
 		5273E965AC408E7811F5F616 /* ChatFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFullView.swift; sourceTree = "<group>"; };
@@ -68,7 +69,6 @@
 		A1B2C3D4E5F607182930A1B3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182930A1B4 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B11370ECD09D5102FDD08672 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
-		13C74961C8A64B9E /* NotificationPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreviewSheet.swift; sourceTree = "<group>"; };
 		B5361AC02FAF8CCF0042B689 /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
 		B5361AC22FAFD5EE0042B689 /* JoinVisitConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinVisitConfirmView.swift; sourceTree = "<group>"; };
 		B5361AC42FB35B180042B689 /* PaywallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallSheet.swift; sourceTree = "<group>"; };
@@ -638,7 +638,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6.2;
+				MARKETING_VERSION = 1.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
@@ -688,7 +688,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
-				MARKETING_VERSION = 1.6.2;
+				MARKETING_VERSION = 1.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexandrewt.wherart;
 				PRODUCT_NAME = Wherart;
 				REGISTER_APP_GROUPS = YES;
