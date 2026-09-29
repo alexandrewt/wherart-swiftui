@@ -163,40 +163,18 @@ struct ProfileView: View {
                         }
                     }
 
-                    if let prefs = profile?.preferences, !prefs.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(String(localized: "art_genres")).font(.system(size: 13)).foregroundColor(.secondary)
-                            WrapLayout(spacing: 8) {
-                                ForEach(prefs, id: \.self) { pref in
-                                    Text(ArtTaxonomy.displayLabel(for: pref))
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
-                                        .padding(.horizontal, 12).padding(.vertical, 6)
-                                        .background(Color(red: 0.15, green: 0.39, blue: 0.92).opacity(0.12))
-                                        .clipShape(Capsule())
-                                }
-                            }
-                        }
-                    }
-
-                    if let venues = profile?.venueTypes, !venues.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(String(localized: "favourite_venues")).font(.system(size: 13)).foregroundColor(.secondary)
-                            WrapLayout(spacing: 8) {
-                                ForEach(venues, id: \.self) { venue in
-                                    Text(ArtTaxonomy.displayLabel(for: venue))
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
-                                        .padding(.horizontal, 12).padding(.vertical, 6)
-                                        .background(Color(.systemGray6))
-                                        .clipShape(Capsule())
-                                }
-                            }
-                        }
-                    }
-
-                    if (profile?.preferences ?? []).isEmpty && (profile?.venueTypes ?? []).isEmpty {
+                    // Preference/venue-type chips used to be listed inline here —
+                    // hidden now that the same info is one tap away via "Edit" and
+                    // also surfaces directly in the filter sheet (pre-checked from
+                    // these same values). A compact summary replaces the full list.
+                    let prefsCount = profile?.preferences.count ?? 0
+                    let venuesCount = profile?.venueTypes.count ?? 0
+                    if prefsCount == 0 && venuesCount == 0 {
                         Text(String(localized: "no_preferences")).font(.system(size: 14)).foregroundColor(.secondary)
+                    } else {
+                        Text(String(format: String(localized: "preferences_summary"), prefsCount, venuesCount))
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
                     }
                 }
                 .padding(.horizontal, 16).padding(.vertical, 16)

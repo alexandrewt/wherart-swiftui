@@ -313,3 +313,4 @@
 "force_update_title" = "Update Required";
 "force_update_message" = "A new version of Wherart is available. Please update the app to continue using it.";
 "force_update_button" = "Update Now";
+"preferences_summary" = "%d art types, %d venue types selected";
