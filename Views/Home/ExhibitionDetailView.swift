@@ -1009,7 +1009,15 @@ struct QuickInfoCard: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
                 .padding(.bottom, 6)
-            Text(value).font(.system(size: 18, weight: .bold)).foregroundColor(.primary)
+            // Fixed 2-line height regardless of actual length — "Tarif sous
+            // conditions" wraps while "3.2 km" doesn't, and without this the
+            // subtitle below ("Voir plus" / "Itinéraire") would sit at a
+            // different height in each tile instead of lining up together.
+            Text(value)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.primary)
+                .lineLimit(2)
+                .frame(minHeight: 44, alignment: .topLeading)
             if let subtitle = subtitle {
                 Text(subtitle).font(.system(size: 11)).foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
             } else {
