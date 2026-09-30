@@ -172,7 +172,16 @@ const normalizeParisEvent = async (event: any) => {
     image: event.cover_url || '',
     lat,
     lng,
-    price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || (event.price_type === 'gratuit' ? 'Free' : ''),
+    // No 'Free' placeholder here: is_free (below) already fully captures
+    // "this is free" — an empty price lets parsedPriceDisplay's own
+    // empty-string guard show a clean "Gratuit", no details link. A
+    // literal 'Free' previously stored here didn't match any of
+    // parsedPriceDisplay's French free-wording patterns, so it was
+    // misread as leftover conditions text -> wrongly showed "Gratuit
+    // sous conditions" and leaked the untranslated word into the pricing
+    // sheet, for every exhibition with no real price_detail (500 of 1006
+    // rows, confirmed before this fix).
+    price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || '',
     is_free: event.price_type === 'gratuit',
     duration: '1h', // placeholder — overwritten below once venue_type is finalized (see venueTypeByLocation)
     // pmr (Paris Open Data's own wheelchair flag) is unreliable — never
