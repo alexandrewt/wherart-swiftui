@@ -94,23 +94,41 @@ extension String {
 
 // MARK: - Text Cleanup Helpers
 
-/// Inserts a space between a lowercase letter immediately followed by an
-/// uppercase letter (e.g. "eurosEnfant" → "euros Enfant", "19h00Fermé" →
-/// "19h00 Fermé") — the Paris Open Data API frequently concatenates words
-/// with no separator.
+/// Inserts a space wherever the Paris Open Data API concatenated two tokens
+/// with no separator — most often a stripped `<br>`/`<p>` boundary that
+/// glued the end of one sentence straight onto the next (real prod example:
+/// "...Mémorial de la Shoah à ParisTarif : gratuit", "...20 juin
+/// 2026Vernissage : jeudi..."). Covers the three letter/digit-case
+/// transitions that reliably mark a lost boundary in this data:
+///   - lowercase → uppercase: "eurosEnfant" → "euros Enfant"
+///   - digit → uppercase: "2026Vernissage" → "2026 Vernissage"
+///   - letter → digit: "Paris17 h 45" → "Paris 17 h 45"
+///
+/// Uses \p{Ll}/\p{Lu}/\p{L} (Unicode letter categories), NOT hand-rolled
+/// [a-zà-ÿ]/[A-ZÀ-Ÿ] ranges — verified directly against NSRegularExpression
+/// that the latter is broken: e.g. [A-ZÀ-Ÿ] matches every accented
+/// LOWERCASE letter too (ô, é, à, ç...), not just uppercase ones, which
+/// silently split words like "bientôt" into "bient ôt" for any French text
+/// carrying an accent, in every price/schedule string that happened to have
+/// an uppercase letter anywhere after it.
+///
+/// Deliberately leaves digit → lowercase alone (unlike the other two
+/// transitions, real prod text glues digits directly to short suffixes,
+/// not full words — "18h30", "1er", "3ème" — so that transition can't be
+/// treated as a lost boundary the way the other three can).
 func insertMissingSpaces(_ text: String) -> String {
-    text.replacingOccurrences(
-        of: "([a-zà-ÿ])([A-ZÀ-Ÿ])",
-        with: "$1 $2",
-        options: .regularExpression
-    )
+    var result = text
+    result = result.replacingOccurrences(of: #"(\p{Ll})(\p{Lu})"#, with: "$1 $2", options: .regularExpression)
+    result = result.replacingOccurrences(of: #"(\d)(\p{Lu})"#, with: "$1 $2", options: .regularExpression)
+    result = result.replacingOccurrences(of: #"(\p{L})(\d)"#, with: "$1 $2", options: .regularExpression)
+    return result
 }
 
 /// Inserts a space between a digit immediately followed by a lowercase
 /// letter (e.g. "2026de" → "2026 de").
 private func insertSpaceAfterDigit(_ text: String) -> String {
     text.replacingOccurrences(
-        of: #"(\d)([a-zà-ÿ])"#,
+        of: #"(\d)(\p{Ll})"#,
         with: "$1 $2",
         options: .regularExpression
     )

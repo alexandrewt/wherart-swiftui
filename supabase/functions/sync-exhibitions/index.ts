@@ -26,6 +26,24 @@ const geocode = async (address: string): Promise<{ lat: number, lng: number } | 
 // past the upsert(onConflict: 'title,venue') dedup, creating a duplicate row.
 const normalizeText = (s: string): string => s.replace(/\s+/gu, ' ').trim()
 
+// Paris Open Data's schedule/price fields use <br>, </p> and <li> as line
+// separators between otherwise unpunctuated sentences (e.g. one <li> per
+// price tier). Stripping every tag with a blind `/<[^>]*>/g` — with no
+// replacement — destroys that separator along with the tag, gluing the
+// sentences together with zero whitespace (confirmed in prod: price rows
+// like "...à Paris17 h 45 : retour...à ParisTarif : gratuit" and "...20 juin
+// 2026Vernissage : jeudi..."). Convert those structural tags to a newline
+// BEFORE the remaining (purely cosmetic) tags are dropped, so the boundary
+// survives into the stored text; SwiftUI's Text already renders embedded
+// newlines as line breaks.
+const stripHtml = (s: string): string =>
+  s
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|li|div)>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim()
+
 // MARK: - Type / Venue-Type Classification
 //
 // Paris Open Data never provides an art-medium or venue-category field, so
@@ -166,7 +184,7 @@ const normalizeParisEvent = async (event: any) => {
     venue_type: venueType,
     type,
     address,
-    schedule: event.date_description?.replace(/<[^>]*>/g, '').trim() || '',
+    schedule: event.date_description ? stripHtml(event.date_description) : '',
     description,
     ticket_link: event.access_link || event.contact_url || '',
     image: event.cover_url || '',
@@ -181,7 +199,7 @@ const normalizeParisEvent = async (event: any) => {
     // sous conditions" and leaked the untranslated word into the pricing
     // sheet, for every exhibition with no real price_detail (500 of 1006
     // rows, confirmed before this fix).
-    price: event.price_detail?.replace(/<[^>]*>/g, '').trim() || '',
+    price: event.price_detail ? stripHtml(event.price_detail) : '',
     is_free: event.price_type === 'gratuit',
     duration: '1h', // placeholder — overwritten below once venue_type is finalized (see venueTypeByLocation)
     // pmr (Paris Open Data's own wheelchair flag) is unreliable — never
