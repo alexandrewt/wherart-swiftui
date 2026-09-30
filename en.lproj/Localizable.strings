@@ -318,5 +318,7 @@
 "subscription_section" = "Subscription";
 "share_section" = "Share";
 "free_with_conditions" = "Free (conditions apply)";
-"see_pricing_details" = "See price details";
+"see_pricing_details" = "See pricing conditions";
 "preferences_section" = "Preferences";
+"pricing_see_more" = "See more";
+"pricing_conditions_apply" = "Conditions apply";

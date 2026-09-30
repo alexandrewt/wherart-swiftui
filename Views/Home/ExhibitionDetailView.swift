@@ -76,17 +76,22 @@ struct ExhibitionDetailView: View {
         parsedPriceDisplay(exhibition.price, isFree: exhibition.isFree)
     }
 
+    /// parsedPriceDisplay's no-number/no-free-wording fallback reads as
+    /// "Voir les conditions tarifaires" on cards (Home/Favorites/Viewed) —
+    /// here on the detail view's own tile, that same case reads as a
+    /// state ("Tarif sous conditions") instead, since "Voir plus" already
+    /// covers the call-to-action role as the subtitle below it.
+    private var pricingValue: String {
+        parsedPrice.summary == String(localized: "see_pricing_details")
+            ? String(localized: "pricing_conditions_apply")
+            : parsedPrice.summary
+    }
+
+    /// Matches Distance's own subtitle ("Itinéraire") — one short, constant
+    /// prompt whenever there's more to see, rather than varying by whether
+    /// a ticket link happens to exist.
     private var pricingSubtitle: String? {
-        guard parsedPrice.hasDetails else { return nil }
-        // The tile's main value already says "Voir le détail des tarifs"
-        // (parsedPriceDisplay's no-number/no-free-wording fallback) —
-        // repeating the same phrase as the blue subtitle below it would be
-        // redundant.
-        guard parsedPrice.summary != String(localized: "see_pricing_details") else { return nil }
-        if let ticketLink = exhibition.ticketLink, !ticketLink.isEmpty {
-            return String(localized: "see_all_prices")
-        }
-        return String(localized: "details_available")
+        parsedPrice.hasDetails ? String(localized: "pricing_see_more") : nil
     }
 
     private var visitsCountText: String {
@@ -286,7 +291,7 @@ struct ExhibitionDetailView: View {
                         )
                         QuickInfoCard(
                             label: String(localized: "pricing"),
-                            value: parsedPrice.summary,
+                            value: pricingValue,
                             subtitle: pricingSubtitle,
                             action: parsedPrice.hasDetails ? { showPricing = true } : nil
                         )
@@ -1000,7 +1005,10 @@ struct QuickInfoCard: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.system(size: 12)).foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+            Text(label)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
+                .padding(.bottom, 6)
             Text(value).font(.system(size: 18, weight: .bold)).foregroundColor(.primary)
             if let subtitle = subtitle {
                 Text(subtitle).font(.system(size: 11)).foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
@@ -1012,6 +1020,7 @@ struct QuickInfoCard: View {
         .padding(14)
         .background(quickInfoCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: quickInfoCardCornerRadius))
+        .contentShape(Rectangle())
     }
 
     var body: some View {

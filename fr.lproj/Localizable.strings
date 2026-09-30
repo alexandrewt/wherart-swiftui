@@ -319,5 +319,7 @@
 "subscription_section" = "Abonnement";
 "share_section" = "Partager";
 "free_with_conditions" = "Gratuit sous conditions";
-"see_pricing_details" = "Voir le détail des tarifs";
+"see_pricing_details" = "Voir les conditions tarifaires";
 "preferences_section" = "Préférences";
+"pricing_see_more" = "Voir plus";
+"pricing_conditions_apply" = "Tarif sous conditions";
