@@ -79,7 +79,7 @@ struct ExhibitionDetailView: View {
     /// parsedPriceDisplay's no-number/no-free-wording fallback reads as
     /// "Voir les conditions tarifaires" on cards (Home/Favorites/Viewed) —
     /// here on the detail view's own tile, that same case reads as a
-    /// state ("Tarif sous conditions") instead, since "Voir plus" already
+    /// state ("Conditions tarifaires") instead, since "Voir plus" already
     /// covers the call-to-action role as the subtitle below it.
     private var pricingValue: String {
         parsedPrice.summary == String(localized: "see_pricing_details")
@@ -1009,15 +1009,14 @@ struct QuickInfoCard: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
                 .padding(.bottom, 6)
-            // Fixed 2-line height regardless of actual length — "Tarif sous
-            // conditions" wraps while "3.2 km" doesn't, and without this the
-            // subtitle below ("Voir plus" / "Itinéraire") would sit at a
-            // different height in each tile instead of lining up together.
+            // Fixed small gap to the subtitle regardless of card — no
+            // reserved height on the value text itself, so "Itinéraire"
+            // sits right under "3.2 km" instead of being pushed down to
+            // match wherever "Voir plus" lands under a wrapped 2-line value.
             Text(value)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.primary)
                 .lineLimit(2)
-                .frame(minHeight: 44, alignment: .topLeading)
             if let subtitle = subtitle {
                 Text(subtitle).font(.system(size: 11)).foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
             } else {
