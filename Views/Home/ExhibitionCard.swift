@@ -115,8 +115,14 @@ struct ExhibitionCard: View {
                             .lineLimit(1)
                         Spacer()
                         let parsed = parsedPriceDisplay(exhibition.price, isFree: exhibition.isFree)
+                        // "Gratuit sous conditions" is redundant here — the
+                        // info icon right next to it already signals there's
+                        // more to see, so the card only needs "Conditions".
+                        let priceText = parsed.summary == String(localized: "free_with_conditions")
+                            ? String(localized: "pricing_conditions_apply")
+                            : parsed.summary
                         HStack(spacing: 4) {
-                            Text(parsed.summary)
+                            Text(priceText)
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
                                 .lineLimit(1)
