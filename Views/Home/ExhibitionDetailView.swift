@@ -76,15 +76,19 @@ struct ExhibitionDetailView: View {
         parsedPriceDisplay(exhibition.price, isFree: exhibition.isFree)
     }
 
-    /// parsedPriceDisplay's no-number/no-free-wording fallback reads as
-    /// "Voir les conditions tarifaires" on cards (Home/Favorites/Viewed) —
-    /// here on the detail view's own tile, that same case reads as a
-    /// state ("Conditions tarifaires") instead, since "Voir plus" already
-    /// covers the call-to-action role as the subtitle below it.
+    /// parsedPriceDisplay's "no price number" fallbacks read as the full
+    /// sentence on cards (Home/Favorites/Viewed) — "Voir les conditions
+    /// tarifaires" / "Gratuit sous conditions". Here on the detail view's
+    /// own tile, both collapse to the same short state ("Conditions")
+    /// instead, since "Voir plus" already covers the call-to-action role
+    /// as the subtitle below it.
     private var pricingValue: String {
-        parsedPrice.summary == String(localized: "see_pricing_details")
-            ? String(localized: "pricing_conditions_apply")
-            : parsedPrice.summary
+        switch parsedPrice.summary {
+        case String(localized: "see_pricing_details"), String(localized: "free_with_conditions"):
+            return String(localized: "pricing_conditions_apply")
+        default:
+            return parsedPrice.summary
+        }
     }
 
     /// Matches Distance's own subtitle ("Itinéraire") — one short, constant
