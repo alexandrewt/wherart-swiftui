@@ -79,12 +79,15 @@ struct ExhibitionDetailView: View {
     /// parsedPriceDisplay's "no price number" fallbacks read as the full
     /// sentence on cards (Home/Favorites/Viewed) — "Voir les conditions
     /// tarifaires" / "Gratuit sous conditions". Here on the detail view's
-    /// own tile, both collapse to the same short state ("Conditions")
-    /// instead, since "Voir plus" already covers the call-to-action role
-    /// as the subtitle below it.
+    /// own tile, each collapses to its own short state instead: the exhibition
+    /// IS free (just with conditions attached), so that one reads "Gratuit"
+    /// rather than the generic "Sous conditions" used for the other fallback
+    /// (an unparsed price with no number and no free wording at all).
     private var pricingValue: String {
         switch parsedPrice.summary {
-        case String(localized: "see_pricing_details"), String(localized: "free_with_conditions"):
+        case String(localized: "free_with_conditions"):
+            return String(localized: "free")
+        case String(localized: "see_pricing_details"):
             return String(localized: "pricing_conditions_apply")
         default:
             return parsedPrice.summary
@@ -92,10 +95,14 @@ struct ExhibitionDetailView: View {
     }
 
     /// Matches Distance's own subtitle ("Itinéraire") — one short, constant
-    /// prompt whenever there's more to see, rather than varying by whether
-    /// a ticket link happens to exist.
+    /// prompt whenever there's more to see. Reads "Voir conditions" for the
+    /// free-with-conditions case (the conditions are the whole reason to tap
+    /// through) vs. the generic "Voir plus" for every other case with details.
     private var pricingSubtitle: String? {
-        parsedPrice.hasDetails ? String(localized: "pricing_see_more") : nil
+        guard parsedPrice.hasDetails else { return nil }
+        return parsedPrice.summary == String(localized: "free_with_conditions")
+            ? String(localized: "pricing_see_conditions")
+            : String(localized: "pricing_see_more")
     }
 
     private var visitsCountText: String {
