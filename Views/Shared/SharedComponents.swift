@@ -1,5 +1,31 @@
 import SwiftUI
 
+// MARK: - Status Bar Background
+
+/// The device's actual status bar height (safe-area top inset) — ~50pt on
+/// most iPhones, ~59pt on Dynamic Island models. Not a fixed constant since
+/// it varies per device.
+var statusBarHeight: CGFloat {
+    UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .first?.windows.first?.safeAreaInsets.top ?? 50
+}
+
+extension View {
+    /// Paints just the status bar strip opaque white. `.toolbarBackground`
+    /// paints the whole nav bar — status bar PLUS the title row below it —
+    /// which for a screen with no visible title/buttons there (Home,
+    /// Profile) reserves far more height than the status bar actually is,
+    /// looking like an oversized white band instead of a status bar.
+    func whiteStatusBarBackground() -> some View {
+        overlay(alignment: .top) {
+            Color.white
+                .frame(height: statusBarHeight)
+                .ignoresSafeArea(edges: .top)
+        }
+    }
+}
+
 // MARK: - Tag Badge
 struct TagBadge: View {
     let label: String

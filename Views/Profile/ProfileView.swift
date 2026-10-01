@@ -197,12 +197,7 @@ struct ProfileView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        // Without this, the nav bar's scroll-edge appearance (transparent by
-        // default since iOS 16) lets whatever's scrolled underneath show
-        // through the status bar until the user scrolls past the top —
-        // forcing it opaque white matches the screen's own background at rest.
-        .toolbarBackground(Color.white, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        .whiteStatusBarBackground()
         .navigationDestination(isPresented: $showSettings) {
             SettingsView()
         }
