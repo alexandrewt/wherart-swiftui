@@ -1015,7 +1015,7 @@ struct QuickInfoCard: View {
     }
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(label)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
@@ -1024,10 +1024,12 @@ struct QuickInfoCard: View {
             // reserved height on the value text itself, so "Itinéraire"
             // sits right under "3.2 km" instead of being pushed down to
             // match wherever "Voir plus" lands under a wrapped 2-line value.
+            // Gap is 5pt (was the VStack's uniform 4pt spacing, +25%).
             Text(value)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.primary)
                 .lineLimit(2)
+                .padding(.bottom, 5)
             if let subtitle = subtitle {
                 Text(subtitle).font(.system(size: 11)).foregroundColor(Color(red: 0.15, green: 0.39, blue: 0.92))
             } else {
