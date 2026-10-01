@@ -4,6 +4,11 @@ import SwiftUI
 struct TagBadge: View {
     let label: String
     let color: Color
+    /// Defaults to the original dark navy, which only reads well on the
+    /// near-white venueType pill. The saturated per-category `typeColor(_:)`
+    /// backgrounds (deep blues, reds, purples...) are too dark for that same
+    /// navy text to meet contrast — callers using those pass `.white`.
+    var textColor: Color = Color(red: 0.12, green: 0.23, blue: 0.37)
 
     var body: some View {
         // Unclassified exhibitions carry an empty type/venueType (see
@@ -12,7 +17,7 @@ struct TagBadge: View {
         if !label.isEmpty {
             Text(label)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(red: 0.12, green: 0.23, blue: 0.37))
+                .foregroundColor(textColor)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(color)
